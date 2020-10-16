@@ -14,35 +14,35 @@ from . import compat
 @compat.BlRegister()
 class CNV_OT_export_cm3d2_anm(bpy.types.Operator):
     bl_idname = 'export_anim.export_cm3d2_anm'
-    bl_label = "CM3D2モーション (.anm)"
-    bl_description = "カスタムメイド3D2のanmファイルを保存します"
+    bl_label = "CM3D2 Motion (.anm)"
+    bl_description = "Allows you to export a pose to a .anm file."
     bl_options = {'REGISTER'}
 
     filepath = bpy.props.StringProperty(subtype='FILE_PATH')
     filename_ext = ".anm"
     filter_glob = bpy.props.StringProperty(default="*.anm", options={'HIDDEN'})
 
-    scale = bpy.props.FloatProperty(name="倍率", default=0.2, min=0.1, max=100, soft_min=0.1, soft_max=100, step=100, precision=1, description="エクスポート時のメッシュ等の拡大率です")
-    is_backup = bpy.props.BoolProperty(name="ファイルをバックアップ", default=True, description="ファイルに上書きする場合にバックアップファイルを複製します")
-    version = bpy.props.IntProperty(name="ファイルバージョン", default=1000, min=1000, max=1111, soft_min=1000, soft_max=1111, step=1)
+    scale = bpy.props.FloatProperty(name="Scale", default=0.2, min=0.1, max=100, soft_min=0.1, soft_max=100, step=100, precision=1, description="Scale of the .anm at the time of export")
+    is_backup = bpy.props.BoolProperty(name="Backup", default=True, description="Will backup overwritten files.")
+    version = bpy.props.IntProperty(name="Version", default=1000, min=1000, max=1111, soft_min=1000, soft_max=1111, step=1)
 
-    frame_start = bpy.props.IntProperty(name="開始フレーム", default=0, min=0, max=99999, soft_min=0, soft_max=99999, step=1)
-    frame_end = bpy.props.IntProperty(name="最終フレーム", default=0, min=0, max=99999, soft_min=0, soft_max=99999, step=1)
-    key_frame_count = bpy.props.IntProperty(name="キーフレーム数", default=1, min=1, max=99999, soft_min=1, soft_max=99999, step=1)
-    time_scale = bpy.props.FloatProperty(name="再生速度", default=1.0, min=0.1, max=10.0, soft_min=0.1, soft_max=10.0, step=10, precision=1)
-    is_keyframe_clean = bpy.props.BoolProperty(name="同じ変形のキーフレームを掃除", default=True)
-    is_smooth_handle = bpy.props.BoolProperty(name="キーフレーム間の変形をスムーズに", default=True)
+    frame_start = bpy.props.IntProperty(name="Starting Frame", default=0, min=0, max=99999, soft_min=0, soft_max=99999, step=1)
+    frame_end = bpy.props.IntProperty(name="Last Frame", default=0, min=0, max=99999, soft_min=0, soft_max=99999, step=1)
+    key_frame_count = bpy.props.IntProperty(name="Number of key frames", default=1, min=1, max=99999, soft_min=1, soft_max=99999, step=1)
+    time_scale = bpy.props.FloatProperty(name="Playback Speed", default=1.0, min=0.1, max=10.0, soft_min=0.1, soft_max=10.0, step=10, precision=1)
+    is_keyframe_clean = bpy.props.BoolProperty(name="Clean Keyframes", default=True)
+    is_smooth_handle = bpy.props.BoolProperty(name="Smooth Transitions", default=True)
 
     items = [
-        ('ARMATURE', "アーマチュア", "", 'OUTLINER_OB_ARMATURE', 1),
-        ('ARMATURE_PROPERTY', "アーマチュア内プロパティ", "", 'ARMATURE_DATA', 2),
+        ('ARMATURE', "Armature", "", 'OUTLINER_OB_ARMATURE', 1),
+        ('ARMATURE_PROPERTY', "Armature Data", "", 'ARMATURE_DATA', 2),
     ]
-    bone_parent_from = bpy.props.EnumProperty(items=items, name="ボーン親情報の参照先", default='ARMATURE_PROPERTY')
+    bone_parent_from = bpy.props.EnumProperty(items=items, name="Bone Parent From", default='ARMATURE_PROPERTY')
 
-    is_remove_alone_bone = bpy.props.BoolProperty(name="親も子も存在しない", default=True)
-    is_remove_ik_bone = bpy.props.BoolProperty(name="名前がIK/Nubっぽい", default=True)
-    is_remove_serial_number_bone = bpy.props.BoolProperty(name="名前が連番付き", default=True)
-    is_remove_japanese_bone = bpy.props.BoolProperty(name="名前に日本語が含まれる", default=True)
+    is_remove_alone_bone = bpy.props.BoolProperty(name="Remove Loose Bones", default=True)
+    is_remove_ik_bone = bpy.props.BoolProperty(name="Remove IK Bones", default=True)
+    is_remove_serial_number_bone = bpy.props.BoolProperty(name="Remove Duplicate Numbers", default=True)
+    is_remove_japanese_bone = bpy.props.BoolProperty(name="Remove Japanese Characters from Bones", default=True)
 
     @classmethod
     def poll(cls, context):
@@ -91,11 +91,11 @@ class CNV_OT_export_cm3d2_anm(bpy.types.Operator):
         sub_box.prop(self, 'is_smooth_handle', icon='SMOOTHCURVE')
 
         sub_box = box.box()
-        sub_box.label(text="ボーン親情報の参照先", icon='FILE_PARENT')
+        sub_box.label("Destination of bone parent information", icon='FILE_PARENT')
         sub_box.prop(self, 'bone_parent_from', icon='FILE_PARENT', expand=True)
 
         sub_box = box.box()
-        sub_box.label(text="除外するボーン", icon='X')
+        sub_box.label("Bones to Exclude", icon='X')
         column = sub_box.column(align=True)
         column.prop(self, 'is_remove_alone_bone', icon='UNLINKED')
         column.prop(self, 'is_remove_ik_bone', icon='CONSTRAINT_BONE')
@@ -108,7 +108,7 @@ class CNV_OT_export_cm3d2_anm(bpy.types.Operator):
         try:
             file = common.open_temporary(self.filepath, 'wb', is_backup=self.is_backup)
         except:
-            self.report(type={'ERROR'}, message="ファイルを開くのに失敗しました、アクセス不可の可能性があります")
+            self.report(type={'ERROR'}, message="Failed to open this file, possibily inaccessible.")
             return {'CANCELLED'}
 
         try:

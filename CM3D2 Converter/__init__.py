@@ -6,8 +6,8 @@ bl_info = {
     "author": "@saidenka_cm3d2, @trzrz",
     "version": (2020, 6, 8, 21, 40, 41),
     "blender": (2, 80, 0),
-    "location": "ファイル > インポート/エクスポート > CM3D2 Model (.model)",
-    "description": "カスタムメイド3D2/カスタムオーダーメイド3D2専用ファイルのインポート/エクスポートを行います",
+    "location" : "File > Import/Export > CM3D2 Model (.model)",
+    "description" : "A plugin dedicated to the editing, importing, and exporting of CM3D2 .Model Files.",
     "warning": "",
     "wiki_url": "",
     "tracker_url": "https://github.com/trzr/Blender-CM3D2-Converter",
@@ -105,49 +105,49 @@ import bpy, os.path, bpy.utils.previews
 class AddonPreferences(bpy.types.AddonPreferences):
     bl_idname = __name__
 
-    cm3d2_path = bpy.props.StringProperty(name="CM3D2インストールフォルダ", subtype='DIR_PATH', description="変更している場合は設定しておくと役立つかもしれません")
-    backup_ext = bpy.props.StringProperty(name="バックアップの拡張子 (空欄で無効)", description="エクスポート時にバックアップを作成時この拡張子で複製します、空欄でバックアップを無効", default='bak')
+    cm3d2_path = bpy.props.StringProperty(name="CM3D2 Location", subtype='DIR_PATH', description="You should set the correct directory if you used a different one.")
+    backup_ext = bpy.props.StringProperty(name="Backup Extension (Must not be left blank)", description="The previous Model file with the same name will be given an extension.", default='bak')
 
-    scale = bpy.props.FloatProperty(name="倍率", description="Blenderでモデルを扱うときの拡大率", default=5, min=0.01, max=100, soft_min=0.01, soft_max=100, step=10, precision=2)
-    is_convert_bone_weight_names = bpy.props.BoolProperty(name="基本的にボーン名/ウェイト名をBlender用に変換", default=False, description="modelインポート時にボーン名/ウェイト名を変換するかどうかのオプションのデフォルトを設定します")
-    model_default_path = bpy.props.StringProperty(name="modelファイル置き場", subtype='DIR_PATH', description="設定すれば、modelを扱う時は必ずここからファイル選択を始めます")
-    model_import_path = bpy.props.StringProperty(name="modelインポート時のデフォルトパス", subtype='FILE_PATH', description="modelインポート時に最初はここが表示されます、インポート毎に保存されます")
-    model_export_path = bpy.props.StringProperty(name="modelエクスポート時のデフォルトパス", subtype='FILE_PATH', description="modelエクスポート時に最初はここが表示されます、エクスポート毎に保存されます")
+    scale = bpy.props.FloatProperty(name="Scale", description="The scale at which the models are imported and exported", default=5, min=0.01, max=100, soft_min=0.01, soft_max=100, step=10, precision=2)
+    is_convert_bone_weight_names = bpy.props.BoolProperty(name="Convert weight names for Blender", default=False, description="Will change the options default when importing or exporting.")
+    model_default_path = bpy.props.StringProperty(name="Model Default Path", subtype='DIR_PATH', description="If set. The file selection will open here.")
+    model_import_path = bpy.props.StringProperty(name="Model Default Import Path", subtype='FILE_PATH', description="When importing a .model file. The file selection prompt will begin here.")
+    model_export_path = bpy.props.StringProperty(name="Model Default Export Path", subtype='FILE_PATH', description="When exporting a .model file. The file selection prompt will begin here.")
 
-    anm_default_path = bpy.props.StringProperty(name="anmファイル置き場", subtype='DIR_PATH', description="設定すれば、anmを扱う時は必ずここからファイル選択を始めます")
-    anm_import_path = bpy.props.StringProperty(name="anmインポート時のデフォルトパス", subtype='FILE_PATH', description="anmインポート時に最初はここが表示されます、インポート毎に保存されます")
-    anm_export_path = bpy.props.StringProperty(name="anmエクスポート時のデフォルトパス", subtype='FILE_PATH', description="anmエクスポート時に最初はここが表示されます、エクスポート毎に保存されます")
+    anm_default_path = bpy.props.StringProperty(name=".anm Default Path", subtype='DIR_PATH', description="If set. The file selection will open here.")
+    anm_import_path = bpy.props.StringProperty(name=".anm Default Import Path", subtype='FILE_PATH', description="When importing a .anm file. The file selection prompt will begin here.")
+    anm_export_path = bpy.props.StringProperty(name=".anm Default Export Path", subtype='FILE_PATH', description="When exporting a .anm file. The file selection prompt will begin here.")
 
-    tex_default_path = bpy.props.StringProperty(name="texファイル置き場", subtype='DIR_PATH', description="設定すれば、texを扱う時は必ずここからファイル選択を始めます")
-    tex_import_path = bpy.props.StringProperty(name="texインポート時のデフォルトパス", subtype='FILE_PATH', description="texインポート時に最初はここが表示されます、インポート毎に保存されます")
-    tex_export_path = bpy.props.StringProperty(name="texエクスポート時のデフォルトパス", subtype='FILE_PATH', description="texエクスポート時に最初はここが表示されます、エクスポート毎に保存されます")
+    tex_default_path = bpy.props.StringProperty(name=".tex Default Path", subtype='DIR_PATH', description="If set. The file selection will open here.")
+    tex_import_path = bpy.props.StringProperty(name=".tex Default Import Path", subtype='FILE_PATH', description="When importing a .tex file. The file selection prompt will begin here.")
+    tex_export_path = bpy.props.StringProperty(name=".tex Default Export Path", subtype='FILE_PATH', description="When exporting a .tex file. The file selection prompt will begin here.")
 
-    mate_default_path = bpy.props.StringProperty(name="mateファイル置き場", subtype='DIR_PATH', description="設定すれば、mateを扱う時は必ずここからファイル選択を始めます")
-    mate_unread_same_value = bpy.props.BoolProperty(name="同じ設定値が2つ以上ある場合削除", default=True, description="_ShadowColor など")
-    mate_import_path = bpy.props.StringProperty(name="mateインポート時のデフォルトパス", subtype='FILE_PATH', description="mateインポート時に最初はここが表示されます、インポート毎に保存されます")
-    mate_export_path = bpy.props.StringProperty(name="mateエクスポート時のデフォルトパス", subtype='FILE_PATH', description="mateエクスポート時に最初はここが表示されます、エクスポート毎に保存されます")
+    mate_default_path = bpy.props.StringProperty(name=".mate Default Path", subtype='DIR_PATH', description="If set. The file selection will open here.")
+    mate_unread_same_value = bpy.props.BoolProperty(name="Delete if there are two or more same values", default=True, description="_ShadowColor")
+    mate_import_path = bpy.props.StringProperty(name=".mate Default Import Path", subtype='FILE_PATH', description="When importing a .mate file. The file selection prompt will begin here.")
+    mate_export_path = bpy.props.StringProperty(name=".mate Default Export Path", subtype='FILE_PATH', description="When exporting a .mate file. The file selection prompt will begin here.")
 
-    is_replace_cm3d2_tex = bpy.props.BoolProperty(name="基本的にtexファイルを探す", default=True, description="texファイルを探すかどうかのオプションのデフォルト値を設定します")
-    default_tex_path0 = bpy.props.StringProperty(name="texファイル置き場", subtype='DIR_PATH', description="texファイルを探す時はここから探します")
-    default_tex_path1 = bpy.props.StringProperty(name="texファイル置き場", subtype='DIR_PATH', description="texファイルを探す時はここから探します")
-    default_tex_path2 = bpy.props.StringProperty(name="texファイル置き場", subtype='DIR_PATH', description="texファイルを探す時はここから探します")
-    default_tex_path3 = bpy.props.StringProperty(name="texファイル置き場", subtype='DIR_PATH', description="texファイルを探す時はここから探します")
+    is_replace_cm3d2_tex = bpy.props.BoolProperty(name="Search for Tex File", default=True, description="Sets the default of the option to search for tex files")
+    default_tex_path0 = bpy.props.StringProperty(name="Tex file search area", subtype='DIR_PATH', description="Search here for tex files")
+    default_tex_path1 = bpy.props.StringProperty(name="Tex file search area", subtype='DIR_PATH', description="Search here for tex files")
+    default_tex_path2 = bpy.props.StringProperty(name="Tex file search area", subtype='DIR_PATH', description="Search here for tex files")
+    default_tex_path3 = bpy.props.StringProperty(name="Tex file search area", subtype='DIR_PATH', description="Search here for tex files")
 
-    custom_normal_blend = bpy.props.FloatProperty(name="CM3D2用法線のブレンド率", default=0.5, min=0, max=1, soft_min=0, soft_max=1, step=3, precision=3)
-    skip_shapekey = bpy.props.BoolProperty(name="無変更シェイプキーをスキップ", default=True, description="ベースと同じシェイプキーを出力しない")
-    is_apply_modifiers = bpy.props.BoolProperty(name="モディファイアを適用", default=False)
+    custom_normal_blend = bpy.props.FloatProperty(name="Custom Normal Blend", default=0.5, min=0, max=1, soft_min=0, soft_max=1, step=3, precision=0)
+    skip_shapekey = bpy.props.BoolProperty(name="Skip Unchanged Shape Keys", default=True, description="Shapekeys that are the same as the basis shapekey will not be imported.")
+    is_apply_modifiers = bpy.props.BoolProperty(name="Apply Modifiers", default=False)
 
-    new_mate_tex_offset = bpy.props.FloatVectorProperty(name="テクスチャのオフセット", default=(0, 0), min=-1, max=1, soft_min=-1, soft_max=1, step=10, precision=3, size=2)
-    new_mate_tex_scale = bpy.props.FloatVectorProperty(name="テクスチャのスケール", default=(1, 1), min=0, max=1, soft_min=0, soft_max=1, step=10, precision=3, size=2)
+    new_mate_tex_offset = bpy.props.FloatVectorProperty(name="Texture Offset", default=(0, 0), min=-1, max=1, soft_min=-1, soft_max=1, step=10, precision=3, size=2)
+    new_mate_tex_scale = bpy.props.FloatVectorProperty(name="Texture Scale", default=(1, 1), min=0, max=1, soft_min=0, soft_max=1, step=10, precision=3, size=2)
 
-    new_mate_toonramp_name = bpy.props.StringProperty(name="_ToonRamp 名前", default="toonGrayA1")
-    new_mate_toonramp_path = bpy.props.StringProperty(name="_ToonRamp パス", default=common.BASE_PATH_TEX + "toon/toonGrayA1.png")
+    new_mate_toonramp_name = bpy.props.StringProperty(name="_ToonRamp Name", default="toonGrayA1")
+    new_mate_toonramp_path = bpy.props.StringProperty(name="_ToonRamp Path", default=common.BASE_PATH_TEX + "toon/toonGrayA1.png")
 
-    new_mate_shadowratetoon_name = bpy.props.StringProperty(name="_ShadowRateToon 名前", default="toonDress_shadow")
-    new_mate_shadowratetoon_path = bpy.props.StringProperty(name="_ShadowRateToon パス", default=common.BASE_PATH_TEX + "toon/toonDress_shadow.png")
+    new_mate_shadowratetoon_name = bpy.props.StringProperty(name="_ShadowRateToon Name", default="toonDress_shadow")
+    new_mate_shadowratetoon_path = bpy.props.StringProperty(name="_ShadowRateToon Path", default=common.BASE_PATH_TEX + "toon/toonDress_shadow.png")
 
-    new_mate_linetoonramp_name = bpy.props.StringProperty(name="_OutlineToonRamp 名前", default="toonGrayA1")
-    new_mate_linetoonramp_path = bpy.props.StringProperty(name="_OutlineToonRamp パス", default=common.BASE_PATH_TEX + "toon/toonGrayA1.png")
+    new_mate_linetoonramp_name = bpy.props.StringProperty(name="_OutlineToonRamp Name", default="toonGrayA1")
+    new_mate_linetoonramp_path = bpy.props.StringProperty(name="_OutlineToonRamp Path", default=common.BASE_PATH_TEX + "toon/toonGrayA1.png")
 
     new_mate_color = bpy.props.FloatVectorProperty(name="_Color", default=(1, 1, 1, 1), min=0, max=1, soft_min=0, soft_max=1, step=10, precision=2, subtype='COLOR', size=4)
     new_mate_shadowcolor = bpy.props.FloatVectorProperty(name="_ShadowColor", default=(0, 0, 0, 1), min=0, max=1, soft_min=0, soft_max=1, step=10, precision=2, subtype='COLOR', size=4)
@@ -168,43 +168,43 @@ class AddonPreferences(bpy.types.AddonPreferences):
 
     def draw(self, context):
         if compat.IS_LEGACY:
-            self.layout.label(text="ここの設定は「ユーザー設定の保存」ボタンを押すまで保存されていません", icon='QUESTION')
+            self.layout.label(text="You must press 'Save User Settings' button for these settings to be saved.", icon='QUESTION')
         else:
-            self.layout.label(text="設定値を変更した場合、「プリファレンスを保存」ボタンを押下するか、「プリファレンスを自動保存」を有効にして保存してください", icon='QUESTION')
+            self.layout.label(text="If you changed your preferences, remember to save them before exiting.", icon='QUESTION')
         self.layout.prop(self, 'cm3d2_path', icon_value=common.kiss_icon())
         self.layout.prop(self, 'backup_ext', icon='FILE_BACKUP')
 
         box = self.layout.box()
-        box.label(text="modelファイル", icon='MESH_ICOSPHERE')
+        box.label(text=".Model File", icon='MESH_ICOSPHERE')
         row = box.row()
         row.prop(self, 'scale', icon=compat.icon('ARROW_LEFTRIGHT'))
         row.prop(self, 'is_convert_bone_weight_names', icon='BLENDER')
         brws_icon = compat.icon('FILEBROWSER')
-        box.prop(self, 'model_default_path', icon=brws_icon, text="ファイル選択時の初期フォルダ")
+        box.prop(self, 'model_default_path', icon=brws_icon, text="Initial folder when selecting files")
 
         box = self.layout.box()
-        box.label(text="anmファイル", icon='POSE_HLT')
-        box.prop(self, 'anm_default_path', icon=brws_icon, text="ファイル選択時の初期フォルダ")
+        box.label(text=".anm File", icon='POSE_HLT')
+        box.prop(self, 'anm_default_path', icon=brws_icon, text="Initial folder when selecting files")
 
         box = self.layout.box()
-        box.label(text="texファイル", icon='FILE_IMAGE')
-        box.prop(self, 'tex_default_path', icon=brws_icon, text="ファイル選択時の初期フォルダ")
+        box.label(text="tex file", icon='FILE_IMAGE')
+        box.prop(self, 'tex_default_path', icon=brws_icon, text="Initial folder when selecting files")
 
         box = self.layout.box()
-        box.label(text="mateファイル", icon='MATERIAL')
+        box.label(text="mate file", icon='MATERIAL')
         box.prop(self, 'mate_unread_same_value', icon='DISCLOSURE_TRI_DOWN')
-        box.prop(self, 'mate_default_path', icon=brws_icon, text="ファイル選択時の初期フォルダ")
+        box.prop(self, 'mate_default_path', icon=brws_icon, text="Initial folder when selecting files")
 
         box = self.layout.box()
-        box.label(text="texファイル検索", icon='BORDERMOVE')
+        box.label(text="Search for Tex File", icon='BORDERMOVE')
         box.prop(self, 'is_replace_cm3d2_tex', icon='VIEWZOOM')
-        box.prop(self, 'default_tex_path0', icon='LAYER_ACTIVE', text="その1")
-        box.prop(self, 'default_tex_path1', icon='LAYER_ACTIVE', text="その2")
-        box.prop(self, 'default_tex_path2', icon='LAYER_ACTIVE', text="その3")
-        box.prop(self, 'default_tex_path3', icon='LAYER_ACTIVE', text="その4")
+        box.prop(self, 'default_tex_path0', icon='LAYER_ACTIVE', text="Part 1")
+        box.prop(self, 'default_tex_path1', icon='LAYER_ACTIVE', text="Part 2")
+        box.prop(self, 'default_tex_path2', icon='LAYER_ACTIVE', text="Part 3")
+        box.prop(self, 'default_tex_path3', icon='LAYER_ACTIVE', text="Part 4")
 
         box = self.layout.box()
-        box.label(text="CM3D2用マテリアル新規作成時の初期値", icon='MATERIAL')
+        box.label(text="Defaults for when a new CM3d2 Material is Created.", icon='MATERIAL')
         row = box.row()
         row.prop(self, 'new_mate_tex_offset', icon='MOD_MULTIRES')
         row.prop(self, 'new_mate_tex_scale', icon='ARROW_LEFTRIGHT')
@@ -228,7 +228,7 @@ class AddonPreferences(bpy.types.AddonPreferences):
         row.prop(self, 'new_mate_hipow')
 
         box = self.layout.box()
-        box.label(text="各操作の初期パラメータ", icon='MATERIAL')
+        box.label(text="Default Settings", icon='MATERIAL')
         row = box.row()  # export
         row.prop(self, 'custom_normal_blend', icon='SNAP_NORMAL')
         row.prop(self, 'skip_shapekey', icon='SHAPEKEY_DATA')
@@ -318,19 +318,20 @@ def register():
         system.use_international_fonts = True
     if not system.use_translate_interface:
         system.use_translate_interface = True
-    try:
-        import locale
-        if system.language == 'DEFAULT' and locale.getdefaultlocale()[0] != 'ja_JP':
-            system.language = 'en_US'
-    except:
-        pass
-
-    try:
-        import locale
-        if locale.getdefaultlocale()[0] != 'ja_JP':
-            unregister()
-    except:
-        pass
+#Commented out the below region lock.
+#    try:
+#        import locale
+#        if system.language == 'DEFAULT' and locale.getdefaultlocale()[0] != 'ja_JP':
+#            system.language = 'en_US'
+#    except:
+#        pass
+#
+#    try:
+#        import locale
+#        if locale.getdefaultlocale()[0] != 'ja_JP':
+#            unregister()
+#    except:
+#        pass
 
 
 # プラグインをアンインストールしたときの処理

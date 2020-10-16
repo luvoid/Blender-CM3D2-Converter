@@ -12,8 +12,8 @@ def menu_func(self, context):
 @compat.BlRegister()
 class CNV_OT_sync_object_transform(bpy.types.Operator):
     bl_idname = 'object.sync_object_transform'
-    bl_label = "オブジェクトの位置を合わせる"
-    bl_description = "アクティブオブジェクトの中心位置を、他の選択オブジェクトの中心位置に合わせます"
+    bl_label = "Copy Origin Position"
+    bl_description = "The previously selected item's origin is copied onto the active object."
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod

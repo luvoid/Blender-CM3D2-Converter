@@ -11,37 +11,37 @@ from . import compat
 # メニュー等に項目追加
 def menu_func(self, context):
     col = self.layout.column(align=True)
-    col.label(text="CM3D2用ベイク", icon_value=common.kiss_icon())
+    col.label(text="CM3D2 Bake", icon_value=common.kiss_icon())
     row = col.row(align=True)
-    row.operator('object.add_bake_image', icon=compat.icon('FILE_IMAGE'), text="新規画像")
-    row.operator('object.quick_ao_bake_image', icon='BRUSH_TEXFILL', text="AO (重)")
-    row.operator('object.quick_dirty_bake_image', icon='MATSPHERE', text="擬似AO")
+    row.operator('object.add_bake_image', icon=compat.icon('FILE_IMAGE'), text="New Image")
+    row.operator('object.quick_ao_bake_image', icon='BRUSH_TEXFILL', text="AO (Weight)")
+    row.operator('object.quick_dirty_bake_image', icon='MATSPHERE', text="Pseudo-AO")
     row = col.row(align=True)
-    row.operator('object.quick_hemi_bake_image', icon=compat.icon('LIGHT_HEMI'), text="ヘミライト")
-    row.operator('object.quick_shadow_bake_image', icon='IMAGE_ALPHA', text="影 (重)")
-    row.operator('object.quick_side_shadow_bake_image', icon='ARROW_LEFTRIGHT', text="側面陰")
+    row.operator('object.quick_hemi_bake_image', icon=compat.icon('LIGHT_HEMI'), text="Hemi Lamp")
+    row.operator('object.quick_shadow_bake_image', icon='IMAGE_ALPHA', text="Shadow (Heavy)")
+    row.operator('object.quick_side_shadow_bake_image', icon='ARROW_LEFTRIGHT', text="Side Shade")
     row = col.row(align=True)
-    row.operator('object.quick_gradation_bake_image', icon='MESH_PLANE', text="グラデーション")
-    row.operator('object.quick_uv_border_bake_image', icon=compat.icon('CLIPUV_DEHLT'), text="UV縁")
-    row.operator('object.quick_mesh_border_bake_image', icon='OUTLINER_DATA_MESH', text="メッシュ縁")
+    row.operator('object.quick_gradation_bake_image', icon='MESH_PLANE', text="Gradation")
+    row.operator('object.quick_uv_border_bake_image', icon=compat.icon('CLIPUV_DEHLT'), text="UV Border")
+    row.operator('object.quick_mesh_border_bake_image', icon='OUTLINER_DATA_MESH', text="Mesh Edge")
     row = col.row(align=True)
-    row.operator('object.quick_density_bake_image', icon='STICKY_UVS_LOC', text="密度")
-    row.operator('object.quick_bulge_bake_image', icon='BRUSH_INFLATE', text="膨らみ")
-    row.operator('object.quick_mesh_distance_bake_image', icon=compat.icon('MOD_DATA_TRANSFER'), text="メッシュ間距離")
+    row.operator('object.quick_density_bake_image', icon='STICKY_UVS_LOC', text="Density")
+    row.operator('object.quick_bulge_bake_image', icon='BRUSH_INFLATE', text="Bulge")
+    row.operator('object.quick_mesh_distance_bake_image', icon=compat.icon('MOD_DATA_TRANSFER'), text="Mesh Distance")
     row = col.row(align=True)
-    row.operator('object.quick_metal_bake_image', icon=compat.icon('BRUSH_SOFTEN'), text="金属")
-    row.operator('object.quick_hair_bake_image', icon='PARTICLEMODE', text="髪")
-    row.operator('object.quick_semen_bake_image', icon='MOD_FLUIDSIM', text="白い液体")
+    row.operator('object.quick_metal_bake_image', icon=compat.icon('BRUSH_SOFTEN'), text="Metal")
+    row.operator('object.quick_hair_bake_image', icon='PARTICLEMODE', text="Hair")
+    row.operator('object.quick_semen_bake_image', icon='MOD_FLUIDSIM', text="Semen")
 
 
 @compat.BlRegister()
 class CNV_OT_add_bake_image(bpy.types.Operator):
     bl_idname = 'object.add_bake_image'
-    bl_label = "ベイク用の画像を作成"
-    bl_description = "アクティブオブジェクトに素早くベイク用の空の画像を用意します"
+    bl_label = "Create an image for baking"
+    bl_description = "Prepares an empty image for baking in the active object"
     bl_options = {'REGISTER', 'UNDO'}
 
-    image_name = bpy.props.StringProperty(name="画像名")
+    image_name = bpy.props.StringProperty(name="Image Name")
     items = [
         ('128', "128 px", "", 'LAYER_USED', 1),
         ('256', "256 px", "", 'LAYER_ACTIVE', 2),
@@ -50,9 +50,9 @@ class CNV_OT_add_bake_image(bpy.types.Operator):
         ('2048', "2048 px", "", 'ERROR', 5),
         ('4096', "4096 px", "", 'CANCEL', 6),
         ]
-    image_width = bpy.props.EnumProperty(items=items, name="幅", default='1024')
-    image_height = bpy.props.EnumProperty(items=items, name="高", default='1024')
-    image_color = bpy.props.FloatVectorProperty(name="色", default=(1, 1, 1, 1), min=0, max=1, soft_min=0, soft_max=1, step=10, precision=2, subtype='COLOR', size=4)
+    image_width = bpy.props.EnumProperty(items=items, name="Width", default='1024')
+    image_height = bpy.props.EnumProperty(items=items, name="Height", default='1024')
+    image_color = bpy.props.FloatVectorProperty(name="Color", default=(1, 1, 1, 1), min=0, max=1, soft_min=0, soft_max=1, step=10, precision=2, subtype='COLOR', size=4)
 
     @classmethod
     def poll(cls, context):
@@ -72,7 +72,7 @@ class CNV_OT_add_bake_image(bpy.types.Operator):
         return context.window_manager.invoke_props_dialog(self)
 
     def draw(self, context):
-        self.layout.label(text="新規画像設定", icon='IMAGE_COL')
+        self.layout.label(text="New image settings", icon='IMAGE_COL')
         self.layout.prop(self, 'image_name', icon='SORTALPHA')
         row = self.layout.row(align=True)
         row.prop(self, 'image_width', icon='ARROW_LEFTRIGHT')
@@ -105,11 +105,11 @@ class CNV_OT_add_bake_image(bpy.types.Operator):
 @compat.BlRegister()
 class CNV_OT_quick_ao_bake_image(bpy.types.Operator):
     bl_idname = 'object.quick_ao_bake_image'
-    bl_label = "AO・ベイク"
-    bl_description = "アクティブオブジェクトに素早くAOをベイクします"
+    bl_label = "AO Bake"
+    bl_description = "Quickly bake AO to active object"
     bl_options = {'REGISTER', 'UNDO'}
 
-    image_name = bpy.props.StringProperty(name="画像名")
+    image_name = bpy.props.StringProperty(name="Image Name")
     items = [
         ('128', "128 px", "", 'LAYER_USED', 1),
         ('256', "256 px", "", 'LAYER_ACTIVE', 2),
@@ -118,16 +118,16 @@ class CNV_OT_quick_ao_bake_image(bpy.types.Operator):
         ('2048', "2048 px", "", 'ERROR', 5),
         ('4096', "4096 px", "", 'CANCEL', 6),
     ]
-    image_width = bpy.props.EnumProperty(items=items, name="幅", default='1024')
-    image_height = bpy.props.EnumProperty(items=items, name="高", default='1024')
+    image_width = bpy.props.EnumProperty(items=items, name="Width", default='1024')
+    image_height = bpy.props.EnumProperty(items=items, name="Height", default='1024')
 
     items = [
-        ('RAYTRACE', "レイトレース", "", 'BRUSH_TEXFILL', 1),
-        ('APPROXIMATE', "近似(AAO)", "", 'MATSPHERE', 2),
+        ('RAYTRACE', "Ray Trace", "", 'BRUSH_TEXFILL', 1),
+        ('APPROXIMATE', "Approximate(AAO)", "", 'MATSPHERE', 2),
     ]
-    ao_gather_method = bpy.props.EnumProperty(items=items, name="処理方法", default='RAYTRACE')
-    ao_samples = bpy.props.IntProperty(name="精度", default=20, min=1, max=50, soft_min=1, soft_max=50)
-    ao_hide_other = bpy.props.BoolProperty(name="他オブジェクトの影響を受けない", default=True)
+    ao_gather_method = bpy.props.EnumProperty(items=items, name="Gather method", default='RAYTRACE')
+    ao_samples = bpy.props.IntProperty(name="Accuracy", default=20, min=1, max=50, soft_min=1, soft_max=50)
+    ao_hide_other = bpy.props.BoolProperty(name="Hide other objects", default=True)
 
     @classmethod
     def poll(cls, context):
@@ -147,12 +147,12 @@ class CNV_OT_quick_ao_bake_image(bpy.types.Operator):
         return context.window_manager.invoke_props_dialog(self)
 
     def draw(self, context):
-        self.layout.label(text="新規画像設定", icon='IMAGE_COL')
+        self.layout.label(text="New image settings", icon='IMAGE_COL')
         self.layout.prop(self, 'image_name', icon='SORTALPHA')
         row = self.layout.row(align=True)
         row.prop(self, 'image_width', icon='ARROW_LEFTRIGHT')
         row.prop(self, 'image_height', icon='NLA_PUSHDOWN')
-        self.layout.label(text="AO設定", icon='BRUSH_TEXFILL')
+        self.layout.label(text="AO Setting", icon='BRUSH_TEXFILL')
         self.layout.prop(self, 'ao_gather_method', icon='NODETREE', expand=True)
         self.layout.prop(self, 'ao_samples', icon='ANIM_DATA')
         self.layout.prop(self, 'ao_hide_other', icon='VISIBLE_IPO_OFF')
@@ -193,11 +193,11 @@ class CNV_OT_quick_ao_bake_image(bpy.types.Operator):
 @compat.BlRegister()
 class CNV_OT_quick_dirty_bake_image(bpy.types.Operator):
     bl_idname = 'object.quick_dirty_bake_image'
-    bl_label = "擬似AO・ベイク"
-    bl_description = "アクティブオブジェクトに素早く擬似AOをベイクします"
+    bl_label = "Pseudo AO bake"
+    bl_description = "bake a quick psuedo AO in the active object"
     bl_options = {'REGISTER', 'UNDO'}
 
-    image_name = bpy.props.StringProperty(name="画像名")
+    image_name = bpy.props.StringProperty(name="Image name")
     items = [
         ('128', "128 px", "", 'LAYER_USED', 1),
         ('256', "256 px", "", 'LAYER_ACTIVE', 2),
@@ -206,14 +206,14 @@ class CNV_OT_quick_dirty_bake_image(bpy.types.Operator):
         ('2048', "2048 px", "", 'ERROR', 5),
         ('4096', "4096 px", "", 'CANCEL', 6),
         ]
-    image_width = bpy.props.EnumProperty(items=items, name="幅", default='1024')
-    image_height = bpy.props.EnumProperty(items=items, name="高", default='1024')
+    image_width = bpy.props.EnumProperty(items=items, name="Width", default='1024')
+    image_height = bpy.props.EnumProperty(items=items, name="Height", default='1024')
 
-    blur_strength = bpy.props.FloatProperty(name="ブラー強度", default=1, min=0.01, max=1, soft_min=0.01, soft_max=1, step=10, precision=2)
-    blur_iterations = bpy.props.IntProperty(name="ブラー反復度", default=1, min=0, max=40, soft_min=0, soft_max=40)
-    clean_angle = bpy.props.FloatProperty(name="ハイライト角度", default=3.14159, min=0, max=3.14159, soft_min=0, soft_max=3.14159, step=3, precision=0, subtype='ANGLE')
-    dirt_angle = bpy.props.FloatProperty(name="擬似AO角度", default=0, min=0, max=3.14159, soft_min=0, soft_max=3.14159, step=3, precision=0, subtype='ANGLE')
-    dirt_only = bpy.props.BoolProperty(name="擬似AOのみ", default=True)
+    blur_strength = bpy.props.FloatProperty(name="Blur strength", default=1, min=0.01, max=1, soft_min=0.01, soft_max=1, step=10, precision=2)
+    blur_iterations = bpy.props.IntProperty(name="Blur iterations", default=1, min=0, max=40, soft_min=0, soft_max=40)
+    clean_angle = bpy.props.FloatProperty(name="Highlight angles", default=3.14159, min=0, max=3.14159, soft_min=0, soft_max=3.14159, step=3, precision=0, subtype='ANGLE')
+    dirt_angle = bpy.props.FloatProperty(name="Pseudo AO Angle", default=0, min=0, max=3.14159, soft_min=0, soft_max=3.14159, step=3, precision=0, subtype='ANGLE')
+    dirt_only = bpy.props.BoolProperty(name="Pseudo AO only", default=True)
 
     @classmethod
     def poll(cls, context):
@@ -233,12 +233,12 @@ class CNV_OT_quick_dirty_bake_image(bpy.types.Operator):
         return context.window_manager.invoke_props_dialog(self)
 
     def draw(self, context):
-        self.layout.label(text="新規画像設定", icon='IMAGE_COL')
+        self.layout.label(text="New image settings", icon='IMAGE_COL')
         self.layout.prop(self, 'image_name', icon='SORTALPHA')
         row = self.layout.row(align=True)
         row.prop(self, 'image_width', icon='ARROW_LEFTRIGHT')
         row.prop(self, 'image_height', icon='NLA_PUSHDOWN')
-        self.layout.label(text="擬似AO設定", icon='BRUSH_TEXFILL')
+        self.layout.label(text="Pseudo AO Setting", icon='BRUSH_TEXFILL')
         row = self.layout.row(align=True)
         row.prop(self, 'blur_strength', icon='NONE', slider=True)
         row.prop(self, 'blur_iterations', icon='NONE')
@@ -293,11 +293,11 @@ class CNV_OT_quick_dirty_bake_image(bpy.types.Operator):
 @compat.BlRegister()
 class CNV_OT_quick_hemi_bake_image(bpy.types.Operator):
     bl_idname = 'object.quick_hemi_bake_image'
-    bl_label = "ヘミライト・ベイク"
-    bl_description = "アクティブオブジェクトに素早くヘミライトの陰をベイクします"
+    bl_label = "Hemi lamp bake"
+    bl_description = "Bake the shadow of a hemi lamp"
     bl_options = {'REGISTER', 'UNDO'}
 
-    image_name = bpy.props.StringProperty(name="画像名")
+    image_name = bpy.props.StringProperty(name="Image name")
     items = [
         ('128', "128 px", "", 'LAYER_USED', 1),
         ('256', "256 px", "", 'LAYER_ACTIVE', 2),
@@ -306,14 +306,14 @@ class CNV_OT_quick_hemi_bake_image(bpy.types.Operator):
         ('2048', "2048 px", "", 'ERROR', 5),
         ('4096', "4096 px", "", 'CANCEL', 6),
         ]
-    image_width = bpy.props.EnumProperty(items=items, name="幅", default='1024')
-    image_height = bpy.props.EnumProperty(items=items, name="高", default='1024')
+    image_width = bpy.props.EnumProperty(items=items, name="Width", default='1024')
+    image_height = bpy.props.EnumProperty(items=items, name="Height", default='1024')
 
-    lamp_energy = bpy.props.FloatProperty(name="光の強さ", default=1, min=0, max=2, soft_min=0, soft_max=2, step=50, precision=2)
+    lamp_energy = bpy.props.FloatProperty(name="Light intensity", default=1, min=0, max=2, soft_min=0, soft_max=2, step=50, precision=2)
 
-    use_ao = bpy.props.BoolProperty(name="AOを使用", default=False)
-    ao_samples = bpy.props.IntProperty(name="AOの精度", default=20, min=1, max=50, soft_min=1, soft_max=50)
-    ao_hide_other = bpy.props.BoolProperty(name="他オブジェクトの影響を受けない", default=True)
+    use_ao = bpy.props.BoolProperty(name="Use the AO", default=False)
+    ao_samples = bpy.props.IntProperty(name="Accuracy", default=20, min=1, max=50, soft_min=1, soft_max=50)
+    ao_hide_other = bpy.props.BoolProperty(name="Hide other objects", default=True)
 
     @classmethod
     def poll(cls, context):
@@ -333,14 +333,14 @@ class CNV_OT_quick_hemi_bake_image(bpy.types.Operator):
         return context.window_manager.invoke_props_dialog(self)
 
     def draw(self, context):
-        self.layout.label(text="新規画像設定", icon='IMAGE_COL')
+        self.layout.label(text="New image settings", icon='IMAGE_COL')
         self.layout.prop(self, 'image_name', icon='SORTALPHA')
         row = self.layout.row(align=True)
         row.prop(self, 'image_width', icon='ARROW_LEFTRIGHT')
         row.prop(self, 'image_height', icon='NLA_PUSHDOWN')
-        self.layout.label(text="ヘミライト設定", icon='LAMP_HEMI')
+        self.layout.label(text="Hemi lamp settings", icon='LAMP_HEMI')
         self.layout.prop(self, 'lamp_energy', icon='LAMP_POINT', slider=True)
-        self.layout.label(text="AO設定", icon='BRUSH_TEXFILL')
+        self.layout.label(text="AO setting", icon='BRUSH_TEXFILL')
         row = self.layout.row(align=True)
         row.prop(self, 'use_ao', icon='FILE_TICK')
         row.prop(self, 'ao_samples', icon='ANIM_DATA')
@@ -402,11 +402,11 @@ class CNV_OT_quick_hemi_bake_image(bpy.types.Operator):
 @compat.BlRegister()
 class CNV_OT_quick_shadow_bake_image(bpy.types.Operator):
     bl_idname = 'object.quick_shadow_bake_image'
-    bl_label = "影・ベイク"
-    bl_description = "アクティブオブジェクトに素早く影をベイクします"
+    bl_label = "Shadow Bake"
+    bl_description = "Quickly bake a shadow on the active object"
     bl_options = {'REGISTER', 'UNDO'}
 
-    image_name = bpy.props.StringProperty(name="画像名")
+    image_name = bpy.props.StringProperty(name="Image name")
     items = [
         ('128', "128 px", "", 'LAYER_USED', 1),
         ('256', "256 px", "", 'LAYER_ACTIVE', 2),
@@ -415,12 +415,12 @@ class CNV_OT_quick_shadow_bake_image(bpy.types.Operator):
         ('2048', "2048 px", "", 'ERROR', 5),
         ('4096', "4096 px", "", 'CANCEL', 6),
         ]
-    image_width = bpy.props.EnumProperty(items=items, name="幅", default='1024')
-    image_height = bpy.props.EnumProperty(items=items, name="高", default='1024')
+    image_width = bpy.props.EnumProperty(items=items, name="Width", default='1024')
+    image_height = bpy.props.EnumProperty(items=items, name="Height", default='1024')
 
-    lamp_max_angle = bpy.props.FloatProperty(name="光源の最大角度", default=0.5236, min=0, max=1.5708, soft_min=0, soft_max=1.5708, step=100, precision=0, subtype='ANGLE', unit='ROTATION')
-    lamp_count = bpy.props.IntProperty(name="光源の数", default=8, min=1, max=20, soft_min=1, soft_max=20)
-    is_shadow_only = bpy.props.BoolProperty(name="影のみ", default=False)
+    lamp_max_angle = bpy.props.FloatProperty(name="Lamp max angle", default=0.5236, min=0, max=1.5708, soft_min=0, soft_max=1.5708, step=100, precision=0, subtype='ANGLE', unit='ROTATION')
+    lamp_count = bpy.props.IntProperty(name="Number of light sources", default=8, min=1, max=20, soft_min=1, soft_max=20)
+    is_shadow_only = bpy.props.BoolProperty(name="Shadow focus", default=False)
 
     @classmethod
     def poll(cls, context):
@@ -439,12 +439,12 @@ class CNV_OT_quick_shadow_bake_image(bpy.types.Operator):
         return context.window_manager.invoke_props_dialog(self)
 
     def draw(self, context):
-        self.layout.label(text="新規画像設定", icon='IMAGE_COL')
+        self.layout.label(text="New image settings", icon='IMAGE_COL')
         self.layout.prop(self, 'image_name', icon='SORTALPHA')
         row = self.layout.row(align=True)
         row.prop(self, 'image_width', icon='ARROW_LEFTRIGHT')
         row.prop(self, 'image_height', icon='NLA_PUSHDOWN')
-        self.layout.label(text="光源設定", icon='LAMP_SUN')
+        self.layout.label(text="Light source setting", icon='LAMP_SUN')
         self.layout.prop(self, 'lamp_max_angle', icon='LAMP_AREA', slider=True)
         self.layout.prop(self, 'lamp_count', icon='LAMP_POINT')
         self.layout.prop(self, 'is_shadow_only', icon='IMAGE_ALPHA')
@@ -518,11 +518,11 @@ class CNV_OT_quick_shadow_bake_image(bpy.types.Operator):
 @compat.BlRegister()
 class CNV_OT_quick_side_shadow_bake_image(bpy.types.Operator):
     bl_idname = 'object.quick_side_shadow_bake_image'
-    bl_label = "側面陰・ベイク"
-    bl_description = "アクティブオブジェクトに素早く側面陰をベイクします"
+    bl_label = "Side shadow bake"
+    bl_description = "A quick side shadow is baked on the active object"
     bl_options = {'REGISTER', 'UNDO'}
 
-    image_name = bpy.props.StringProperty(name="画像名")
+    image_name = bpy.props.StringProperty(name="Image name")
     items = [
         ('128', "128 px", "", 'LAYER_USED', 1),
         ('256', "256 px", "", 'LAYER_ACTIVE', 2),
@@ -531,12 +531,12 @@ class CNV_OT_quick_side_shadow_bake_image(bpy.types.Operator):
         ('2048', "2048 px", "", 'ERROR', 5),
         ('4096', "4096 px", "", 'CANCEL', 6),
         ]
-    image_width = bpy.props.EnumProperty(items=items, name="幅", default='1024')
-    image_height = bpy.props.EnumProperty(items=items, name="高", default='1024')
+    image_width = bpy.props.EnumProperty(items=items, name="Width", default='1024')
+    image_height = bpy.props.EnumProperty(items=items, name="Height", default='1024')
 
-    is_bipolarization = bpy.props.BoolProperty(name="二極化を有効", default=True)
-    bipolarization_threshold = bpy.props.FloatProperty(name="二極化のしきい値", default=0.5, min=0, max=1, soft_min=0, soft_max=1, step=5, precision=2)
-    bipolarization_blur = bpy.props.FloatProperty(name="二極化のぼかし", default=0.05, min=0, max=1, soft_min=0, soft_max=1, step=1, precision=2)
+    is_bipolarization = bpy.props.BoolProperty(name="Enable polarization", default=True)
+    bipolarization_threshold = bpy.props.FloatProperty(name="Threshold of polarization", default=0.5, min=0, max=1, soft_min=0, soft_max=1, step=5, precision=2)
+    bipolarization_blur = bpy.props.FloatProperty(name="Blur of polarization", default=0.05, min=0, max=1, soft_min=0, soft_max=1, step=1, precision=2)
 
     @classmethod
     def poll(cls, context):
@@ -555,7 +555,7 @@ class CNV_OT_quick_side_shadow_bake_image(bpy.types.Operator):
         return context.window_manager.invoke_props_dialog(self)
 
     def draw(self, context):
-        self.layout.label(text="新規画像設定", icon='IMAGE_COL')
+        self.layout.label(text="New image settings", icon='IMAGE_COL')
         self.layout.prop(self, 'image_name', icon='SORTALPHA')
         row = self.layout.row(align=True)
         row.prop(self, 'image_width', icon='ARROW_LEFTRIGHT')
@@ -563,8 +563,8 @@ class CNV_OT_quick_side_shadow_bake_image(bpy.types.Operator):
         self.layout.separator()
         self.layout.prop(self, 'is_bipolarization', icon='IMAGE_ALPHA')
         row = self.layout.row(align=True)
-        row.prop(self, 'bipolarization_threshold', icon='NONE', text="しきい値")
-        row.prop(self, 'bipolarization_blur', icon='NONE', text="ぼかし")
+        row.prop(self, 'bipolarization_threshold', icon='NONE', text="Threshold")
+        row.prop(self, 'bipolarization_blur', icon='NONE', text="Blur")
 
     def execute(self, context):
         ob = context.active_object
@@ -639,8 +639,8 @@ class CNV_OT_quick_side_shadow_bake_image(bpy.types.Operator):
 @compat.BlRegister()
 class CNV_OT_quick_gradation_bake_image(bpy.types.Operator):
     bl_idname = 'object.quick_gradation_bake_image'
-    bl_label = "グラデーション・ベイク"
-    bl_description = "アクティブオブジェクトに素早くグラデーションをベイクします"
+    bl_label = "Gradient bake"
+    bl_description = "Quickly bakes a gradient to the active object"
     bl_options = {'REGISTER', 'UNDO'}
 
     image_name = bpy.props.StringProperty(name="画像名")
@@ -652,8 +652,8 @@ class CNV_OT_quick_gradation_bake_image(bpy.types.Operator):
         ('2048', "2048 px", "", 'ERROR', 5),
         ('4096', "4096 px", "", 'CANCEL', 6),
         ]
-    image_width = bpy.props.EnumProperty(items=items, name="幅", default='1024')
-    image_height = bpy.props.EnumProperty(items=items, name="高", default='1024')
+    image_width = bpy.props.EnumProperty(items=items, name="Width", default='1024')
+    image_height = bpy.props.EnumProperty(items=items, name="Height", default='1024')
 
     @classmethod
     def poll(cls, context):
@@ -672,7 +672,7 @@ class CNV_OT_quick_gradation_bake_image(bpy.types.Operator):
         return context.window_manager.invoke_props_dialog(self)
 
     def draw(self, context):
-        self.layout.label(text="新規画像設定", icon='IMAGE_COL')
+        self.layout.label(text="New image settings", icon='IMAGE_COL')
         self.layout.prop(self, 'image_name', icon='SORTALPHA')
         row = self.layout.row(align=True)
         row.prop(self, 'image_width', icon='ARROW_LEFTRIGHT')
@@ -735,11 +735,11 @@ class CNV_OT_quick_gradation_bake_image(bpy.types.Operator):
 @compat.BlRegister()
 class CNV_OT_quick_metal_bake_image(bpy.types.Operator):
     bl_idname = 'object.quick_metal_bake_image'
-    bl_label = "金属・ベイク"
-    bl_description = "アクティブオブジェクトに素早く金属風にベイクします"
+    bl_label = "Metal Bake"
+    bl_description = "Quickly bake metal object"
     bl_options = {'REGISTER', 'UNDO'}
 
-    image_name = bpy.props.StringProperty(name="画像名")
+    image_name = bpy.props.StringProperty(name="Image Name")
     items = [
         ('128', "128 px", "", 'LAYER_USED', 1),
         ('256', "256 px", "", 'LAYER_ACTIVE', 2),
@@ -748,12 +748,12 @@ class CNV_OT_quick_metal_bake_image(bpy.types.Operator):
         ('2048', "2048 px", "", 'ERROR', 5),
         ('4096', "4096 px", "", 'CANCEL', 6),
         ]
-    image_width = bpy.props.EnumProperty(items=items, name="幅", default='1024')
-    image_height = bpy.props.EnumProperty(items=items, name="高", default='1024')
+    image_width = bpy.props.EnumProperty(items=items, name="Width", default='1024')
+    image_height = bpy.props.EnumProperty(items=items, name="Height", default='1024')
 
-    mate_color = bpy.props.FloatVectorProperty(name="色", default=(0.22, 0.22, 0.22), min=0, max=1, soft_min=0, soft_max=1, step=10, precision=2, subtype='COLOR')
-    environment_strength = bpy.props.FloatProperty(name="映り込み強さ", default=1, min=0, max=1, soft_min=0, soft_max=1, step=10, precision=2)
-    highlight_strength = bpy.props.FloatProperty(name="ハイライト強さ", default=0.5, min=0, max=1, soft_min=0, soft_max=1, step=10, precision=2)
+    mate_color = bpy.props.FloatVectorProperty(name="Color", default=(0.22, 0.22, 0.22), min=0, max=1, soft_min=0, soft_max=1, step=10, precision=2, subtype='COLOR')
+    environment_strength = bpy.props.FloatProperty(name="Strength Reflection", default=1, min=0, max=1, soft_min=0, soft_max=1, step=10, precision=2)
+    highlight_strength = bpy.props.FloatProperty(name="Highlights strength", default=0.5, min=0, max=1, soft_min=0, soft_max=1, step=10, precision=2)
 
     @classmethod
     def poll(cls, context):
@@ -772,12 +772,12 @@ class CNV_OT_quick_metal_bake_image(bpy.types.Operator):
         return context.window_manager.invoke_props_dialog(self)
 
     def draw(self, context):
-        self.layout.label(text="新規画像設定", icon='IMAGE_COL')
+        self.layout.label(text="New image settings", icon='IMAGE_COL')
         self.layout.prop(self, 'image_name', icon='SORTALPHA')
         row = self.layout.row(align=True)
         row.prop(self, 'image_width', icon='ARROW_LEFTRIGHT')
         row.prop(self, 'image_height', icon='NLA_PUSHDOWN')
-        self.layout.label(text="金属設定", icon=compat.icon('BRUSH_SOFTEN'))
+        self.layout.label(text="Metal set", icon=compat.icon('BRUSH_SOFTEN'))
         self.layout.prop(self, 'mate_color', icon='COLOR')
         row = self.layout.row(align=True)
         row.prop(self, 'environment_strength', icon=compat.icon('BRUSH_SOFTEN'), slider=True)
@@ -847,11 +847,11 @@ class CNV_OT_quick_metal_bake_image(bpy.types.Operator):
 @compat.BlRegister()
 class CNV_OT_quick_hair_bake_image(bpy.types.Operator):
     bl_idname = 'object.quick_hair_bake_image'
-    bl_label = "ヘアー・ベイク"
-    bl_description = "アクティブオブジェクトに素早くCM3D2の髪風のテクスチャをベイクします"
+    bl_label = "Hair"
+    bl_description = "Bake the hairstyle quickly"
     bl_options = {'REGISTER', 'UNDO'}
 
-    image_name = bpy.props.StringProperty(name="画像名")
+    image_name = bpy.props.StringProperty(name="Image Name")
     items = [
         ('128', "128 px", "", 'LAYER_USED', 1),
         ('256', "256 px", "", 'LAYER_ACTIVE', 2),
@@ -860,17 +860,17 @@ class CNV_OT_quick_hair_bake_image(bpy.types.Operator):
         ('2048', "2048 px", "", 'ERROR', 5),
         ('4096', "4096 px", "", 'CANCEL', 6),
         ]
-    image_width = bpy.props.EnumProperty(items=items, name="幅", default='1024')
-    image_height = bpy.props.EnumProperty(items=items, name="高", default='1024')
+    image_width = bpy.props.EnumProperty(items=items, name="Width", default='1024')
+    image_height = bpy.props.EnumProperty(items=items, name="Height", default='1024')
 
-    mate_diffuse_color = bpy.props.FloatVectorProperty(name="髪色", default=(1, 1, 1), min=0, max=1, soft_min=0, soft_max=1, step=10, precision=2, subtype='COLOR', size=3)
-    mate_angel_ring_factor = bpy.props.FloatProperty(name="天使の輪の強さ", default=0.5, min=0, max=1, soft_min=0, soft_max=1, step=50, precision=2)
+    mate_diffuse_color = bpy.props.FloatVectorProperty(name="Hair color", default=(1, 1, 1), min=0, max=1, soft_min=0, soft_max=1, step=10, precision=2, subtype='COLOR', size=3)
+    mate_angel_ring_factor = bpy.props.FloatProperty(name="Ring factor", default=0.5, min=0, max=1, soft_min=0, soft_max=1, step=50, precision=2)
 
-    lamp_energy = bpy.props.FloatProperty(name="光の強さ", default=1, min=0, max=2, soft_min=0, soft_max=2, step=50, precision=2)
+    lamp_energy = bpy.props.FloatProperty(name="Light Intensity", default=1, min=0, max=2, soft_min=0, soft_max=2, step=50, precision=2)
 
-    use_ao = bpy.props.BoolProperty(name="AOを使用", default=False)
-    ao_samples = bpy.props.IntProperty(name="AOの精度", default=20, min=1, max=50, soft_min=1, soft_max=50)
-    ao_hide_other = bpy.props.BoolProperty(name="他オブジェクトの影響を受けない", default=True)
+    use_ao = bpy.props.BoolProperty(name="Use the AO", default=False)
+    ao_samples = bpy.props.IntProperty(name="Accuracy", default=20, min=1, max=50, soft_min=1, soft_max=50)
+    ao_hide_other = bpy.props.BoolProperty(name="Hide other Objects", default=True)
 
     @classmethod
     def poll(cls, context):
@@ -890,17 +890,17 @@ class CNV_OT_quick_hair_bake_image(bpy.types.Operator):
         return context.window_manager.invoke_props_dialog(self)
 
     def draw(self, context):
-        self.layout.label(text="新規画像設定", icon='IMAGE_COL')
+        self.layout.label(text="New image settings", icon='IMAGE_COL')
         self.layout.prop(self, 'image_name', icon='SORTALPHA')
         row = self.layout.row(align=True)
         row.prop(self, 'image_width', icon='ARROW_LEFTRIGHT')
         row.prop(self, 'image_height', icon='NLA_PUSHDOWN')
-        self.layout.label(text="ヘアー設定", icon='PARTICLEMODE')
+        self.layout.label(text="Hair set", icon='PARTICLEMODE')
         self.layout.prop(self, 'mate_diffuse_color', icon='COLOR')
         self.layout.prop(self, 'mate_angel_ring_factor', icon='BRUSH_TEXFILL', slider=True)
-        self.layout.label(text="ヘミライト設定", icon='LAMP_HEMI')
+        self.layout.label(text="Hemi Lamp Settings", icon='LAMP_HEMI')
         self.layout.prop(self, 'lamp_energy', icon='LAMP_POINT', slider=True)
-        self.layout.label(text="AO設定", icon='BRUSH_TEXFILL')
+        self.layout.label(text="AO Setting", icon='BRUSH_TEXFILL')
         row = self.layout.row(align=True)
         row.prop(self, 'use_ao', icon='FILE_TICK')
         row.prop(self, 'ao_samples', icon='ANIM_DATA')
@@ -980,11 +980,11 @@ class CNV_OT_quick_hair_bake_image(bpy.types.Operator):
 @compat.BlRegister()
 class CNV_OT_quick_uv_border_bake_image(bpy.types.Operator):
     bl_idname = 'object.quick_uv_border_bake_image'
-    bl_label = "UV縁・ベイク"
-    bl_description = "アクティブオブジェクトに素早くUVの縁を黒くベイクします"
+    bl_label = "UV Edge Bake"
+    bl_description = "Quickly bake the edge of the UV"
     bl_options = {'REGISTER', 'UNDO'}
 
-    image_name = bpy.props.StringProperty(name="画像名")
+    image_name = bpy.props.StringProperty(name="Image Name")
     items = [
         ('128', "128 px", "", 'LAYER_USED', 1),
         ('256', "256 px", "", 'LAYER_ACTIVE', 2),
@@ -993,23 +993,23 @@ class CNV_OT_quick_uv_border_bake_image(bpy.types.Operator):
         ('2048', "2048 px", "", 'ERROR', 5),
         ('4096', "4096 px", "", 'CANCEL', 6),
         ]
-    image_width = bpy.props.EnumProperty(items=items, name="幅", default='1024')
-    image_height = bpy.props.EnumProperty(items=items, name="高", default='1024')
+    image_width = bpy.props.EnumProperty(items=items, name="Width", default='1024')
+    image_height = bpy.props.EnumProperty(items=items, name="Height", default='1024')
 
     items = [
-        ('FLAT', "フラット", "", 'IPO_CONSTANT', 1),
-        ('TENT', "テント", "", 'IPO_LINEAR', 2),
-        ('QUAD', "二次式", "", 'IPO_QUAD', 3),
-        ('CUBIC', "三次式", "", 'IPO_CUBIC', 4),
-        ('GAUSS', "ガウシアン", "", 'HAND', 5),
-        ('FAST_GAUSS', "高速ガウシアン", "", 'ALIASED', 6),
+        ('FLAT', "Flat", "", 'IPO_CONSTANT', 1),
+        ('TENT', "Tent", "", 'IPO_LINEAR', 2),
+        ('QUAD', "Quad", "", 'IPO_QUAD', 3),
+        ('CUBIC', "Cubic", "", 'IPO_CUBIC', 4),
+        ('GAUSS', "Gauss", "", 'HAND', 5),
+        ('FAST_GAUSS', "Fast gauss", "", 'ALIASED', 6),
         ('CATROM', "Catrom", "", 'FILE_TICK', 7),
         ('MITCH', "Mitch", "", 'FILE_TICK', 8),
         ]
-    blur_type = bpy.props.EnumProperty(items=items, name="ぼかしタイプ", default='GAUSS')
-    blur_strength = bpy.props.IntProperty(name="ぼかし強度", default=100, min=0, max=1000, soft_min=0, soft_max=1000)
-    normalize = bpy.props.BoolProperty(name="正規化", default=True)
-    keep_alpha = bpy.props.BoolProperty(name="余白を透過", default=True)
+    blur_type = bpy.props.EnumProperty(items=items, name="Blur type", default='GAUSS')
+    blur_strength = bpy.props.IntProperty(name="Blur strength", default=100, min=0, max=1000, soft_min=0, soft_max=1000)
+    normalize = bpy.props.BoolProperty(name="Normalize", default=True)
+    keep_alpha = bpy.props.BoolProperty(name="Keep alpha", default=True)
 
     @classmethod
     def poll(cls, context):
@@ -1029,12 +1029,12 @@ class CNV_OT_quick_uv_border_bake_image(bpy.types.Operator):
         return context.window_manager.invoke_props_dialog(self)
 
     def draw(self, context):
-        self.layout.label(text="新規画像設定", icon='IMAGE_COL')
+        self.layout.label(text="New image settings", icon='IMAGE_COL')
         self.layout.prop(self, 'image_name', icon='SORTALPHA')
         row = self.layout.row(align=True)
         row.prop(self, 'image_width', icon='ARROW_LEFTRIGHT')
         row.prop(self, 'image_height', icon='NLA_PUSHDOWN')
-        self.layout.label(text="縁設定", icon=compat.icon('CLIPUV_DEHLT'))
+        self.layout.label(text="Edge Setting", icon=compat.icon('CLIPUV_DEHLT'))
         self.layout.prop(self, 'blur_type', icon='BRUSH_BLUR')
         self.layout.prop(self, 'blur_strength', icon='ARROW_LEFTRIGHT')
         row = self.layout.row(align=True)
@@ -1159,11 +1159,11 @@ class CNV_OT_quick_uv_border_bake_image(bpy.types.Operator):
 @compat.BlRegister()
 class CNV_OT_quick_mesh_border_bake_image(bpy.types.Operator):
     bl_idname = 'object.quick_mesh_border_bake_image'
-    bl_label = "メッシュ縁・ベイク"
-    bl_description = "アクティブオブジェクトに素早くメッシュの縁を黒くベイクします"
+    bl_label = "Mesh edge bake"
+    bl_description = "bake the edge of the mesh to the object"
     bl_options = {'REGISTER', 'UNDO'}
 
-    image_name = bpy.props.StringProperty(name="画像名")
+    image_name = bpy.props.StringProperty(name="Image Name")
     items = [
         ('128', "128 px", "", 'LAYER_USED', 1),
         ('256', "256 px", "", 'LAYER_ACTIVE', 2),
@@ -1172,10 +1172,10 @@ class CNV_OT_quick_mesh_border_bake_image(bpy.types.Operator):
         ('2048', "2048 px", "", 'ERROR', 5),
         ('4096', "4096 px", "", 'CANCEL', 6),
         ]
-    image_width = bpy.props.EnumProperty(items=items, name="幅", default='1024')
-    image_height = bpy.props.EnumProperty(items=items, name="高", default='1024')
+    image_width = bpy.props.EnumProperty(items=items, name="Width", default='1024')
+    image_height = bpy.props.EnumProperty(items=items, name="Height", default='1024')
 
-    range = bpy.props.IntProperty(name="範囲", default=5, min=1, max=50, soft_min=1, soft_max=50)
+    range = bpy.props.IntProperty(name="Range", default=5, min=1, max=50, soft_min=1, soft_max=50)
 
     @classmethod
     def poll(cls, context):
@@ -1195,7 +1195,7 @@ class CNV_OT_quick_mesh_border_bake_image(bpy.types.Operator):
         return context.window_manager.invoke_props_dialog(self)
 
     def draw(self, context):
-        self.layout.label(text="新規画像設定", icon='IMAGE_COL')
+        self.layout.label(text="New image settings", icon='IMAGE_COL')
         self.layout.prop(self, 'image_name', icon='SORTALPHA')
         row = self.layout.row(align=True)
         row.prop(self, 'image_width', icon='ARROW_LEFTRIGHT')
@@ -1273,11 +1273,11 @@ class CNV_OT_quick_mesh_border_bake_image(bpy.types.Operator):
 @compat.BlRegister()
 class CNV_OT_quick_density_bake_image(bpy.types.Operator):
     bl_idname = 'object.quick_density_bake_image'
-    bl_label = "密度・ベイク"
-    bl_description = "アクティブオブジェクトに素早く密度をベイクします"
+    bl_label = "Density bake"
+    bl_description = "Bakes density in to the active object"
     bl_options = {'REGISTER', 'UNDO'}
 
-    image_name = bpy.props.StringProperty(name="画像名")
+    image_name = bpy.props.StringProperty(name="Image Name")
     items = [
         ('128', "128 px", "", 'LAYER_USED', 1),
         ('256', "256 px", "", 'LAYER_ACTIVE', 2),
@@ -1286,14 +1286,14 @@ class CNV_OT_quick_density_bake_image(bpy.types.Operator):
         ('2048', "2048 px", "", 'ERROR', 5),
         ('4096', "4096 px", "", 'CANCEL', 6),
         ]
-    image_width = bpy.props.EnumProperty(items=items, name="幅", default='1024')
-    image_height = bpy.props.EnumProperty(items=items, name="高", default='1024')
+    image_width = bpy.props.EnumProperty(items=items, name="Width", default='1024')
+    image_height = bpy.props.EnumProperty(items=items, name="Height", default='1024')
 
     items = [
-        ('ALL', "全て", "", 'MOD_SUBSURF', 1),
-        ('PARTS', "パーツごと", "", 'GROUP_VCOL', 2),
+        ('ALL', "All", "", 'MOD_SUBSURF', 1),
+        ('PARTS', "Each Part", "", 'GROUP_VCOL', 2),
         ]
-    mode = bpy.props.EnumProperty(items=items, name="比較対象", default='PARTS')
+    mode = bpy.props.EnumProperty(items=items, name="Comparison", default='PARTS')
 
     @classmethod
     def poll(cls, context):
@@ -1313,12 +1313,12 @@ class CNV_OT_quick_density_bake_image(bpy.types.Operator):
         return context.window_manager.invoke_props_dialog(self)
 
     def draw(self, context):
-        self.layout.label(text="新規画像設定", icon='IMAGE_COL')
+        self.layout.label(text="New image settings", icon='IMAGE_COL')
         self.layout.prop(self, 'image_name', icon='SORTALPHA')
         row = self.layout.row(align=True)
         row.prop(self, 'image_width', icon='ARROW_LEFTRIGHT')
         row.prop(self, 'image_height', icon='NLA_PUSHDOWN')
-        self.layout.label(text="比較対象", icon='ZOOM_PREVIOUS')
+        self.layout.label(text="Comparision", icon='ZOOM_PREVIOUS')
         self.layout.prop(self, 'mode', icon='ZOOM_PREVIOUS', expand=True)
 
     def execute(self, context):
@@ -1422,11 +1422,11 @@ class CNV_OT_quick_density_bake_image(bpy.types.Operator):
 @compat.BlRegister()
 class CNV_OT_quick_mesh_distance_bake_image(bpy.types.Operator):
     bl_idname = 'object.quick_mesh_distance_bake_image'
-    bl_label = "メッシュ間距離・ベイク"
-    bl_description = "アクティブオブジェクトに他オブジェクトとの距離をベイクします"
+    bl_label = "Mesh distance bake"
+    bl_description = "Bake the distance between the other objects in the active object"
     bl_options = {'REGISTER', 'UNDO'}
 
-    image_name = bpy.props.StringProperty(name="画像名")
+    image_name = bpy.props.StringProperty(name="Image Name")
     items = [
         ('128', "128 px", "", 'LAYER_USED', 1),
         ('256', "256 px", "", 'LAYER_ACTIVE', 2),
@@ -1435,8 +1435,8 @@ class CNV_OT_quick_mesh_distance_bake_image(bpy.types.Operator):
         ('2048', "2048 px", "", 'ERROR', 5),
         ('4096', "4096 px", "", 'CANCEL', 6),
         ]
-    image_width = bpy.props.EnumProperty(items=items, name="幅", default='1024')
-    image_height = bpy.props.EnumProperty(items=items, name="高", default='1024')
+    image_width = bpy.props.EnumProperty(items=items, name="Width", default='1024')
+    image_height = bpy.props.EnumProperty(items=items, name="Height", default='1024')
 
     @classmethod
     def poll(cls, context):
@@ -1456,7 +1456,7 @@ class CNV_OT_quick_mesh_distance_bake_image(bpy.types.Operator):
         return context.window_manager.invoke_props_dialog(self)
 
     def draw(self, context):
-        self.layout.label(text="新規画像設定", icon='IMAGE_COL')
+        self.layout.label(text="New image settings", icon='IMAGE_COL')
         self.layout.prop(self, 'image_name', icon='SORTALPHA')
         row = self.layout.row(align=True)
         row.prop(self, 'image_width', icon='ARROW_LEFTRIGHT')
@@ -1526,11 +1526,11 @@ class CNV_OT_quick_mesh_distance_bake_image(bpy.types.Operator):
 @compat.BlRegister()
 class CNV_OT_quick_bulge_bake_image(bpy.types.Operator):
     bl_idname = 'object.quick_bulge_bake_image'
-    bl_label = "膨らみ・ベイク"
-    bl_description = "アクティブオブジェクトに膨らんでいる部分を白くベイクします"
+    bl_label = "Bulge Bake"
+    bl_description = "Quick bakes the parts that bulge"
     bl_options = {'REGISTER', 'UNDO'}
 
-    image_name = bpy.props.StringProperty(name="画像名")
+    image_name = bpy.props.StringProperty(name="Image Name")
     items = [
         ('128', "128 px", "", 'LAYER_USED', 1),
         ('256', "256 px", "", 'LAYER_ACTIVE', 2),
@@ -1539,8 +1539,8 @@ class CNV_OT_quick_bulge_bake_image(bpy.types.Operator):
         ('2048', "2048 px", "", 'ERROR', 5),
         ('4096', "4096 px", "", 'CANCEL', 6),
         ]
-    image_width = bpy.props.EnumProperty(items=items, name="幅", default='1024')
-    image_height = bpy.props.EnumProperty(items=items, name="高", default='1024')
+    image_width = bpy.props.EnumProperty(items=items, name="Width", default='1024')
+    image_height = bpy.props.EnumProperty(items=items, name="Height", default='1024')
 
     @classmethod
     def poll(cls, context):
@@ -1560,7 +1560,7 @@ class CNV_OT_quick_bulge_bake_image(bpy.types.Operator):
         return context.window_manager.invoke_props_dialog(self)
 
     def draw(self, context):
-        self.layout.label(text="新規画像設定", icon='IMAGE_COL')
+        self.layout.label(text="New image settings", icon='IMAGE_COL')
         self.layout.prop(self, 'image_name', icon='SORTALPHA')
         row = self.layout.row(align=True)
         row.prop(self, 'image_width', icon='ARROW_LEFTRIGHT')
@@ -1632,11 +1632,11 @@ class CNV_OT_quick_bulge_bake_image(bpy.types.Operator):
 @compat.BlRegister()
 class CNV_OT_quick_semen_bake_image(bpy.types.Operator):
     bl_idname = 'object.quick_semen_bake_image'
-    bl_label = "白い液体・ベイク"
-    bl_description = "アクティブオブジェクトに白い液体をベイクします"
+    bl_label = "White liquid bake AKA Semen"
+    bl_description = "Bake the white liquid to the object..."
     bl_options = {'REGISTER', 'UNDO'}
 
-    image_name = bpy.props.StringProperty(name="画像名")
+    image_name = bpy.props.StringProperty(name="Image Name")
     items = [
         ('128', "128 px", "", 'LAYER_USED', 1),
         ('256', "256 px", "", 'LAYER_ACTIVE', 2),
@@ -1645,10 +1645,10 @@ class CNV_OT_quick_semen_bake_image(bpy.types.Operator):
         ('2048', "2048 px", "", 'ERROR', 5),
         ('4096', "4096 px", "", 'CANCEL', 6),
         ]
-    image_width = bpy.props.EnumProperty(items=items, name="幅", default='1024')
-    image_height = bpy.props.EnumProperty(items=items, name="高", default='1024')
+    image_width = bpy.props.EnumProperty(items=items, name="Width", default='1024')
+    image_height = bpy.props.EnumProperty(items=items, name="Height", default='1024')
 
-    texture_scale = bpy.props.FloatProperty(name="テクスチャサイズ", default=1, min=0, max=100, soft_min=0, soft_max=100, step=50, precision=1)
+    texture_scale = bpy.props.FloatProperty(name="Texture size", default=1, min=0, max=100, soft_min=0, soft_max=100, step=50, precision=1)
 
     @classmethod
     def poll(cls, context):
@@ -1668,7 +1668,7 @@ class CNV_OT_quick_semen_bake_image(bpy.types.Operator):
         return context.window_manager.invoke_props_dialog(self)
 
     def draw(self, context):
-        self.layout.label(text="新規画像設定", icon='IMAGE_COL')
+        self.layout.label(text="New image settings", icon='IMAGE_COL')
         self.layout.prop(self, 'image_name', icon='SORTALPHA')
         row = self.layout.row(align=True)
         row.prop(self, 'image_width', icon='ARROW_LEFTRIGHT')
@@ -1700,7 +1700,7 @@ class CNV_OT_quick_semen_bake_image(bpy.types.Operator):
 
         blend_path = os.path.join(os.path.dirname(__file__), "append_data.blend")
         with context.blend_data.libraries.load(blend_path) as (data_from, data_to):
-            data_to.materials = ["精液"]
+            data_to.materials = ["Semen"]
 
         bpy.ops.object.material_slot_add(override)
         temp_mate = data_to.materials[0]

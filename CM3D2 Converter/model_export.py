@@ -14,51 +14,51 @@ from . import cm3d2_data
 @compat.BlRegister()
 class CNV_OT_export_cm3d2_model(bpy.types.Operator):
     bl_idname = 'export_mesh.export_cm3d2_model'
-    bl_label = "CM3D2モデル (.model)"
-    bl_description = "カスタムメイド3D2のmodelファイルを書き出します"
+    bl_label = "CM3D2 Model (.model)"
+    bl_description = "Will export a mesh in CM3D2 .Model Format."
     bl_options = {'REGISTER'}
 
     filepath = bpy.props.StringProperty(subtype='FILE_PATH')
     filename_ext = ".model"
     filter_glob = bpy.props.StringProperty(default="*.model", options={'HIDDEN'})
 
-    scale = bpy.props.FloatProperty(name="倍率", default=0.2, min=0.01, max=100, soft_min=0.01, soft_max=100, step=10, precision=2, description="エクスポート時のメッシュ等の拡大率です")
+    scale = bpy.props.FloatProperty(name="Scale", default=0.2, min=0.01, max=100, soft_min=0.01, soft_max=100, step=10, precision=2, description="How the mesh will be scaled at the time of export.")
 
-    is_backup = bpy.props.BoolProperty(name="ファイルをバックアップ", default=True, description="ファイルに上書きする場合にバックアップファイルを複製します")
+    is_backup = bpy.props.BoolProperty(name="Backup", default=True, description="Will backup any previous files with the same name.")
 
     version = bpy.props.EnumProperty(
-        name="ファイルバージョン",
+        name="Version",
         items=[
             ('2001', '2001', 'model version 2001 (available only for com3d2)', 'NONE', 0),
             ('2000', '2000', 'model version 2000 (com3d2 version)', 'NONE', 1),
             ('1000', '1000', 'model version 1000 (available for cm3d2/com3d2)', 'NONE', 2),
         ], default='1000')
-    model_name = bpy.props.StringProperty(name="model名", default="*")
-    base_bone_name = bpy.props.StringProperty(name="基点ボーン名", default="*")
+    model_name = bpy.props.StringProperty(name="model Name", default="*")
+    base_bone_name = bpy.props.StringProperty(name="Base Bone", default="*")
 
     items = [
-        ('ARMATURE', "アーマチュア", "", 'OUTLINER_OB_ARMATURE', 1),
-        ('TEXT', "テキスト", "", 'FILE_TEXT', 2),
-        ('OBJECT_PROPERTY', "オブジェクト内プロパティ", "", 'OBJECT_DATAMODE', 3),
-        ('ARMATURE_PROPERTY', "アーマチュア内プロパティ", "", 'ARMATURE_DATA', 4),
+        ('ARMATURE', "Armature", "", 'OUTLINER_OB_ARMATURE', 1),
+        ('TEXT', "Text", "", 'FILE_TEXT', 2),
+        ('OBJECT_PROPERTY', "Object Data", "", 'OBJECT_DATAMODE', 3),
+        ('ARMATURE_PROPERTY', "Armature Data", "", 'ARMATURE_DATA', 4),
     ]
-    bone_info_mode = bpy.props.EnumProperty(items=items, name="ボーン情報元", default='OBJECT_PROPERTY', description="modelファイルに必要なボーン情報をどこから引っ張ってくるか選びます")
+    bone_info_mode = bpy.props.EnumProperty(items=items, name="Bone Data Source", default='OBJECT_PROPERTY', description="This will decide from where the Bone Data is gathered from.")
 
     items = [
-        ('TEXT', "テキスト", "", 'FILE_TEXT', 1),
-        ('MATERIAL', "マテリアル", "", 'MATERIAL', 2),
+        ('TEXT', "Text", "", 'FILE_TEXT', 1),
+        ('MATERIAL', "Material", "", 'MATERIAL', 2),
     ]
-    mate_info_mode = bpy.props.EnumProperty(items=items, name="マテリアル情報元", default='MATERIAL', description="modelファイルに必要なマテリアル情報をどこから引っ張ってくるか選びます")
+    mate_info_mode = bpy.props.EnumProperty(items=items, name="Material Source", default='MATERIAL', description="This will decide from where the Material Data is gathered from.")
 
-    is_arrange_name = bpy.props.BoolProperty(name="データ名の連番を削除", default=True, description="「○○.001」のような連番が付属したデータ名からこれらを削除します")
+    is_arrange_name = bpy.props.BoolProperty(name="Delete Duplicate Name Numbers", default=True, description="This will delete the numbers that are added to duplicate names such as [.001]")
 
-    is_convert_tris = bpy.props.BoolProperty(name="四角面を三角面に", default=True, description="四角ポリゴンを三角ポリゴンに変換してから出力します、元のメッシュには影響ありません")
-    is_normalize_weight = bpy.props.BoolProperty(name="ウェイトの合計を1.0に", default=True, description="4つのウェイトの合計値が1.0になるように正規化します")
-    is_convert_bone_weight_names = bpy.props.BoolProperty(name="頂点グループ名をCM3D2用に変換", default=True, description="全ての頂点グループ名をCM3D2で使える名前にしてからエクスポートします")
+    is_convert_tris = bpy.props.BoolProperty(name="Triangulate", default=True, description="Will triangulate any none triangular faces.")
+    is_normalize_weight = bpy.props.BoolProperty(name="Normalize Weights", default=True, description="Will normalize all Vertex Weights so that the sum of the weights on a single vertex is equal to 1.")
+    is_convert_bone_weight_names = bpy.props.BoolProperty(name="Convert Vertex Groups for CM3D2", default=True, description="This will change the vertex group names to CM3D2's format if it is in Blenders format.")
 
-    is_batch = bpy.props.BoolProperty(name="バッチモード", default=False, description="モードの切替やエラー個所の選択を行いません")
+    is_batch = bpy.props.BoolProperty(name="Batch Mode", default=False, description="Does not switch modes or select incorrect locations")
 
-    export_tangent = bpy.props.BoolProperty(name="接空間情報出力", default=False, description="接空間情報(binormals, tangents)を出力する")
+    export_tangent = bpy.props.BoolProperty(name="Export Tangents", default=False, description="Outputs tangent info.")
 
     @classmethod
     def poll(cls, context):
@@ -77,24 +77,24 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
         """データの成否チェック"""
         ob = context.active_object
         if not ob:
-            return self.report_cancel("アクティブオブジェクトがありません")
+            return self.report_cancel("There is no Active Object.")
         if ob.type != 'MESH':
-            return self.report_cancel("メッシュオブジェクトを選択した状態で実行してください")
+            return self.report_cancel("Please select the mesh first.")
         if not len(ob.material_slots):
-            return self.report_cancel("マテリアルがありません")
+            return self.report_cancel("There is no material.")
         for slot in ob.material_slots:
             if not slot.material:
-                return self.report_cancel("空のマテリアルスロットを削除してください")
+                return self.report_cancel("Please Delete the empty Material Slot")
             try:
                 slot.material['shader1']
                 slot.material['shader2']
             except:
-                return self.report_cancel("マテリアルに「shader1」と「shader2」という名前のカスタムプロパティを用意してください")
+                return self.report_cancel("Please add [shader 1] and [shader 2] to the material")
         me = ob.data
         if not me.uv_layers.active:
-            return self.report_cancel("UVがありません")
+            return self.report_cancel("There is no UV")
         if 65535 < len(me.vertices):
-            return self.report_cancel("エクスポート可能な頂点数を大幅に超えています、最低でも65535未満には削減してください")
+            return self.report_cancel("Too many Vertices. Please reduce to at least 65535")
         return None
 
     def invoke(self, context, event):
@@ -162,13 +162,13 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
         prefs = common.preferences()
         box = self.layout.box()
         col = box.column(align=True)
-        col.label(text="ボーン情報元", icon='BONE_DATA')
+        col.label(text="Bone Data Source", icon='BONE_DATA')
         col.prop(self, 'bone_info_mode', icon='BONE_DATA', expand=True)
         col = box.column(align=True)
-        col.label(text="マテリアル情報元", icon='MATERIAL')
+        col.label(text="Material Source", icon='MATERIAL')
         col.prop(self, 'mate_info_mode', icon='MATERIAL', expand=True)
         box = self.layout.box()
-        box.label(text="メッシュオプション")
+        box.label(text="Triangulate")
         box.prop(self, 'is_convert_tris', icon='MESH_DATA')
         box.prop(prefs, 'skip_shapekey', icon='SHAPEKEY_DATA')
         box.prop(self, 'export_tangent', icon='CURVE_BEZCIRCLE')
@@ -237,7 +237,7 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
                     if ob_main:
                         compat.set_active(context, ob_main)
                     bpy.ops.object.join()
-                    self.report(type={'INFO'}, message="%d個のオブジェクトをマージしました" % selected_count)
+                    self.report(type={'INFO'}, message="%d Merged Objects" % selected_count)
 
             ret = self.export(context, ob_main)
             if 'FINISHED' not in ret:
@@ -245,7 +245,7 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
 
             context.window_manager.progress_update(10)
             diff_time = time.time() - start_time
-            self.report(type={'INFO'}, message="modelのエクスポートが完了しました。%.2f 秒 file=%s" % (diff_time, self.filepath))
+            self.report(type={'INFO'}, message="model was exported %.2f seconds file=%s" % (diff_time, self.filepath))
             return ret
         finally:
             # 作業データの破棄（コピーデータを削除、選択状態の復元、アクティブオブジェクト、モードの復元）
@@ -290,44 +290,44 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
         if self.bone_info_mode == 'ARMATURE':
             arm_ob = ob.parent
             if arm_ob and arm_ob.type != 'ARMATURE':
-                return self.report_cancel("メッシュオブジェクトの親がアーマチュアではありません")
+                return self.report_cancel("The parent of the mesh object is not an armature")
             if not arm_ob:
                 try:
                     arm_ob = next(mod for mod in ob.modifiers if mod.type == 'ARMATURE' and mod.object)
                 except StopIteration:
-                    return self.report_cancel("アーマチュアが見つかりません、親にするかモディファイアにして下さい")
+                    return self.report_cancel("Armature not found, please make it parent or modifier")
                 arm_ob = arm_ob.object
         elif self.bone_info_mode == 'TEXT':
             if "BoneData" not in context.blend_data.texts:
-                return self.report_cancel("テキスト「BoneData」が見つかりません、中止します")
+                return self.report_cancel("BoneData in Text cannot be found. Aborting.")
             if "LocalBoneData" not in context.blend_data.texts:
-                return self.report_cancel("テキスト「LocalBoneData」が見つかりません、中止します")
+                return self.report_cancel("Text 'LocalBoneData' can not be found, aborted")
         elif self.bone_info_mode == 'OBJECT_PROPERTY':
             if "BoneData:0" not in ob:
-                return self.report_cancel("オブジェクトのカスタムプロパティにボーン情報がありません")
+                return self.report_cancel("There is no BoneData in the custom properties of the object")
             if "LocalBoneData:0" not in ob:
-                return self.report_cancel("オブジェクトのカスタムプロパティにボーン情報がありません")
+                return self.report_cancel("There is no LocalBoneData in the custom properties of the object")
         elif self.bone_info_mode == 'ARMATURE_PROPERTY':
             arm_ob = ob.parent
             if arm_ob and arm_ob.type != 'ARMATURE':
-                return self.report_cancel("メッシュオブジェクトの親がアーマチュアではありません")
+                return self.report_cancel("The Parent of the Mesh object is not an Armature")
             if not arm_ob:
                 try:
                     arm_ob = next(mod for mod in ob.modifiers if mod.type == 'ARMATURE' and mod.object)
                 except StopIteration:
-                    return self.report_cancel("アーマチュアが見つかりません、親にするかモディファイアにして下さい")
+                    return self.report_cancel("Armature not found. Please parent the Armature to the mesh or add an Armature modifier with the corresponding Armature.")
                 arm_ob = arm_ob.object
             if "BoneData:0" not in arm_ob.data:
-                return self.report_cancel("アーマチュアのカスタムプロパティにボーン情報がありません")
+                return self.report_cancel("There is no BoneData in the custom properties of the Armature.")
             if "LocalBoneData:0" not in arm_ob.data:
-                return self.report_cancel("アーマチュアのカスタムプロパティにボーン情報がありません")
+                return self.report_cancel("There is no Local BoneData in the custom properties of the Armature.")
         else:
-            return self.report_cancel("ボーン情報元のモードがおかしいです")
+            return self.report_cancel("The bone Information source is not working? Please choose another.")
 
         if self.mate_info_mode == 'TEXT':
             for index, slot in enumerate(ob.material_slots):
                 if "Material:" + str(index) not in context.blend_data.texts:
-                    return self.report_cancel("マテリアル情報元のテキストが足りません")
+                    return self.report_cancel("Material Data from Text is incomplete.")
         context.window_manager.progress_update(1)
 
         # model名とか
@@ -354,13 +354,13 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
                 base_bone_candidate = target['BaseBone']
             bone_data = self.bone_data_parser(self.indexed_data_generator(target, prefix="BoneData:"))
         if len(bone_data) <= 0:
-            return self.report_cancel("テキスト「BoneData」に有効なデータがありません")
+            return self.report_cancel("There is no such Base Bone in the Bone Data")
 
         if self.base_bone_name not in (b['name'] for b in bone_data):
             if base_bone_candidate and self.base_bone_name == 'Auto':
                 self.base_bone_name = base_bone_candidate
             else:
-                return self.report_cancel("基点ボーンが存在しません")
+                return self.report_cancel("The second half of the Object name should be the bone names(?)")
         context.window_manager.progress_update(2)
 
         # LocalBoneData情報読み込み
@@ -374,7 +374,7 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
             target = ob if self.bone_info_mode == 'OBJECT_PROPERTY' else arm_ob.data
             local_bone_data = self.local_bone_data_parser(self.indexed_data_generator(target, prefix="LocalBoneData:"))
         if len(local_bone_data) <= 0:
-            return self.report_cancel("テキスト「LocalBoneData」に有効なデータがありません")
+            return self.report_cancel("LocalBoneData in text does not contain valid data")
         local_bone_name_indices = {bone['name']: index for index, bone in enumerate(local_bone_data)}
         context.window_manager.progress_update(3)
 
@@ -392,7 +392,7 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
             if len(vgs) == 0:
                 if not self.is_batch:
                     self.select_no_weight_vertices(context, local_bone_name_indices)
-                return self.report_cancel("ウェイトが割り当てられていない頂点が見つかりました、中止します")
+                return self.report_cancel("A Vertex with no Weight assigned has been found. Aborting.")
             vgs = sorted(vgs, key=itemgetter(1), reverse=True)[0:4]
             total = sum(vg[1] for vg in vgs)
             if self.is_normalize_weight:
@@ -411,15 +411,15 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
                 'weights': list(map(itemgetter(1), vgs)),
             })
         if 1 <= is_over_one:
-            self.report(type={'INFO'}, message="ウェイトの合計が1.0を超えている頂点が見つかりました。超過している頂点の数:%d" % is_over_one)
+            self.report(type={'INFO'}, message="A vertex whose total weight is more then 1 has been found. Please Normalize Weights." % is_over_one)
         if 1 <= is_under_one:
-            self.report(type={'INFO'}, message="ウェイトの合計が1.0未満の頂点が見つかりました。不足している頂点の数:%d" % is_under_one)
+            self.report(type={'INFO'}, message="A vertex whose total weight is less then 1 has been found. Please Normalize Weights." % is_under_one)
         context.window_manager.progress_update(4)
 
         try:
             writer = common.open_temporary(self.filepath, 'wb', is_backup=self.is_backup)
         except:
-            self.report(type={'ERROR'}, message="ファイルを開くのに失敗しました、アクセス不可の可能性があります")
+            self.report(type={'ERROR'}, message="Failed to Backup previous file. Possibly inaccessible or non-existent.")
             return {'CANCELLED'}
 
         model_datas = {
@@ -490,7 +490,7 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
                     vert_indices[vert.index] = vert_count
                     vert_count += 1
         if 65535 < vert_count:
-            raise common.CM3D2ExportException("頂点数がまだ多いです (現在%d頂点)。あと%d頂点以上減らしてください、中止します" % (vert_count, vert_count - 65535))
+            raise common.CM3D2ExportException("There are still too many vertices (% d Vertices). Please remove% d more vertices. Aborting." % (vert_count, vert_count - 65535))
         context.window_manager.progress_update(5)
 
         writer.write(struct.pack('<2i', vert_count, len(ob.material_slots)))

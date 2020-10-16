@@ -15,34 +15,34 @@ from . import cm3d2_data
 @compat.BlRegister()
 class CNV_OT_import_cm3d2_model(bpy.types.Operator):
     bl_idname = 'import_mesh.import_cm3d2_model'
-    bl_label = "CM3D2モデル (.model)"
-    bl_description = "カスタムメイド3D2のmodelファイルを読み込みます"
+    bl_label = "CM3D2 Model (.model)"
+    bl_description = "Imports a model from the game CM3D2"
     bl_options = {'REGISTER'}
 
     filepath = bpy.props.StringProperty(subtype='FILE_PATH')
     filename_ext = ".model"
     filter_glob = bpy.props.StringProperty(default="*.model", options={'HIDDEN'})
 
-    scale = bpy.props.FloatProperty(name="倍率", default=5, min=0.1, max=100, soft_min=0.1, soft_max=100, step=100, precision=1, description="インポート時のメッシュ等の拡大率です")
+    scale = bpy.props.FloatProperty(name="Scale", default=5, min=0.1, max=100, soft_min=0.1, soft_max=100, step=100, precision=1, description="The amount by which the mesh is scaled when imported. Recommended that you use the same when at the time of export.")
 
-    is_mesh = bpy.props.BoolProperty(name="メッシュ生成", default=True, description="ポリゴンを読み込みます、大抵の場合オンでOKです")
-    is_remove_doubles = bpy.props.BoolProperty(name="重複頂点を結合", default=True, description="UVの切れ目でポリゴンが分かれている仕様なので、インポート時にくっつけます")
-    is_seam = bpy.props.BoolProperty(name="シームをつける", default=True, description="UVの切れ目にシームをつけます")
+    is_mesh = bpy.props.BoolProperty(name="Load Mesh", default=True, description="Leaving this on will load in the mesh.")
+    is_remove_doubles = bpy.props.BoolProperty(name="Remove Doubles", default=True, description="Doubles will be removed in both the uv and the mesh at the time of import.")
+    is_seam = bpy.props.BoolProperty(name="Mark Seams", default=True, description="This will mark the UV seams on your mesh.")
 
-    is_convert_bone_weight_names = bpy.props.BoolProperty(name="頂点グループ名をBlender用に変換", default=False, description="全ての頂点グループ名をBlenderの左右対称編集で使えるように変換してから読み込みます")
-    is_vertex_group_sort = bpy.props.BoolProperty(name="頂点グループを名前順ソート", default=True, description="頂点グループを名前順でソートします")
-    is_remove_empty_vertex_group = bpy.props.BoolProperty(name="割り当てのない頂点グループを削除", default=True, description="全ての頂点に割り当てのない頂点グループを削除します")
+    is_convert_bone_weight_names = bpy.props.BoolProperty(name="Convert Bone Weight Names to Blender", default=False, description="This will convert bone and vertex group names for use with blender mirroring.")
+    is_vertex_group_sort = bpy.props.BoolProperty(name="Sort Vertex Groups", default=True, description="This will sort your vertex groups so they are easier to work with.")
+    is_remove_empty_vertex_group = bpy.props.BoolProperty(name="Remove Empty Vertex Groups", default=True, description="Will remove any empty vertex groups to which no vertices are assigned to it.")
 
-    reload_tex_cache = bpy.props.BoolProperty(name="テクスチャキャッシュを再構成", default=False, description="texファイルを探す際、キャッシュを再構成します")
-    is_decorate = bpy.props.BoolProperty(name="種類に合わせてマテリアルを装飾", default=True)
-    is_mate_data_text = bpy.props.BoolProperty(name="テキストにマテリアル情報埋め込み", default=True, description="シェーダー情報をテキストに埋め込みます")
+    reload_tex_cache = bpy.props.BoolProperty(name="Reconstruct texture cache", default=False, description="Reconfigure cache when looking for tex files")
+    is_decorate = bpy.props.BoolProperty(name="Decorate Material", default=True)
+    is_mate_data_text = bpy.props.BoolProperty(name="Export Mate Data to text editor.", default=True, description="Material information will be placed into the text editor.")
 
-    is_armature = bpy.props.BoolProperty(name="アーマチュア生成", default=True, description="ウェイトを編集する時に役立つアーマチュアを読み込みます")
-    is_armature_clean = bpy.props.BoolProperty(name="不要なボーンを削除", default=False, description="ウェイトが無いボーンを削除します")
+    is_armature = bpy.props.BoolProperty(name="Load Armature", default=True, description="Loads in the armature that comes with the model.")
+    is_armature_clean = bpy.props.BoolProperty(name="Clean Armature", default=False, description="Will delete any unneeded bones.")
 
-    is_bone_data_text = bpy.props.BoolProperty(name="テキスト", default=True, description="ボーン情報をテキストとして読み込みます")
-    is_bone_data_obj_property = bpy.props.BoolProperty(name="オブジェクトのカスタムプロパティ", default=True, description="メッシュオブジェクトのカスタムプロパティにボーン情報を埋め込みます")
-    is_bone_data_arm_property = bpy.props.BoolProperty(name="アーマチュアのカスタムプロパティ", default=True, description="アーマチュアデータのカスタムプロパティにボーン情報を埋め込みます")
+    is_bone_data_text = bpy.props.BoolProperty(name="Text", default=True, description="Read Bone data from the text")
+    is_bone_data_obj_property = bpy.props.BoolProperty(name="Object Property", default=True, description="Will retrieve the bonedata from the object's properties")
+    is_bone_data_arm_property = bpy.props.BoolProperty(name="Armature Properties", default=True, description="Will retrieve the bonedata from the armature's properties")
     texpath_dict = None
 
     @classmethod
@@ -66,16 +66,16 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator):
         box = self.layout.box()
         box.prop(self, 'is_mesh', icon='MESH_DATA')
         sub_box = box.box()
-        sub_box.label(text="メッシュ")
+        sub_box.label(text="Mesh")
         sub_box.prop(self, 'is_remove_doubles', icon='STICKY_UVS_VERT')
         sub_box.prop(self, 'is_seam', icon='KEY_DEHLT')
         sub_box = box.box()
-        sub_box.label(text="頂点グループ")
+        sub_box.label(text="Vertex Group")
         sub_box.prop(self, 'is_vertex_group_sort', icon='SORTALPHA')
         sub_box.prop(self, 'is_remove_empty_vertex_group', icon='DISCLOSURE_TRI_DOWN')
         sub_box.prop(self, 'is_convert_bone_weight_names', icon='BLENDER')
         sub_box = box.box()
-        sub_box.label(text="マテリアル")
+        sub_box.label(text="Material")
         sub_box.prop(prefs, 'is_replace_cm3d2_tex', icon='BORDERMOVE')
         sub_box.prop(self, 'reload_tex_cache', icon='FILE_REFRESH')
         if compat.IS_LEGACY:
@@ -84,11 +84,11 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator):
         box = self.layout.box()
         box.prop(self, 'is_armature', icon='ARMATURE_DATA')
         sub_box = box.box()
-        sub_box.label(text="アーマチュア")
+        sub_box.label(text="Armature")
         sub_box.prop(self, 'is_armature_clean', icon='X')
-        sub_box.prop(self, 'is_convert_bone_weight_names', icon='BLENDER', text="ボーン名をBlender用に変換")
+        sub_box.prop(self, 'is_convert_bone_weight_names', icon='BLENDER', text="Convert Bone Names for Blender.")
         box = self.layout.box()
-        box.label(text="ボーン情報埋め込み場所")
+        box.label(text="Bone Data Destination")
         box.prop(self, 'is_bone_data_text', icon='TEXT')
         box.prop(self, 'is_bone_data_obj_property', icon='OBJECT_DATA')
         box.prop(self, 'is_bone_data_arm_property', icon='ARMATURE_DATA')
@@ -105,7 +105,7 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator):
         try:
             reader = open(self.filepath, 'rb')
         except:
-            self.report(type={'ERROR'}, message="ファイルを開くのに失敗しました、アクセス不可かファイルが存在しません:%s" % self.filepath)
+            self.report(type={'ERROR'}, message="Failed to open file, inaccessible or file does not exist:%s" % self.filepath)
             return {'CANCELLED'}
 
         self.texpath_dict = common.get_texpath_dict(reload=self.reload_tex_cache)
@@ -114,7 +114,7 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator):
             # ヘッダー
             ext = common.read_str(reader)
             if ext != 'CM3D2_MESH':
-                self.report(type={'ERROR'}, message="これはカスタムメイド3D2のモデルファイルではありません")
+                self.report(type={'ERROR'}, message="This is not a CM3D2 Model File.")
                 return {'CANCELLED'}
             model_ver = struct.unpack('<i', reader.read(4))[0]
             context.window_manager.progress_update(0.1)
@@ -288,7 +288,7 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator):
                     fix_mat_before = mathutils.Euler((math.radians(90), 0, 0), 'XYZ').to_matrix().to_4x4()
                     fix_mat_after = mathutils.Euler((0, 0, math.radians(90)), 'XYZ').to_matrix().to_4x4()
 
-                    bone.matrix = compat.mul4(fix_mat_scale, fix_mat_before, mat, fix_mat_after)
+                    compat.set_bone_matrix(bone, compat.mul4(fix_mat_scale, fix_mat_before, mat, fix_mat_after))
 
                     bone["UnknownFlag"] = 1 if data['unknown'] else 0
                 else:
@@ -329,7 +329,7 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator):
                     fix_mat_before = mathutils.Euler((math.radians(90), 0, 0), 'XYZ').to_matrix().to_4x4()
                     fix_mat_after = mathutils.Euler((0, 0, math.radians(90)), 'XYZ').to_matrix().to_4x4()
 
-                    bone.matrix = compat.mul4(fix_mat_scale, fix_mat_before, mat, fix_mat_after)
+                    compat.set_bone_matrix(bone, compat.mul4(fix_mat_scale, fix_mat_before, mat, fix_mat_after))
 
                     bone["UnknownFlag"] = 1 if data['unknown'] else 0
                 else:
@@ -658,7 +658,7 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator):
         elif 1024 < filesize:
             filesize = filesize / 1024.0
             filesize_str = "KB"
-        self.report(type={'INFO'}, message="modelのインポートが完了しました (%d %s/ %.2f 秒)" % (filesize, filesize_str, require_time))
+        self.report(type={'INFO'}, message="Model Was Imported Successfully (%d %s/ %.2f sec)" % (filesize, filesize_str, require_time))
 
         return {'FINISHED'}
 

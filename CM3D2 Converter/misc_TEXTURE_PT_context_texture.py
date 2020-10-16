@@ -34,17 +34,17 @@ def menu_func(self, context):
     base_name = common.remove_serial_number(tex.name)
 
     box = self.layout.box()
-    box.label(text="CM3D2用", icon_value=common.kiss_icon())
+    box.label(text="For CM3D2", icon_value=common.kiss_icon())
     split = compat.layout_split(box, factor=1 / 3)
-    split.label(text="設定値タイプ:")
+    split.label(text="Setting type:")
     row = split.row()
 
     if slot_type == 'tex':
-        row.label(text="テクスチャ", icon='TEXTURE')
+        row.label(text="Texture", icon='TEXTURE')
     elif slot_type == 'col':
-        row.label(text="色", icon='COLOR')
+        row.label(text="Color", icon='COLOR')
     elif slot_type == 'f':
-        row.label(text="値", icon='ARROW_LEFTRIGHT')
+        row.label(text="Value", icon='ARROW_LEFTRIGHT')
 
     check_row = row.row(align=True)
 
@@ -54,7 +54,7 @@ def menu_func(self, context):
     if tex_slot.use:
         sub_row.enabled = False
 
-    box.prop(tex, 'name', icon='SORTALPHA', text="設定値名")
+    box.prop(tex, 'name', icon='SORTALPHA', text="Setting Value Name")
 
     if slot_type == "tex":
         if tex.type == 'IMAGE':
@@ -65,11 +65,11 @@ def menu_func(self, context):
 
                     sub_box = box.box()
                     row = compat.layout_split(sub_box, factor=1 / 3, align=True)
-                    row.label(text="テクスチャ名:")
+                    row.label(text="Texture name:")
                     row.template_ID(tex, 'image', open='image.open')
                     if 'cm3d2_path' not in img:
                         img['cm3d2_path'] = common.get_tex_cm3d2path(img.filepath)
-                    sub_box.prop(img, '["cm3d2_path"]', text="テクスチャパス")
+                    sub_box.prop(img, '["cm3d2_path"]', text="Game Directory")
 
                     if base_name == "_ToonRamp":
                         sub_box.menu('TEXTURE_MT_context_texture_ToonRamp', icon='NLA')
@@ -79,21 +79,21 @@ def menu_func(self, context):
                         sub_box.menu('TEXTURE_MT_context_texture_OutlineToonRamp', icon='NLA')
 
                     split = compat.layout_split(sub_box, factor=1 / 3, align=True)
-                    split.label(text="オフセット:")
+                    split.label(text="Offset:")
                     row = split.row(align=True)
                     row.prop(tex_slot, 'color', index=0, text="")
                     row.prop(tex_slot, 'color', index=1, text="")
 
                     split = compat.layout_split(sub_box, factor=1 / 3, align=True)
-                    split.label(text="拡大/縮小:")
+                    split.label(text="Enlargement/Reduction:")
                     row = split.row(align=True)
                     row.prop(tex_slot, 'color', index=2, text="")
                     row.prop(tex_slot, 'diffuse_color_factor', text="")
 
                     row = sub_box.row()
-                    row.operator('image.show_image', text="画像を表示", icon='ZOOM_IN').image_name = img.name
+                    row.operator('image.show_image', text="Image to UV/Image Editor", icon='ZOOM_IN').image_name = img.name
                     if len(img.pixels):
-                        row.operator('image.quick_export_cm3d2_tex', text="texで保存", icon='FILESEL').node_name = tex.name
+                        row.operator('image.quick_export_cm3d2_tex', text="Save as .tex", icon='FILESEL').node_name = tex.name
                     else:
                         row.operator('image.replace_cm3d2_tex', icon='BORDERMOVE')
 
@@ -103,19 +103,19 @@ def menu_func(self, context):
         # row = compat.layout_split(sub_box, factor=0.7, align=True)
         row = sub_box.row(align=True)
         row.prop(tex_slot, 'color', text="")
-        row.operator('texture.auto_set_color_value', icon='AUTO', text="自動設定")
+        row.operator('texture.auto_set_color_value', icon='AUTO', text="Auto")
         row.operator('texture.set_color_value_old', text="", icon=compat.icon('SHADING_SOLID')).color = [0, 0, 0] + [tex_slot.diffuse_color_factor]
         row.operator('texture.set_color_value_old', text="", icon=compat.icon('MESH_CIRCLE')).color = [1, 1, 1] + [tex_slot.diffuse_color_factor]
 
         row = sub_box.row(align=True)
         row.operator('texture.set_color_value_old', text="", icon='TRIA_LEFT').color = list(tex_slot.color) + [0]
-        row.prop(tex_slot, 'diffuse_color_factor', icon='IMAGE_RGB_ALPHA', text="色の透明度", slider=True)
+        row.prop(tex_slot, 'diffuse_color_factor', icon='IMAGE_RGB_ALPHA', text="Alpha", slider=True)
         row.operator('texture.set_color_value_old', text="", icon='TRIA_RIGHT').color = list(tex_slot.color) + [1]
 
     elif slot_type == "f":
         sub_box = box.box()
         row = sub_box.row(align=True)
-        row.prop(tex_slot, 'diffuse_color_factor', icon='ARROW_LEFTRIGHT', text="値")
+        row.prop(tex_slot, 'diffuse_color_factor', icon='ARROW_LEFTRIGHT', text="Value")
 
         data_path = 'texture_slot.diffuse_color_factor'
         if base_name == '_Shininess':
@@ -137,7 +137,7 @@ def menu_func(self, context):
             row.operator('texture.set_color_value_old', text="0.002", icon='ANTIALIASED').color = list(tex_slot.color) + [0.002]
 
             split = compat.layout_split(sub_box, factor=0.3)
-            split.label(text="正確な値: ")
+            split.label(text=" Exact Value: ")
             split.label(text=str(tex_slot.diffuse_color_factor))
 
         elif base_name == '_RimPower':
@@ -192,7 +192,7 @@ def menu_func(self, context):
     if description != '':
         sub_box = box.box()
         col = sub_box.column(align=True)
-        col.label(text="解説", icon='TEXT')
+        col.label(text="Description", icon='TEXT')
         for line in description:
             col.label(text=line)
 
@@ -201,7 +201,7 @@ def menu_func(self, context):
 @compat.BlRegister(only_legacy=True)
 class TEXTURE_MT_context_texture_ToonRamp(bpy.types.Menu):
     bl_idname = 'TEXTURE_MT_context_texture_ToonRamp'
-    bl_label = "_ToonRamp 設定"
+    bl_label = "_ToonRamp Config"
 
     def draw(self, context):
         l = self.layout
@@ -215,7 +215,7 @@ class TEXTURE_MT_context_texture_ToonRamp(bpy.types.Menu):
 @compat.BlRegister(only_legacy=True)
 class TEXTURE_MT_context_texture_ShadowRateToon(bpy.types.Menu):
     bl_idname = 'TEXTURE_MT_context_texture_ShadowRateToon'
-    bl_label = "_ShadowRateToon 設定"
+    bl_label = "_ShadowRateToon Configuration"
 
     def draw(self, context):
         l = self.layout
@@ -229,7 +229,7 @@ class TEXTURE_MT_context_texture_ShadowRateToon(bpy.types.Menu):
 @compat.BlRegister(only_legacy=True)
 class TEXTURE_MT_context_texture_OutlineToonRamp(bpy.types.Menu):
     bl_idname = 'TEXTURE_MT_context_texture_OutlineToonRamp'
-    bl_label = "_OutlineToonRamp 設定"
+    bl_label = "_OutlineToonRamp Config"
 
     def draw(self, context):
         l = self.layout
@@ -243,7 +243,7 @@ class TEXTURE_MT_context_texture_OutlineToonRamp(bpy.types.Menu):
 @compat.BlRegister()
 class TEXTURE_MT_context_texture_values_normal(bpy.types.Menu):
     bl_idname = 'TEXTURE_MT_context_texture_values_normal'
-    bl_label = "値リスト"
+    bl_label = "Value list"
 
     def draw(self, context):
         tex_slot = context.texture_slot
@@ -257,7 +257,7 @@ class TEXTURE_MT_context_texture_values_normal(bpy.types.Menu):
 @compat.BlRegister()
 class TEXTURE_MT_context_texture_values_OutlineWidth(bpy.types.Menu):
     bl_idname = 'TEXTURE_MT_context_texture_values_OutlineWidth'
-    bl_label = "値リスト"
+    bl_label = "Value list"
 
     def draw(self, context):
         tex_slot = context.texture_slot
@@ -271,7 +271,7 @@ class TEXTURE_MT_context_texture_values_OutlineWidth(bpy.types.Menu):
 @compat.BlRegister()
 class TEXTURE_MT_context_texture_values_RimPower(bpy.types.Menu):
     bl_idname = 'TEXTURE_MT_context_texture_values_RimPower'
-    bl_label = "値リスト"
+    bl_label = "Value list"
 
     def draw(self, context):
         tex_slot = context.texture_slot
@@ -287,7 +287,7 @@ class TEXTURE_MT_context_texture_values_RimPower(bpy.types.Menu):
 @compat.BlRegister(only_legacy=True)
 class TEXTURE_MT_context_texture_values_ZTest_old(bpy.types.Menu):
     bl_idname = 'TEXTURE_MT_context_texture_values_ZTest'
-    bl_label = "値リスト"
+    bl_label = "List of Values"
 
     def draw(self, context):
         tex_slot = context.texture_slot
@@ -300,7 +300,7 @@ class TEXTURE_MT_context_texture_values_ZTest_old(bpy.types.Menu):
 @compat.BlRegister(only_latest=True)
 class TEXTURE_MT_context_texture_values_ZTest(bpy.types.Menu):
     bl_idname = 'TEXTURE_MT_context_texture_values_ZTest'
-    bl_label = "値リスト"
+    bl_label = "Values"
 
     node_name = bpy.props.StringProperty(name='NodeName')
 
@@ -328,24 +328,24 @@ class TEXTURE_MT_context_texture_values_ZTest(bpy.types.Menu):
 @compat.BlRegister()
 class CNV_OT_show_image(bpy.types.Operator):
     bl_idname = 'image.show_image'
-    bl_label = "画像を表示"
-    bl_description = "指定の画像をUV/画像エディターに表示します"
+    bl_label = "Open Image in UV/Image Editor"
+    bl_description = "Displays the specified image in the UV/ Image Editor"
     bl_options = {'REGISTER', 'UNDO'}
 
-    image_name = bpy.props.StringProperty(name="画像名")
+    image_name = bpy.props.StringProperty(name="Image name")
 
     def execute(self, context):
         if self.image_name in context.blend_data.images:
             img = context.blend_data.images[self.image_name]
         else:
-            self.report(type={'ERROR'}, message="指定された画像が見つかりません")
+            self.report(type={'ERROR'}, message="Cannot find the file specified")
             return {'CANCELLED'}
 
         area = common.get_request_area(context, 'IMAGE_EDITOR')
         if area:
             common.set_area_space_attr(area, 'image', img)
         else:
-            self.report(type={'ERROR'}, message="画像を表示できるエリアが見つかりませんでした")
+            self.report(type={'ERROR'}, message="Area to view the image as not found")
             return {'CANCELLED'}
         return {'FINISHED'}
 
@@ -353,8 +353,8 @@ class CNV_OT_show_image(bpy.types.Operator):
 @compat.BlRegister(only_legacy=True)
 class CNV_OT_replace_cm3d2_tex_old(bpy.types.Operator):
     bl_idname = 'image.replace_cm3d2_tex'
-    bl_label = "テクスチャを探す"
-    bl_description = "CM3D2本体のインストールフォルダからtexファイルを探して開きます"
+    bl_label = "Find texture"
+    bl_description = "looks for textures in the search paths specified in the Converter Settings."
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -368,7 +368,7 @@ class CNV_OT_replace_cm3d2_tex_old(bpy.types.Operator):
         tex = context.texture
         img = tex.image
         if not common.replace_cm3d2_tex(img, reload_path=True):
-            self.report(type={'ERROR'}, message="見つかりませんでした")
+            self.report(type={'ERROR'}, message="Could not be located")
             return {'CANCELLED'}
         tex.image_user.use_auto_refresh = True
         return {'FINISHED'}
@@ -377,8 +377,8 @@ class CNV_OT_replace_cm3d2_tex_old(bpy.types.Operator):
 @compat.BlRegister(only_latest=True)
 class CNV_OT_replace_cm3d2_tex(bpy.types.Operator, common.NodeHandler):
     bl_idname = 'image.replace_cm3d2_tex'
-    bl_label = "テクスチャを探す"
-    bl_description = "CM3D2本体のインストールフォルダからtexファイルを探して開きます"
+    bl_label = "Find Texture(New)"
+    bl_description = "looks for textures in the search paths specified in the Converter Settings"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -387,9 +387,9 @@ class CNV_OT_replace_cm3d2_tex(bpy.types.Operator, common.NodeHandler):
         return mate and mate.use_nodes
         # ob = bpy.context.active_object
         # if ob:
-        # 	mate = ob.active_material
-        # 	if mate:
-        # 		return mate.use_nodes
+        #   mate = ob.active_material
+        #   if mate:
+        #       return mate.use_nodes
         # return False
 
     def execute(self, context):
@@ -397,22 +397,22 @@ class CNV_OT_replace_cm3d2_tex(bpy.types.Operator, common.NodeHandler):
         if node and node.type == 'TEX_IMAGE':
             img = node.image
             if img and common.replace_cm3d2_tex(img, reload_path=True):
-                self.report(type={'INFO'}, message="テクスチャファイルを読み込みました。file=%s" % img.filepath)
+                self.report(type={'INFO'}, message="Loaded Texture File file=%s" % img.filepath)
                 node.image_user.use_auto_refresh = True
                 return {'FINISHED'}
             else:
-                msg = "テクスチャファイルが見つかりませんでした。file=%s" % img.filepath if img else "イメージが設定されていません。"
+                msg = "The texture file was not found. file=%s" % img.filepath if img else "The image is not set."
                 self.report(type={'ERROR'}, message=msg)
         else:
-            self.report(type={'ERROR'}, message="テクスチャノードが見つからないため、スキップしました。")
+            self.report(type={'ERROR'}, message="Skipped because the texture node was not found.")
         return {'CANCELLED'}
 
 
 @compat.BlRegister()
 class CNV_OT_sync_tex_color_ramps(bpy.types.Operator):
     bl_idname = 'texture.sync_tex_color_ramps'
-    bl_label = "設定をプレビューに同期"
-    bl_description = "設定値をテクスチャのプレビューに適用してわかりやすくします"
+    bl_label = "Sync Textures to Colors and Values."
+    bl_description = "Applies Textures according to Color changes. (Example: Changing the RimColor)"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -434,12 +434,12 @@ class CNV_OT_sync_tex_color_ramps(bpy.types.Operator):
 @compat.BlRegister(only_legacy=True)
 class CNV_OT_set_default_toon_textures_old(bpy.types.Operator):
     bl_idname = 'texture.set_default_toon_textures'
-    bl_label = "トゥーンを選択"
-    bl_description = "CM3D2にデフォルトで入っているトゥーンテクスチャを選択できます"
+    bl_label = "Select the toon"
+    bl_description = "Select the default toon texture."
     bl_options = {'REGISTER', 'UNDO'}
 
-    name = bpy.props.StringProperty(name="テクスチャ名")
-    # dir = bpy.props.StringProperty(name="パス", default="Assets\\texture\\texture\\toon\\")
+    name = bpy.props.StringProperty(name="Texture Name")
+    # dir = bpy.props.StringProperty(name="Path", default="Assets\\texture\\texture\\toon\\")
 
     @classmethod
     def poll(cls, context):
@@ -477,11 +477,11 @@ class CNV_OT_set_default_toon_textures_old(bpy.types.Operator):
 @compat.BlRegister(only_latest=True)
 class CNV_OT_set_default_toon_textures(bpy.types.Operator, common.NodeHandler):
     bl_idname = 'texture.set_default_toon_textures'
-    bl_label = "トゥーンを選択"
-    bl_description = "CM3D2にデフォルトで入っているトゥーンテクスチャを選択できます"
+    bl_label = "Select Toon"
+    bl_description = "You can select the default toon texture to be loaded."
     bl_options = {'REGISTER', 'UNDO'}
 
-    tex_name = bpy.props.StringProperty(name="テクスチャ名")
+    tex_name = bpy.props.StringProperty(name="Texture Name")
 
     @classmethod
     def poll(cls, context):
@@ -496,7 +496,7 @@ class CNV_OT_set_default_toon_textures(bpy.types.Operator, common.NodeHandler):
     def execute(self, context):
         node = self.get_node(context)
         if node is None:
-            self.report(type={'ERROR'}, message="対象のノードが見つかりません=%s" % self.node_name)
+            self.report(type={'ERROR'}, message="Target Node Not found=%s" % self.node_name)
             return {'CANCELLED'}
 
         texpathes = common.get_texpath_dict()
@@ -518,18 +518,18 @@ class CNV_OT_set_default_toon_textures(bpy.types.Operator, common.NodeHandler):
                 node.image.reload()
 
         node.image['cm3d2_path'] = common.get_tex_cm3d2path(node.image.filepath)
-        self.report(type={'INFO'}, message="ノード(%s)のテクスチャを再設定しました。filepath=%s" % (self.node_name, node.image.filepath))
+        self.report(type={'INFO'}, message="(%s)The texture was reset.filepath=%s" % (self.node_name, node.image.filepath))
         return {'FINISHED'}
 
 
 @compat.BlRegister(only_latest=True)
 class CNV_OT_reload_textures(bpy.types.Operator):
     bl_idname = 'texture.reload_textures'
-    bl_label = "イメージの再読込み"
-    bl_description = "実ファイルパスの設定から、再読込み"
+    bl_label = "Reload Image"
+    bl_description = "Reread from actual file path settting"
     bl_options = {'REGISTER', 'UNDO'}
 
-    tex_name = bpy.props.StringProperty(name="テクスチャ名")
+    tex_name = bpy.props.StringProperty(name="Texture Name")
 
     @classmethod
     def poll(cls, context):
@@ -541,20 +541,20 @@ class CNV_OT_reload_textures(bpy.types.Operator):
             image.reload()
             return {'FINISHED'}
 
-        self.report(type={'ERROR'}, message="対象のイメージが見つかりません=%s" % self.tex_name)
+        self.report(type={'ERROR'}, message="Target image not found%s" % self.tex_name)
         return {'CANCELLED'}
 
 
 @compat.BlRegister(only_legacy=True)
 class CNV_OT_auto_set_color_value_old(bpy.types.Operator):
     bl_idname = 'texture.auto_set_color_value'
-    bl_label = "色設定値を自動設定"
-    bl_description = "色関係の設定値をテクスチャの色情報から自動で設定します"
+    bl_label = "Automatically set the Color setting Value"
+    bl_description = "Color settings are set automatically with the Colors in the Texture"
     bl_options = {'REGISTER', 'UNDO'}
 
-    is_all = bpy.props.BoolProperty(name="全てが対象", default=True)
-    saturation_multi = bpy.props.FloatProperty(name="彩度の乗算値", default=2.2, min=0, max=5, soft_min=0, soft_max=5, step=10, precision=2)
-    value_multi = bpy.props.FloatProperty(name="明度の乗算値", default=0.3, min=0, max=5, soft_min=0, soft_max=5, step=10, precision=2)
+    is_all = bpy.props.BoolProperty(name="All", default=True)
+    saturation_multi = bpy.props.FloatProperty(name="Saturation Multiplication", default=2.2, min=0, max=5, soft_min=0, soft_max=5, step=10, precision=2)
+    value_multi = bpy.props.FloatProperty(name="Mulitplication of Lightness value", default=0.3, min=0, max=5, soft_min=0, soft_max=5, step=10, precision=2)
 
     @classmethod
     def poll(cls, context):
@@ -669,13 +669,13 @@ class CNV_OT_auto_set_color_value_old(bpy.types.Operator):
 @compat.BlRegister(only_latest=True)
 class CNV_OT_auto_set_color_value(bpy.types.Operator):
     bl_idname = 'texture.auto_set_color_value'
-    bl_label = "色設定値を自動設定"
-    bl_description = "色関係の設定値をテクスチャの色情報から自動で設定します"
+    bl_label = "Automatically set colors"
+    bl_description = "Set color-related setting values ​​automatically from texture color information"
     bl_options = {'REGISTER', 'UNDO'}
 
-    is_all = bpy.props.BoolProperty(name="全てが対象", default=True)
-    saturation_multi = bpy.props.FloatProperty(name="彩度の乗算値", default=2.2, min=0, max=5, soft_min=0, soft_max=5, step=10, precision=2)
-    value_multi = bpy.props.FloatProperty(name="明度の乗算値", default=0.3, min=0, max=5, soft_min=0, soft_max=5, step=10, precision=2)
+    is_all = bpy.props.BoolProperty(name="All", default=True)
+    saturation_multi = bpy.props.FloatProperty(name="Saturation Multiplier", default=2.2, min=0, max=5, soft_min=0, soft_max=5, step=10, precision=2)
+    value_multi = bpy.props.FloatProperty(name="Brightness Multiplier", default=0.3, min=0, max=5, soft_min=0, soft_max=5, step=10, precision=2)
     node_name = bpy.props.StringProperty(name='NodeName')
 
     @classmethod
@@ -690,12 +690,12 @@ class CNV_OT_auto_set_color_value(bpy.types.Operator):
 
         tex_node = mate.node_tree.nodes.get('_MainTex')
         # if tex_node is None:  # serial_numberが入っているケースを考慮する場合
-        # 	for node in mate.node_tree.nodes:
-        # 		if node.name.startswith('_MainTex.'):
-        # 			name = common.remove_serial_number(node.name)
-        # 			if name == '_MainTex':
-        # 				tex_node = node
-        # 				break
+        #   for node in mate.node_tree.nodes:
+        #       if node.name.startswith('_MainTex.'):
+        #           name = common.remove_serial_number(node.name)
+        #           if name == '_MainTex':
+        #               tex_node = node
+        #               break
         if tex_node is None:
             return False
 
@@ -704,14 +704,14 @@ class CNV_OT_auto_set_color_value(bpy.types.Operator):
 
         # found = False
         # if img and len(img.pixels):
-        # 	found = True
+        #   found = True
         # else:
-        # 	layer = me.uv_layers.active
-        # 	if layer and len(layer.data):
-        # 		# TODO imageはアクセスできないため、代替がないか確認
-        # 		if layer.data[0].image:
-        # 			if len(layer.data[0].image.pixels):
-        # 				found = True
+        #   layer = me.uv_layers.active
+        #   if layer and len(layer.data):
+        #       # TODO imageはアクセスできないため、代替がないか確認
+        #       if layer.data[0].image:
+        #           if len(layer.data[0].image.pixels):
+        #               found = True
         # return found
 
     def invoke(self, context, event):
@@ -798,8 +798,8 @@ class CNV_OT_auto_set_color_value(bpy.types.Operator):
 @compat.BlRegister()
 class CNV_OT_quick_export_cm3d2_tex(bpy.types.Operator):
     bl_idname = 'image.quick_export_cm3d2_tex'
-    bl_label = "texで保存"
-    bl_description = "テクスチャの画像を同フォルダにtexとして保存します"
+    bl_label = "Save as Tex"
+    bl_description = "Save the texture image as tex in the same folder"
     bl_options = {'REGISTER'}
 
     node_name = bpy.props.StringProperty(name="NodeName")
@@ -807,7 +807,7 @@ class CNV_OT_quick_export_cm3d2_tex(bpy.types.Operator):
     def execute(self, context):
         img = compat.get_tex_image(context, self.node_name)
         if img is None or len(img.pixels) == 0:
-            self.report(type={'ERROR'}, message="イメージの取得に失敗しました。%s" % self.node_name)
+            self.report(type={'ERROR'}, message="Failed to get the image %s" % self.node_name)
             return {'CANCELLED'}
 
         override = context.copy()
@@ -831,18 +831,18 @@ class CNV_OT_quick_export_cm3d2_tex(bpy.types.Operator):
         bpy.types.Scene.MyUVRects = uv_rects
         bpy.ops.image.export_cm3d2_tex(override, filepath=filepath, path=path, version=version)
 
-        self.report(type={'INFO'}, message="同フォルダにtexとして保存しました。" + filepath)
+        self.report(type={'INFO'}, message="Saved as .tex in the same folder" + filepath)
         return {'FINISHED'}
 
 
 @compat.BlRegister(only_legacy=True)
 class CNV_OT_set_color_value_old(bpy.types.Operator):
     bl_idname = 'texture.set_color_value_old'
-    bl_label = "色設定値を設定"
-    bl_description = "色タイプの設定値を設定します"
+    bl_label = "Set Color Settings"
+    bl_description = "Set the color type setting value"
     bl_options = {'REGISTER', 'UNDO'}
 
-    color = bpy.props.FloatVectorProperty(name="色", default=(0, 0, 0, 0), subtype='COLOR', size=4)
+    color = bpy.props.FloatVectorProperty(name="Color", default=(0, 0, 0, 0), subtype='COLOR', size=4)
 
     @classmethod
     def poll(cls, context):
@@ -861,11 +861,11 @@ class CNV_OT_set_color_value_old(bpy.types.Operator):
 @compat.BlRegister(only_latest=True)
 class CNV_OT_set_color_value(bpy.types.Operator, common.NodeHandler):
     bl_idname = 'texture.set_color_value'
-    bl_label = "色設定値を設定"
-    bl_description = "色タイプの設定値を設定します"
+    bl_label = "Set the Color setting Value"
+    bl_description = "Set the Color type of setting Value"
     bl_options = {'REGISTER', 'UNDO'}
 
-    color = bpy.props.FloatVectorProperty(name="色", default=(0, 0, 0, 0), subtype='COLOR', size=4)
+    color = bpy.props.FloatVectorProperty(name="Color", default=(0, 0, 0, 0), subtype='COLOR', size=4)
 
     @classmethod
     def poll(cls, context):
@@ -884,8 +884,8 @@ class CNV_OT_set_color_value(bpy.types.Operator, common.NodeHandler):
 @compat.BlRegister()
 class CNV_OT_set_value(bpy.types.Operator, common.NodeHandler):
     bl_idname = 'texture.set_value'
-    bl_label = "設定値を設定"
-    bl_description = "floatタイプの設定値を設定します"
+    bl_label = "Set Float Value"
+    bl_description = "Set the value of a float type"
     bl_options = {'REGISTER', 'UNDO'}
 
     value = bpy.props.FloatProperty(name='value')
@@ -918,8 +918,8 @@ class CNV_OT_set_value(bpy.types.Operator, common.NodeHandler):
 @compat.BlRegister(only_latest=True)
 class CNV_OT_texture_reset_offset(bpy.types.Operator, common.NodeHandler):
     bl_idname = 'texture.reset_offset'
-    bl_label = "テクスチャのオフセットをリセット"
-    bl_description = "テクスチャのオフセットに初期値(0, 0)を設定します"
+    bl_label = "Reset Texture Offset"
+    bl_description = "Set initial value of texture offset(0, 0)"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -935,8 +935,8 @@ class CNV_OT_texture_reset_offset(bpy.types.Operator, common.NodeHandler):
 @compat.BlRegister(only_latest=True)
 class CNV_OT_texture_reset_scale(bpy.types.Operator, common.NodeHandler):
     bl_idname = 'texture.reset_scale'
-    bl_label = "テクスチャのスケールをリセット"
-    bl_description = "テクスチャのスケールに初期値(1, 1)を設定します"
+    bl_label = "Reset Texture Scale"
+    bl_description = "Set the intial value (1,1) for the texture scale"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -952,8 +952,8 @@ class CNV_OT_texture_reset_scale(bpy.types.Operator, common.NodeHandler):
 @compat.BlRegister(only_latest=True)
 class CNV_OT_set_cm3d2path(bpy.types.Operator, common.NodeHandler):
     bl_idname = 'texture.set_cm3d2path'
-    bl_label = "CM3D2パスを設定"
-    bl_description = "texタイプのCM3D2パスを自動設定します"
+    bl_label = "Set CM3d2 Path"
+    bl_description = "Automatically set the game directory from which to grab textures."
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -968,8 +968,8 @@ class CNV_OT_set_cm3d2path(bpy.types.Operator, common.NodeHandler):
 @compat.BlRegister(only_latest=True)
 class CNV_OT_setup_image_name(bpy.types.Operator, common.NodeHandler):
     bl_idname = 'texture.setup_image_name'
-    bl_label = "イメージ名から拡張子を除外"
-    bl_description = "texタイプのイメージ名から拡張子を除外します"
+    bl_label = "Exclude extensions from image names"
+    bl_description = "Allows you to write texture names in the materials without including the extension"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -983,7 +983,7 @@ class CNV_OT_setup_image_name(bpy.types.Operator, common.NodeHandler):
 
 # Toon設定メニュー
 class ToonSelectMenuBase():
-    bl_label = "toon tex 選択"
+    bl_label = "toon tex Choice"
 
     def draw(self, context):
         layout = self.layout

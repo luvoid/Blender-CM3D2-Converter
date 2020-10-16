@@ -20,21 +20,21 @@ class misc_INFO_MT_add_cm3d2(bpy.types.Menu):
     def draw(self, context):
         self.layout.operator('wm.append_cm3d2_figure', text="body001", icon_value=common.kiss_icon()).object_name = "body001.body"
         self.layout.separator()
-        self.layout.operator('wm.append_cm3d2_figure', text="乳袋防止素体", icon=compat.icon('PIVOT_INDIVIDUAL')).object_name = "乳袋防止素体"
+        self.layout.operator('wm.append_cm3d2_figure', text="Large boob shapekey Body", icon=compat.icon('PIVOT_INDIVIDUAL')).object_name = "Milk bag prevention element (That's the machine translation)"
         self.layout.separator()
-        self.layout.operator('wm.append_cm3d2_figure', text="Tスタンス素体", icon='MOD_ARMATURE').object_name = "Tスタンス素体"
-        self.layout.operator('wm.append_cm3d2_figure', text="Tスタンス素体 足のみ", icon='SOUND').object_name = "Tスタンス素体 足のみ"
-        self.layout.operator('wm.append_cm3d2_figure', text="Tスタンス素体 手のみ", icon='OUTLINER_DATA_ARMATURE').object_name = "Tスタンス素体 手のみ"
+        self.layout.operator('wm.append_cm3d2_figure', text="T-Pose Body", icon='MOD_ARMATURE').object_name = "T-Pose Body"
+        self.layout.operator('wm.append_cm3d2_figure', text="Legs only T-pose Body", icon='SOUND').object_name = "Legs only T-pose Body"
+        self.layout.operator('wm.append_cm3d2_figure', text="Arms only T-pose Body", icon='OUTLINER_DATA_ARMATURE').object_name = "Arms only T-pose Body"
         self.layout.separator()
-        self.layout.operator('wm.append_cm3d2_figure', text="anm出力用リグ", icon='OUTLINER_OB_ARMATURE').object_name = "anm出力用リグ・身体メッシュ"
-        self.layout.operator('wm.append_cm3d2_figure', text="anm出力用リグ(男)", icon='ARMATURE_DATA').object_name = "anm出力用リグ(男)・身体メッシュ"
+        self.layout.operator('wm.append_cm3d2_figure', text="Rig for anm Outputs", icon='OUTLINER_OB_ARMATURE').object_name = "anm出力用リグ・身体メッシュ"
+        self.layout.operator('wm.append_cm3d2_figure', text="Rig for anms Outputs (Males)", icon='ARMATURE_DATA').object_name = "anm出力用リグ(男)・身体メッシュ"
 
 
 @compat.BlRegister()
 class CNV_OT_append_cm3d2_figure(bpy.types.Operator):
     bl_idname = 'wm.append_cm3d2_figure'
-    bl_label = "CM3D2用の素体をインポート"
-    bl_description = "CM3D2関係の素体を現在のシーンにインポートします"
+    bl_label = "Import CM3D2 Body"
+    bl_description = "Allows you to import the Body from CM3D2. (Warning: Will not work well with posing and animations.)"
     bl_options = {'REGISTER', 'UNDO'}
 
     object_name = bpy.props.StringProperty(name="素体名")

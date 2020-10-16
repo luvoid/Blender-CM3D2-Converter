@@ -25,11 +25,11 @@ def menu_func(self, context):
 @compat.BlRegister()
 class CNV_OT_forced_modifier_apply(bpy.types.Operator):
     bl_idname = 'object.forced_modifier_apply'
-    bl_label = "モディファイア強制適用"
-    bl_description = "シェイプキーのあるメッシュのモディファイアでも強制的に適用します"
+    bl_label = "Force Modifiers"
+    bl_description = "Will force any modifiers if the mesh has shape keys."
     bl_options = {'REGISTER', 'UNDO'}
 
-    is_applies = bpy.props.BoolVectorProperty(name="適用するモディファイア", size=32, options={'SKIP_SAVE'})
+    is_applies = bpy.props.BoolVectorProperty(name="Apply Modifier", size=32, options={'SKIP_SAVE'})
 
     @classmethod
     def poll(cls, context):
@@ -50,7 +50,7 @@ class CNV_OT_forced_modifier_apply(bpy.types.Operator):
     def draw(self, context):
         prefs = common.preferences()
         self.layout.prop(prefs, 'custom_normal_blend', icon='SNAP_NORMAL', slider=True)
-        self.layout.label(text="適用するモディファイア")
+        self.layout.label("Apply")
         ob = context.active_object
 
         for index, mod in enumerate(ob.modifiers):
@@ -65,7 +65,7 @@ class CNV_OT_forced_modifier_apply(bpy.types.Operator):
 
         # 対象が一つも無い場合はキャンセル扱いとする
         if not any(self.is_applies):
-            self.report(type={'INFO'}, message="適用対象のモディファイアがないため、キャンセルします")
+            self.report(type={'INFO'}, message="There are no applicable modifiers, so cancel")
             return {'CANCELLED'}
 
         custom_normal_blend = common.preferences().custom_normal_blend
@@ -197,7 +197,7 @@ class CNV_OT_forced_modifier_apply(bpy.types.Operator):
 
             for deforms in new_shape_deforms:
                 if len(me.vertices) != len(deforms):
-                    self.report(type={'ERROR'}, message="ミラー等が原因で頂点数が変わっているためシェイプキーを格納できません、中止するのでCtrl+Z等で元に戻し修正してください。")
+                    self.report(type={'ERROR'}, message="Since the number of vertices has changed due to mirror etc, The shape key can not be stored. Please undo with Ctrl + Z or other.")
                     return {'CANCELLED'}
 
             for shape_index, deforms in enumerate(new_shape_deforms):

@@ -18,7 +18,7 @@ def menu_func(self, context):
     icon_id = common.kiss_icon()
     self.layout.separator()
     self.layout.operator('script.update_cm3d2_converter', icon_value=icon_id)
-    self.layout.operator('wm.call_menu', icon_value=icon_id, text="CM3D2 Converterの更新履歴").name = 'INFO_MT_help_CM3D2_Converter_RSS'
+    self.layout.operator('wm.call_menu', icon_value=icon_id, text="CM3D2 Converter Update History").name = 'INFO_MT_help_CM3D2_Converter_RSS'
     self.layout.operator('wm.show_cm3d2_converter_preference', icon_value=icon_id)
 
 
@@ -26,7 +26,7 @@ def menu_func(self, context):
 @compat.BlRegister()
 class INFO_MT_help_CM3D2_Converter_RSS(bpy.types.Menu):
     bl_idname = 'INFO_MT_help_CM3D2_Converter_RSS'
-    bl_label = "CM3D2 Converterの更新履歴"
+    bl_label = "CM3D2 Converter Update History"
 
     def draw(self, context):
         try:
@@ -57,13 +57,13 @@ class INFO_MT_help_CM3D2_Converter_RSS(bpy.types.Menu):
                     icon = 'PREVIEW_RANGE'
 
                 if 60 * 60 * 24 <= diff_seconds.total_seconds():
-                    date_str = "%d日前" % int(diff_seconds.total_seconds() / 60 / 60 / 24)
+                    date_str = "%d Days" % int(diff_seconds.total_seconds() / 60 / 60 / 24)
                 elif 60 * 60 <= diff_seconds.total_seconds():
-                    date_str = "%d時間前" % int(diff_seconds.total_seconds() / 60 / 60)
+                    date_str = "%d Hours" % int(diff_seconds.total_seconds() / 60 / 60)
                 elif 60 <= diff_seconds.total_seconds():
-                    date_str = "%d分前" % int(diff_seconds.total_seconds() / 60)
+                    date_str = "%d Minutes" % int(diff_seconds.total_seconds() / 60)
                 else:
-                    date_str = "%d秒前" % diff_seconds.total_seconds()
+                    date_str = "%d Seconds" % diff_seconds.total_seconds()
 
                 text = "(" + date_str + ") " + title
 
@@ -82,18 +82,18 @@ class INFO_MT_help_CM3D2_Converter_RSS(bpy.types.Menu):
 
                 self.layout.operator('wm.url_open', text=text, icon=icon).url = link
         except:
-            self.layout.label(text="更新の取得に失敗しました", icon='ERROR')
+            self.layout.label(text="Failed to Download Update.", icon='ERROR')
 
 
 @compat.BlRegister()
 class CNV_OT_update_cm3d2_converter(bpy.types.Operator):
     bl_idname = 'script.update_cm3d2_converter'
-    bl_label = "CM3D2 Converterを更新"
-    bl_description = "GitHubから最新版のCM3D2 Converterアドオンをダウンロードし上書き更新します"
+    bl_label = "Update CM3D2 Converter (WARNING: COULD REMOVE TRANSLATIONS)"
+    bl_description = "Will quickly download the latest CM3D2 Converter from the Github Page."
     bl_options = {'REGISTER'}
 
-    is_restart = bpy.props.BoolProperty(name="更新後にBlenderを再起動", default=True)
-    is_toggle_console = bpy.props.BoolProperty(name="再起動後にコンソールを閉じる", default=True)
+    is_restart = bpy.props.BoolProperty(name="Restart Blender After Updating", default=True)
+    is_toggle_console = bpy.props.BoolProperty(name="Close the Console after Restart", default=True)
 
     def invoke(self, context, event):
         return context.window_manager.invoke_props_dialog(self)
@@ -137,15 +137,15 @@ class CNV_OT_update_cm3d2_converter(bpy.types.Operator):
             subprocess.Popen(command_line)
             bpy.ops.wm.quit_blender()
         else:
-            self.report(type={'INFO'}, message="Blender-CM3D2-Converterを更新しました、再起動して下さい")
+            self.report(type={'INFO'}, message="Converter Updated. Please Reboot Blender.")
         return {'FINISHED'}
 
 
 @compat.BlRegister()
 class CNV_OT_show_cm3d2_converter_preference(bpy.types.Operator):
     bl_idname = 'wm.show_cm3d2_converter_preference'
-    bl_label = "CM3D2 Converterの設定画面を開く"
-    bl_description = "CM3D2 Converterアドオンの設定画面を表示します"
+    bl_label = "CM3D2 Converter Settings Screen"
+    bl_description = "Will open the plugin's settings in the addon window."
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -168,6 +168,6 @@ class CNV_OT_show_cm3d2_converter_preference(bpy.types.Operator):
                 else:
                     bpy.ops.preferences.addon_expand(module=__package__)
         else:
-            self.report(type={'ERROR'}, message="表示できるエリアが見つかりませんでした")
+            self.report(type={'ERROR'}, message="Could not open the settings window.")
             return {'CANCELLED'}
         return {'FINISHED'}

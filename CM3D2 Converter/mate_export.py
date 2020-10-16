@@ -7,19 +7,19 @@ from . import cm3d2_data
 @compat.BlRegister()
 class CNV_OT_export_cm3d2_mate(bpy.types.Operator):
     bl_idname = 'material.export_cm3d2_mate'
-    bl_label = "mateとして保存"
-    bl_description = "表示しているマテリアルをmateファイルとして保存します"
+    bl_label = "Save As Mate"
+    bl_description = "Allows you to save blender CM3d2 materials as seperate .mate files."
     bl_options = {'REGISTER', 'UNDO'}
 
     filepath = bpy.props.StringProperty(subtype='FILE_PATH')
     filename_ext = ".mate"
     filter_glob = bpy.props.StringProperty(default="*.mate", options={'HIDDEN'})
 
-    is_backup = bpy.props.BoolProperty(name="ファイルをバックアップ", default=True, description="ファイルに上書きする場合にバックアップファイルを複製します")
+    is_backup = bpy.props.BoolProperty(name="Backup", default=True, description="Will backup an overwritten file.")
 
-    version = bpy.props.IntProperty(name="ファイルバージョン", default=1000, min=1000, max=1111, soft_min=1000, soft_max=1111, step=1)
-    name1 = bpy.props.StringProperty(name="名前1")
-    name2 = bpy.props.StringProperty(name="名前2")
+    version = bpy.props.IntProperty(name="Version", default=1000, min=1000, max=1111, soft_min=1000, soft_max=1111, step=1)
+    name1 = bpy.props.StringProperty(name="Name 1")
+    name2 = bpy.props.StringProperty(name="Name 2")
 
     @classmethod
     def poll(cls, context):
@@ -57,7 +57,7 @@ class CNV_OT_export_cm3d2_mate(bpy.types.Operator):
         try:
             writer = common.open_temporary(self.filepath, 'wb', is_backup=self.is_backup)
         except:
-            self.report(type={'ERROR'}, message="ファイルを開くのに失敗しました、アクセス不可の可能性があります")
+            self.report(type={'ERROR'}, message="Failed to backup file, possibly inaccessible.")
             return {'CANCELLED'}
 
         try:
@@ -84,19 +84,19 @@ class CNV_OT_export_cm3d2_mate(bpy.types.Operator):
 @compat.BlRegister()
 class CNV_OT_export_cm3d2_mate_text(bpy.types.Operator):
     bl_idname = 'text.export_cm3d2_mate_text'
-    bl_label = "mateとして保存"
-    bl_description = "表示しているテキストデータをmateファイルとして保存します"
+    bl_label = "Save Text as Mate"
+    bl_description = "This will allow you to save any text in the text editor as a .mate file"
     bl_options = {'REGISTER', 'UNDO'}
 
     filepath = bpy.props.StringProperty(subtype='FILE_PATH')
     filename_ext = ".mate"
     filter_glob = bpy.props.StringProperty(default="*.mate", options={'HIDDEN'})
 
-    is_backup = bpy.props.BoolProperty(name="ファイルをバックアップ", default=True, description="ファイルに上書きする場合にバックアップファイルを複製します")
+    is_backup = bpy.props.BoolProperty(name="Backup", default=True, description="Will backup any overwritten files.")
 
-    version = bpy.props.IntProperty(name="ファイルバージョン", default=1000, min=1000, max=1111, soft_min=1000, soft_max=1111, step=1)
-    name1 = bpy.props.StringProperty(name="名前1")
-    name2 = bpy.props.StringProperty(name="名前2")
+    version = bpy.props.IntProperty(name="Version", default=1000, min=1000, max=1111, soft_min=1000, soft_max=1111, step=1)
+    name1 = bpy.props.StringProperty(name="Name1")
+    name2 = bpy.props.StringProperty(name="Name2")
 
     @classmethod
     def poll(cls, context):
@@ -146,20 +146,20 @@ class CNV_OT_export_cm3d2_mate_text(bpy.types.Operator):
             text = context.edit_text.as_string()
             mat_data = cm3d2_data.MaterialHandler.parse_text(text)
         except Exception as e:
-            self.report(type={'ERROR'}, message='マテリアル情報の貼付けを中止します。' + str(e))
+            self.report(type={'ERROR'}, message='Pasting of material information was cancelled.' + str(e))
             return {'CANCELLED'}
 
         try:
             file = common.open_temporary(self.filepath, 'wb', is_backup=self.is_backup)
         except:
-            self.report(type={'ERROR'}, message="ファイルを開くのに失敗しました、アクセス不可の可能性があります")
+            self.report(type={'ERROR'}, message="Failed to backup file, possibly inaccessible.")
             return {'CANCELLED'}
 
         try:
             with file:
                 mat_data.write(file, write_header=True)
         except Exception as e:
-            self.report(type={'ERROR'}, message="mateファイルの出力に失敗、中止します。 構文を見直して下さい。" + str(e))
+            self.report(type={'ERROR'}, message="Failed to ouput the mate file. Operation was cancelled. Review your material." + str(e))
             return {'CANCELLED'}
 
         return {'FINISHED'}

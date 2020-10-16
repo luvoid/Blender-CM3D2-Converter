@@ -11,19 +11,19 @@ from . import compat
 # メニュー等に項目追加
 def menu_func(self, context):
     self.layout.separator()
-    self.layout.operator('curve.hair_bunch_add', text="髪の房", icon_value=common.kiss_icon())
+    self.layout.operator('curve.hair_bunch_add', text="Add Hair Curve", icon_value=common.kiss_icon())
 
 
 @compat.BlRegister()
 class CNV_OT_hair_bunch_add(bpy.types.Operator):
     bl_idname = 'curve.hair_bunch_add'
-    bl_label = "髪の房を追加"
-    bl_description = "アニメ調の髪の房を追加します"
+    bl_label = "Add A Lock of Hair"
+    bl_description = "Will add an anime style hair lock at the 3D Cursor."
     bl_options = {'REGISTER', 'UNDO'}
 
-    radius = bpy.props.FloatProperty(name="房の半径", default=0.1, min=0, max=10, soft_min=0, soft_max=10, step=10, precision=2)
-    random_multi = bpy.props.FloatProperty(name="ランダム要素の強さ", default=0.5, min=0, max=10, soft_min=0, soft_max=10, step=10, precision=2)
-    z_plus = bpy.props.FloatProperty(name="中間のZ軸の高さ", default=0.1, min=0, max=10, soft_min=0, soft_max=10, step=10, precision=2)
+    radius = bpy.props.FloatProperty(name="Radius", default=0.1, min=0, max=10, soft_min=0, soft_max=10, step=10, precision=2)
+    random_multi = bpy.props.FloatProperty(name="Randomness", default=0.5, min=0, max=10, soft_min=0, soft_max=10, step=10, precision=2)
+    z_plus = bpy.props.FloatProperty(name="Medium Z Axis Height", default=0.1, min=0, max=10, soft_min=0, soft_max=10, step=10, precision=2)
 
     @classmethod
     def poll(cls, context):
@@ -35,15 +35,15 @@ class CNV_OT_hair_bunch_add(bpy.types.Operator):
 
         def header_draw(self, context):
             row = self.layout.row(align=True)
-            row.label(text="ホイール:太さ変更")
-            row.label(text="ホイールクリック:ランダム強度変更")
-            row.label(text="ZXキー:高さ変更")
+            row.label(text="Mouse Wheel:Change Thickness")
+            row.label(text="Middle Mouse Button:Random Intensity Change")
+            row.label(text="Z/X Keys:Height Change")
         bpy.types.VIEW3D_HT_header.draw = header_draw
 
         # if context.active_object:
-        # 	if context.active_object.mode != 'OBJECT':
-        # 		self.report(type={'ERROR'}, message="オブジェクトモードで実行してください")
-        # 		return {'CANCELLED'}
+        #   if context.active_object.mode != 'OBJECT':
+        #       self.report(type={'ERROR'}, message="オブジェクトモードで実行してください")
+        #       return {'CANCELLED'}
 
         cursor_loc = compat.get_cursor_loc(context)
         self.end_location = bpy_extras.view3d_utils.region_2d_to_location_3d(context.region, context.region_data, (event.mouse_region_x, event.mouse_region_y), cursor_loc)
@@ -135,7 +135,7 @@ class CNV_OT_hair_bunch_add(bpy.types.Operator):
 
         elif event.type == 'LEFTMOUSE' and event.value == 'PRESS':
             bpy.types.VIEW3D_HT_header.draw = self.pre_draw
-            context.area.tag_redraw()	
+            context.area.tag_redraw()   
             return {'FINISHED'}
 
         elif event.type in {'RIGHTMOUSE', 'ESC'} and event.value == 'PRESS':
@@ -187,6 +187,6 @@ class CNV_OT_hair_bunch_add(bpy.types.Operator):
         try:
             self.set_spline(self.spline, context)
         except:
-            self.report(type={'ERROR'}, message="オブジェクトモードで実行してください")
+            self.report(type={'ERROR'}, message="Run in Object Mode!")
             return {'CANCELLED'}
         return {'FINISHED'}

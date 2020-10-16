@@ -65,30 +65,30 @@ TOON_TEXES = [
     'ToonDressMM_Shadow', 'ToonDressM_Shadow',
 ]
 PROP_DESC = {
-    '_MainTex': ["面の色を決定するテクスチャを指定。", "普段テスクチャと呼んでいるものは基本コレです。", "テクスチャパスは適当でも動きます。", "しかし、テクスチャ名はきちんと決めましょう。"],
-    '_ToonRamp': ["暗い部分に乗算するグラデーション画像を指定します。"],
-    '_ShadowTex': ["陰部分の面の色を決定するテクスチャを指定。", "「_ShadowRateToon」で範囲を指定します。"],
-    '_ShadowRateToon': ["「_ShadowTex」を有効にする部分を指定します。", "黒色で有効、白色で無効。"],
-    '_OutlineTex': ["アウトラインを表現するためのテクスチャを指定。(未確認)"],
-    '_OutlineToonRamp': ["_OutlineTexの暗い部分に乗算するグラデーション画像を指定します。(未確認)"],
-    '_Color': ["面の色を指定。", "白色で無効。基本的に白色で良いでしょう。"],
-    '_ShadowColor': ["影の色を指定。白色で無効。", "別の物体に遮られてできた「影」の色です。"],
-    '_RimColor': ["リムライトの色を指定。", "リムライトとは縁にできる光の反射のことです。"],
-    '_OutlineColor': ["輪郭線の色を指定。", "黒にするか、テクスチャの明度を", "落としたものを指定するとより良いでしょう。"],
-    '_Shininess': ["スペキュラーの強さを指定。0.0～1.0で指定。", "スペキュラーとは面の角度と光源の角度によって", "できるハイライトのことです。", "金属、皮、ガラスなどに使うと良いでしょう。"],
-    '_OutlineWidth': ["輪郭線の太さを指定。", "0.002は太め、0.001は細め。"],
-    '_RimPower': ["リムライトの強さを指定。", "この値は10以上なことも多いです。", "0に近い値だと正常に表示されません。"],
-    '_RimShift': ["リムライトの幅を指定。", "0.0～1.0で指定。0.5でもかなり強い。"],
-    '_RenderTex': ["モザイクシェーダーにある設定値。", "特に設定の必要なし。"],
-    '_FloatValue1': ["モザイクの粗さ"],
-    '_Cutoff': ["アルファのカットオフ値。", "アルファ値がこの値より大きい部分だけがレンダリングされる"],
+    '_MainTex': ["Specifies the texture.", "A texture is really just an image overlayed over the mesh.", "You can even give a texture path instead of just a name", "But don't."],
+    '_ToonRamp': ["A gradient that multiplies and colors dark areas."],
+    '_ShadowTex': ["Specifies the texture that determines the color of the shadow face.。", "「_ShadowRateToon」 Specifies the range。"],
+    '_ShadowRateToon': ["「_ShadowTex」Specify to enable。", "Black is on, white is off."],
+    '_OutlineTex': ["Specifies the texture for the outline. (unconfirmed)"],
+    '_OutlineToonRamp': ["Toon ramp for the outline texture (Unconfirmed)"],
+    '_Color': ["Color。", "White is valid, black is invalid. Leave it white in most cases."],
+    '_ShadowColor': ["Color of the shadow", "Keep in mind, this is the color of any shadow casted ON your object"],
+    '_RimColor': ["Color of the rim light。", "This is lighting at the edge of your mesh. It's terrible."],
+    '_OutlineColor': ["Color of your outline.", "Usually you pick black or something to match your texture color", "It would be better to match a few shades darker"],
+    '_Shininess': ["Specular strength。0.0～1.0。", "Think of it as shine. Has it's uses.", "Mostly in making certain materials", "Use it for shiny materials like leather, metal, glass, etc,."],
+    '_OutlineWidth': ["Outline's width。", "0.002 is thicc、0.001 isn't。"],
+    '_RimPower': ["Rim Light Strength。", "Usually this value is found over 10。", "If it's near 0, it won't display properly。"],
+    '_RimShift': ["Width of rim light。", "0.0～1.0 range。0.5 is pretty strong。"],
+    '_RenderTex': ["This value affects mosiacs。", "Don't even bother with this unless you know what you're doing.。"],
+    '_FloatValue1': ["Mosaic Pixel Count"],
+    '_Cutoff': ["Alpha Cutoff Value。", "An alpha value of a texture must be atleast this high to be rendered"],
     # '_Cutout': ["アルファのカットオフ値。", "アルファ値がこの値より大きい部分だけがレンダリングされる"],
-    '_ZTest': ["デプステストの実行方法を指定する。"]
+    '_ZTest': ["Specify the depth test execution method。"]
 }
 PROPS = {
     '_MainTex': {
         'type': 'tex',
-        'desc': ["面の色を決定するテクスチャを指定。", "普段テスクチャと呼んでいるものは基本コレです。", "テクスチャパスは適当でも動きます。", "しかし、テクスチャ名はきちんと決めましょう。"],
+        'desc': ["Specifies the texture that determines the color of the face。", "普段テスクチャと呼んでいるものは基本コレです。", "テクスチャパスは適当でも動きます。", "しかし、テクスチャ名はきちんと決めましょう。"],
     },
     '_ToonRamp': {
         'type': 'tex',
@@ -238,7 +238,7 @@ class DataHandler:
 
     def __init__(self):
         diffuse = {
-            'type_name': "リアル",
+            'type_name': "Legacy",
             'icon': 'BRUSH_CLAY_STRIPS',
             'shader2': 'Legacy Shaders__Diffuse',
             'tex_list': ['_MainTex'],
@@ -246,7 +246,7 @@ class DataHandler:
             'f_list': [],
         }
         trans_diffuse = {
-            'type_name': "リアル 透過",
+            'type_name': "Legacy Transparent",
             'icon': 'BRUSH_TEXFILL',
             'shader2': 'Legacy Shaders__Transparent__Diffuse',
             'tex_list': ['_MainTex'],
@@ -256,7 +256,7 @@ class DataHandler:
 
         self.shader_dict = {
             'CM3D2/Toony_Lighted': {
-                'type_name': "トゥーン",
+                'type_name': "Toony Lighted",
                 'icon': compat.icon('SHADING_SOLID'),
                 'shader2': 'CM3D2__Toony_Lighted',
                 'tex_list': ['_MainTex', '_ToonRamp', '_ShadowTex', '_ShadowRateToon'],
@@ -264,7 +264,7 @@ class DataHandler:
                 'f_list': ['_Shininess', '_RimPower', '_RimShift']
             },
             'CM3D2/Toony_Lighted_Hair': {
-                'type_name': "トゥーン 髪",
+                'type_name': "Toony Hair Lighted",
                 'icon': 'PARTICLEMODE',
                 'shader2': 'CM3D2__Toony_Lighted_Hair',
                 'tex_list': ['_MainTex', '_ToonRamp', '_ShadowTex', '_ShadowRateToon', '_HiTex'],
@@ -272,7 +272,7 @@ class DataHandler:
                 'f_list': ['_Shininess', '_RimPower', '_RimShift', '_HiRate', '_HiPow']
             },
             'CM3D2/Toony_Lighted_Trans': {
-                'type_name': "トゥーン 透過",
+                'type_name': "Toony Lighted Trans",
                 'icon': compat.icon('SHADING_WIRE'),
                 'shader2': 'CM3D2__Toony_Lighted_Trans',
                 'tex_list': ['_MainTex', '_ToonRamp', '_ShadowTex', '_ShadowRateToon'],
@@ -280,7 +280,7 @@ class DataHandler:
                 'f_list': ['_Shininess', '_Cutoff', '_RimPower', '_RimShift'],
             },
             'CM3D2/Toony_Lighted_Trans_NoZ': {
-                'type_name': "トゥーン 透過 NoZ",
+                'type_name': "Toony Lighted Trans NoZ",
                 'icon': 'DRIVER',
                 'shader2': 'CM3D2__Toony_Lighted_Trans_NoZ',
                 'tex_list': ['_MainTex', '_ToonRamp', '_ShadowTex', '_ShadowRateToon'],
@@ -288,7 +288,7 @@ class DataHandler:
                 'f_list': ['_Shininess', '_RimPower', '_RimShift'],
             },
             'CM3D2/Toony_Lighted_Trans_NoZTest': {
-                'type_name': "トゥーン 透過 NoZTest",
+                'type_name': "Toony Lighted Trans NoZTest",
                 'icon': 'ANIM_DATA',
                 'shader2': 'CM3D2__Toony_Lighted_Trans_NoZTest',
                 'tex_list': ['_MainTex', '_ToonRamp', '_ShadowTex', '_ShadowRateToon'],
@@ -296,7 +296,7 @@ class DataHandler:
                 'f_list': ['_Shininess', '_RimPower', '_RimShift', '_ZTest', '_ZTest2', '_ZTest2Alpha'],
             },
             'CM3D2/Toony_Lighted_Outline': {
-                'type_name': "トゥーン 輪郭線",
+                'type_name': "Toony Lighted Outline",
                 'icon': 'ANTIALIASED',
                 'shader2': 'CM3D2__Toony_Lighted_Outline',
                 'tex_list': ['_MainTex', '_ToonRamp', '_ShadowTex', '_ShadowRateToon'],
@@ -304,7 +304,7 @@ class DataHandler:
                 'f_list': ['_Shininess', '_OutlineWidth', '_RimPower', '_RimShift'],
             },
             'CM3D2/Toony_Lighted_Outline_Tex': {
-                'type_name': "トゥーン 輪郭線 Tex",
+                'type_name': "Toony Lighted Outline Tex",
                 'icon': 'MATSPHERE',
                 'shader2': 'CM3D2__Toony_Lighted_Outline_Tex',
                 'tex_list': ['_MainTex', '_ToonRamp', '_ShadowTex', '_ShadowRateToon', '_OutlineTex', '_OutlineToonRamp'],
@@ -312,7 +312,7 @@ class DataHandler:
                 'f_list': ['_Shininess', '_OutlineWidth', '_RimPower', '_RimShift'],
             },
             'CM3D2/Toony_Lighted_Hair_Outline': {
-                'type_name': "トゥーン 輪郭線 髪",
+                'type_name': "Toony Lighted Hair Outline",
                 'icon': 'PARTICLEMODE',
                 'shader2': 'CM3D2__Toony_Lighted_Hair_Outline',
                 'tex_list': ['_MainTex', '_ToonRamp', '_ShadowTex', '_ShadowRateToon', '_HiTex'],
@@ -328,7 +328,7 @@ class DataHandler:
             # 	'f_list': ['_Shininess', '_OutlineWidth', '_RimPower', '_RimShift', '_HiRate', '_HiPow'],
             # },
             'CM3D2/Toony_Lighted_Outline_Trans': {
-                'type_name': "トゥーン 輪郭線 透過",
+                'type_name': "Toony Lighted Outline Trans",
                 'icon': 'PROP_OFF',
                 'shader2': 'CM3D2__Toony_Lighted_Outline_Trans',
                 'tex_list': ['_MainTex', '_ToonRamp', '_ShadowTex', '_ShadowRateToon'],
@@ -336,7 +336,7 @@ class DataHandler:
                 'f_list': ['_Shininess', '_OutlineWidth', '_RimPower', '_RimShift'],
             },
             'CM3D2/Toony_Lighted_Cutout_AtC': {
-                'type_name': "トゥーン Cutout",
+                'type_name': "Toony Lighted Cutout",
                 'icon': 'IPO_BACK',
                 'shader2': 'CM3D2__Toony_Lighted_Cutout_AtC',
                 'tex_list': ['_MainTex', '_ToonRamp', '_ShadowTex', '_ShadowRateToon'],
@@ -344,7 +344,7 @@ class DataHandler:
                 'f_list': ['_Shininess', '_RimPower', '_RimShift', '_Cutoff'],
             },
             'CM3D2/Lighted_Trans': {
-                'type_name': "トゥーン無し 透過",
+                'type_name': "Lighted Transparent",
                 'icon': compat.icon('VIS_SEL_01'),
                 'shader2': 'CM3D2__Lighted_Trans',
                 'tex_list': ['_MainTex'],
@@ -352,7 +352,7 @@ class DataHandler:
                 'f_list': ['_Shininess'],
             },
             'CM3D2/Lighted': {
-                'type_name': "トゥーン無し",
+                'type_name': "Lighted",
                 'icon': compat.icon('VIS_SEL_11'),
                 'shader2': 'CM3D2__Lighted',
                 'tex_list': ['_MainTex'],
@@ -360,7 +360,7 @@ class DataHandler:
                 'f_list': ['_Shininess'],
             },
             'CM3D2/Lighted_Cutout_AtC': {
-                'type_name': "トゥーン無し Cutout",
+                'type_name': "Lighted Cutout",
                 'icon': 'IPO_BACK',
                 'shader2': 'CM3D2__Lighted_Cutout_AtC',
                 'tex_list': ['_MainTex'],
@@ -368,7 +368,7 @@ class DataHandler:
                 'f_list': ['_Shininess', '_Cutoff'],
             },
             'Unlit/Texture': {
-                'type_name': "発光",
+                'type_name': "Unlit",
                 'icon': 'PARTICLES',
                 'shader2': 'Unlit__Texture',
                 'tex_list': ['_MainTex'],
@@ -376,7 +376,7 @@ class DataHandler:
                 'f_list': [],
             },
             'Unlit/Transparent': {
-                'type_name': "発光 透過",
+                'type_name': "Unlit Trans",
                 'icon': 'MOD_PARTICLES',
                 'shader2': 'Unlit__Texture',
                 'tex_list': ['_MainTex'],
@@ -384,7 +384,7 @@ class DataHandler:
                 'f_list': [],
             },
             'CM3D2/Mosaic': {
-                'type_name': "モザイク",
+                'type_name': "Mosiac",
                 'icon': 'ALIASED',
                 'shader2': 'CM3D2__Mosaic',
                 'tex_list': ['_RenderTex'],
@@ -392,7 +392,7 @@ class DataHandler:
                 'f_list': ['_FloatValue1'],
             },
             'CM3D2/Man': {
-                'type_name': "ご主人様",
+                'type_name': "Man (Silhouette)",
                 'icon': 'ARMATURE_DATA',
                 'shader2': 'CM3D2__Man',
                 'tex_list': [],
@@ -404,7 +404,7 @@ class DataHandler:
             'Transparent/Diffuse': trans_diffuse,
             'Legacy Shaders/Transparent/Diffuse': trans_diffuse,
             'CM3D2_Debug/Debug_CM3D2_Normal2Color': {
-                'type_name': "法線",
+                'type_name': "Diffuse",
                 'icon': compat.icon('NORMALS_VERTEX'),
                 'shader2': 'CM3D2_Debug__Debug_CM3D2_Normal2Color',
                 'tex_list': [],
@@ -444,7 +444,7 @@ class DataHandler:
         if shader_prop:
             return shader_prop
 
-        return {'type_name': '不明', 'icon': 'NONE'}
+        return {'type_name': 'Unknown', 'icon': 'NONE'}
 
 Handler = DataHandler.instance()
 
@@ -474,7 +474,7 @@ class Material():
     def read(self, reader, read_header=True):
         header = common.read_str(reader)
         if header != 'CM3D2_MATERIAL':
-            raise Exception("mateファイルではありません。ヘッダ:%s" % header)
+            raise Exception("The mate file header doesn't seem to be correct:%s" % header)
         self.version = struct.unpack('<i', reader.read(4))[0]
         self.name1 = common.read_str(reader)
         self.name2 = common.read_str(reader)
@@ -510,7 +510,7 @@ class Material():
             elif prop_type == 'end':
                 break
             else:
-                raise Exception("Materialプロパティに未知の設定値タイプ(%s)が見つかりました。" % prop_type)
+                raise Exception("Unknown setting value was found in the material!" % prop_type)
 
     def write(self, writer, write_header=True):
         if write_header:
@@ -614,7 +614,7 @@ class MaterialHandler:
         try:
             img = node.image
         except:
-            raise Exception('Materialプロパティのtexタイプの設定値取得に失敗しました。')
+            raise Exception('Failed to get setting value of tex type of material property。')
 
         if img:
             tex_name = common.remove_serial_number(img.name, remove_serial)
@@ -726,7 +726,7 @@ class MaterialHandler:
                 try:
                     img = tex.image
                 except:
-                    raise Exception('Materialプロパティのtexタイプの設定値取得に失敗しました。')
+                    raise Exception('Unknown setting value was found in the material!')
 
                 if img:
                     tex_name = common.remove_serial_number(img.name, remove_serial)
@@ -804,7 +804,7 @@ class MaterialHandler:
                 mat_data.f_list.append([prop_name, val])
                 line_seek += 3
             else:
-                raise Exception('未知の設定値タイプが見つかりました。')
+                raise Exception('Unknown setpoint type was found!')
 
         return mat_data
 

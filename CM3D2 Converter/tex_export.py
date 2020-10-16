@@ -8,24 +8,24 @@ from . import compat
 @compat.BlRegister()
 class CNV_OT_export_cm3d2_tex(bpy.types.Operator):
     bl_idname = 'image.export_cm3d2_tex'
-    bl_label = "texファイルを保存"
-    bl_description = "CM3D2で使用されるテクスチャファイル(.tex)として保存します"
+    bl_label = "Save As .tex"
+    bl_description = "Current image will be saved as a (.tex)."
     bl_options = {'REGISTER'}
 
     filepath = bpy.props.StringProperty(subtype='FILE_PATH')
     filename_ext = ".tex"
     filter_glob = bpy.props.StringProperty(default="*.tex", options={'HIDDEN'})
 
-    is_backup = bpy.props.BoolProperty(name="ファイルをバックアップ", default=True, description="ファイルに上書きする場合にバックアップファイルを複製します")
+    is_backup = bpy.props.BoolProperty(name="Backup", default=True, description="Overwritten files will be backed up.")
 
     version = bpy.props.EnumProperty(
-        name="ファイルバージョン",
+        name="File Version",
         items=[
             ('1011', '1011', 'COM3D2 1.13 or later', 'NONE', 0),
             ('1010', '1010', 'CM3D2 1.49 ～ or COM3D2', 'NONE', 1),
-            ('1000', '1000', '旧フォーマット', 'NONE', 2),
+            ('1000', '1000', 'Old Format', 'NONE', 2),
         ], default='1010')
-    path = bpy.props.StringProperty(name="パス", default=common.BASE_PATH_TEX + "/*.png")
+    path = bpy.props.StringProperty(name="Directory", default=common.BASE_PATH_TEX + "/*.png")
 
     @classmethod
     def poll(cls, context):
@@ -70,13 +70,13 @@ class CNV_OT_export_cm3d2_tex(bpy.types.Operator):
             with common.open_temporary(self.filepath, 'wb', is_backup=self.is_backup) as file:
                 version_num = int(self.version)
                 self.write_texture(context, file, version_num)
-            self.report(type={'INFO'}, message="texファイルを出力しました。" + self.filepath)
+            self.report(type={'INFO'}, message="tex file was output at" + self.filepath)
 
         except common.CM3D2ExportException as e:
             self.report(type={'ERROR'}, message=str(e))
             return {'CANCELLED'}
         except Exception as e:
-            self.report(type={'ERROR'}, message="texファイルの出力に失敗しました。%s" % str(e))
+            self.report(type={'ERROR'}, message="Output failed! %s" % str(e))
             return {'CANCELLED'}
 
         return {'FINISHED'}
@@ -102,7 +102,7 @@ class CNV_OT_export_cm3d2_tex(bpy.types.Operator):
             if os.path.exists(temp_path):
                 is_remove = False
             else:
-                raise common.CM3D2ExportException("PNGファイルの取得に失敗しました")
+                raise common.CM3D2ExportException("Could not retrieve the image to export.")
         if pre_source != 'VIEWER':
             img.filepath = pre_filepath
             img.source = pre_source

@@ -25,22 +25,22 @@ def menu_func(self, context):
 @compat.BlRegister()
 class CNV_OT_quick_transfer_vertex_group(bpy.types.Operator):
     bl_idname = 'object.quick_transfer_vertex_group'
-    bl_label = "クイック・ウェイト転送"
-    bl_description = "アクティブなメッシュに他の選択メッシュの頂点グループを高速で転送します"
+    bl_label = "Quick Vertex Group Transfer"
+    bl_description = "Quickly Transfers the vertex groups of the previously selected mesh to active mesh."
     bl_options = {'REGISTER', 'UNDO'}
 
-    is_remove_old_vertex_groups = bpy.props.BoolProperty(name="すでにある頂点グループを削除 (ロックで保護)", default=False)
-    is_source_select_vert_only = bpy.props.BoolProperty(name="選択頂点のみ(参照)", default=False)
-    is_target_select_vert_only = bpy.props.BoolProperty(name="選択頂点のみ(対象)", default=False)
+    is_remove_old_vertex_groups = bpy.props.BoolProperty(name="Delete existing vertex groups (Protect by Locking)", default=False)
+    is_source_select_vert_only = bpy.props.BoolProperty(name="Selected Vertices Only(Source)", default=False)
+    is_target_select_vert_only = bpy.props.BoolProperty(name="Selected Vertices Only(Target)", default=False)
     items = [
-        ('NEAREST', "最も近い頂点", "", 'VERTEXSEL', 1),
-        ('EDGEINTERP_NEAREST', "最も近い辺", "", 'EDGESEL', 2),
-        ('POLYINTERP_NEAREST', "最も近い面", "", 'FACESEL', 3),
-        ('POLYINTERP_VNORPROJ', "投影先", "", 'MOD_UVPROJECT', 4),
+        ('NEAREST', "Nearest", "", 'VERTEXSEL', 1),
+        ('EDGEINTERP_NEAREST', "Nearest Side", "", 'EDGESEL', 2),
+        ('POLYINTERP_NEAREST', "Nearest Face", "", 'FACESEL', 3),
+        ('POLYINTERP_VNORPROJ', "Projection", "", 'MOD_UVPROJECT', 4),
     ]
-    vert_mapping = bpy.props.EnumProperty(items=items, name="参照要素", default='POLYINTERP_NEAREST')
-    is_clean = bpy.props.BoolProperty(name="転送後にクリーンを実行", default=True)
-    is_remove_noassign = bpy.props.BoolProperty(name="転送後に割り当てのない頂点グループを削除", default=True)
+    vert_mapping = bpy.props.EnumProperty(items=items, name="Reference element", default='POLYINTERP_NEAREST')
+    is_clean = bpy.props.BoolProperty(name="Clean after Transfer", default=True)
+    is_remove_noassign = bpy.props.BoolProperty(name="Delete unassigned vertex groups after transfer", default=True)
 
     @classmethod
     def poll(cls, context):
@@ -112,15 +112,15 @@ class CNV_OT_quick_transfer_vertex_group(bpy.types.Operator):
 
         if self.vert_mapping == 'POLYINTERP_VNORPROJ' and len(temp_source_me.polygons) == 0:
             self.vert_mapping = 'EDGEINTERP_NEAREST'
-            self.report(type={'WARNING'}, message="面がひとつも存在しません、辺モードに変更します")
+            self.report(type={'WARNING'}, message="There is no face, change to edge mode")
         if self.vert_mapping == 'POLYINTERP_NEAREST' and len(temp_source_me.polygons) == 0:
             self.vert_mapping = 'EDGEINTERP_NEAREST'
-            self.report(type={'WARNING'}, message="面がひとつも存在しません、辺モードに変更します")
+            self.report(type={'WARNING'}, message="There is no face, change to edge mode")
         if self.vert_mapping == 'EDGEINTERP_NEAREST' and len(temp_source_me.edges) == 0:
             self.vert_mapping = 'NEAREST'
-            self.report(type={'WARNING'}, message="辺がひとつも存在しません、頂点モードに変更します")
+            self.report(type={'WARNING'}, message="There is no edge, change to vertex mode")
         if self.vert_mapping == 'NEAREST' and len(temp_source_me.vertices) == 0:
-            self.report(type={'ERROR'}, message="頂点がひとつも存在しません、中止します")
+            self.report(type={'ERROR'}, message="There is no edge, change to vertex mode")
             return {'CANCELLED'}
 
         if self.is_remove_old_vertex_groups:
@@ -192,14 +192,14 @@ class CNV_OT_quick_transfer_vertex_group(bpy.types.Operator):
 @compat.BlRegister()
 class CNV_OT_precision_transfer_vertex_group(bpy.types.Operator):
     bl_idname = 'object.precision_transfer_vertex_group'
-    bl_label = "空間ぼかし・ウェイト転送"
-    bl_description = "アクティブなメッシュに他の選択メッシュの頂点グループを遠いほどぼかして転送します"
+    bl_label = "High Precision Vertex Group transfer"
+    bl_description = "Will transfer the vertex groups from the previously selected mesh to the active mesh with more precision."
     bl_options = {'REGISTER', 'UNDO'}
 
-    is_first_remove_all = bpy.props.BoolProperty(name="すでにある頂点グループを削除 (ロックで保護)", default=False)
-    subdivide_number = bpy.props.IntProperty(name="参照元の分割", default=1, min=0, max=10, soft_min=0, soft_max=10)
-    extend_range = bpy.props.FloatProperty(name="範囲倍率", default=1.1, min=1.0001, max=5.0, soft_min=1.0001, soft_max=5.0, step=10, precision=2)
-    is_remove_empty = bpy.props.BoolProperty(name="割り当てのない頂点グループを削除", default=True)
+    is_first_remove_all = bpy.props.BoolProperty(name="Remove Previous Groups", default=False)
+    subdivide_number = bpy.props.IntProperty(name="Subdivide Amount", default=1, min=0, max=10, soft_min=0, soft_max=10)
+    extend_range = bpy.props.FloatProperty(name="Range", default=1.1, min=1.0001, max=5.0, soft_min=1.0001, soft_max=5.0, step=10, precision=2)
+    is_remove_empty = bpy.props.BoolProperty(name="Remove Empty Vertex Groups", default=True)
 
     @classmethod
     def poll(cls, context):
@@ -353,18 +353,18 @@ class CNV_OT_precision_transfer_vertex_group(bpy.types.Operator):
 @compat.BlRegister()
 class CNV_OT_quick_blur_vertex_group(bpy.types.Operator):
     bl_idname = 'object.quick_blur_vertex_group'
-    bl_label = "頂点グループぼかし"
-    bl_description = "アクティブ、もしくは全ての頂点グループをぼかします"
+    bl_label = "Blur Vertex Group"
+    bl_description = "Will Blur the active vertex group or all vertex groups."
     bl_options = {'REGISTER', 'UNDO'}
 
     items = [
-        ('ACTIVE', "アクティブのみ", "", 'HAND', 1),
-        ('ALL', "全て", "", 'ARROW_LEFTRIGHT', 2),
+        ('ACTIVE', "Active", "", 'HAND', 1),
+        ('ALL', "All", "", 'ARROW_LEFTRIGHT', 2),
     ]
-    target = bpy.props.EnumProperty(items=items, name="対象", default='ALL')
-    strength = bpy.props.FloatProperty(name="強さ", default=1.0, min=0.0, max=1.0, soft_min=0.0, soft_max=1.0, step=10, precision=3)
-    count = bpy.props.IntProperty(name="反復", default=1, min=1, max=256, soft_min=1, soft_max=256)
-    size = bpy.props.FloatProperty(name="拡大縮小", default=0.0, min=-1.0, max=1.0, soft_min=-1.0, soft_max=1.0, step=10, precision=3)
+    target = bpy.props.EnumProperty(items=items, name="Target", default='ALL')
+    strength = bpy.props.FloatProperty(name="Strength", default=1.0, min=0.0, max=1.0, soft_min=0.0, soft_max=1.0, step=10, precision=3)
+    count = bpy.props.IntProperty(name="Count", default=1, min=1, max=256, soft_min=1, soft_max=256)
+    size = bpy.props.FloatProperty(name="Size", default=0.0, min=-1.0, max=1.0, soft_min=-1.0, soft_max=1.0, step=10, precision=3)
 
     @classmethod
     def poll(cls, context):
@@ -405,26 +405,26 @@ class CNV_OT_quick_blur_vertex_group(bpy.types.Operator):
 @compat.BlRegister()
 class CNV_OT_blur_vertex_group(bpy.types.Operator):
     bl_idname = 'object.blur_vertex_group'
-    bl_label = "旧・頂点グループぼかし"
-    bl_description = "アクティブ、もしくは全ての頂点グループをぼかします"
+    bl_label = "Blur Vertex Group"
+    bl_description = "Blur or all just the active Vertex Group" 
     bl_options = {'REGISTER', 'UNDO'}
 
     items = [
-        ('ACTIVE', "アクティブのみ", "", 'HAND', 1),
-        ('UP', "アクティブより上", "", 'TRIA_UP_BAR', 2),
-        ('DOWN', "アクティブより下", "", 'TRIA_DOWN_BAR', 3),
-        ('ALL', "全て", "", 'ARROW_LEFTRIGHT', 4),
+        ('ACTIVE', "Active", "", 'HAND', 1),
+        ('UP', "Above Active", "", 'TRIA_UP_BAR', 2),
+        ('DOWN', "Below Active", "", 'TRIA_DOWN_BAR', 3),
+        ('ALL', "All", "", 'ARROW_LEFTRIGHT', 4),
     ]
-    target = bpy.props.EnumProperty(items=items, name="対象", default='ACTIVE')
-    radius = bpy.props.FloatProperty(name="範囲倍率", default=3, min=0.1, max=50, soft_min=0.1, soft_max=50, step=50, precision=2)
-    strength = bpy.props.IntProperty(name="強さ", default=1, min=1, max=10, soft_min=1, soft_max=10)
+    target = bpy.props.EnumProperty(items=items, name="Target", default='ACTIVE')
+    radius = bpy.props.FloatProperty(name="Radius", default=3, min=0.1, max=50, soft_min=0.1, soft_max=50, step=50, precision=2)
+    strength = bpy.props.IntProperty(name="Strength", default=1, min=1, max=10, soft_min=1, soft_max=10)
     items = [
-        ('BOTH', "増減両方", "", 'AUTOMERGE_ON', 1),
-        ('ADD', "増加のみ", "", 'TRIA_UP', 2),
-        ('SUB', "減少のみ", "", 'TRIA_DOWN', 3),
+        ('BOTH', "Both", "", 'AUTOMERGE_ON', 1),
+        ('ADD', "Add", "", 'TRIA_UP', 2),
+        ('SUB', "Subtract", "", 'TRIA_DOWN', 3),
     ]
-    effect = bpy.props.EnumProperty(items=items, name="ぼかし効果", default='BOTH')
-    is_normalize = bpy.props.BoolProperty(name="他頂点グループも調節", default=True)
+    effect = bpy.props.EnumProperty(items=items, name="Blur Effect", default='BOTH')
+    is_normalize = bpy.props.BoolProperty(name="Normalize", default=True)
 
     @classmethod
     def poll(cls, context):
@@ -570,19 +570,19 @@ class CNV_OT_blur_vertex_group(bpy.types.Operator):
 @compat.BlRegister()
 class CNV_OT_multiply_vertex_group(bpy.types.Operator):
     bl_idname = 'object.multiply_vertex_group'
-    bl_label = "頂点グループに乗算"
-    bl_description = "頂点グループのウェイトに数値を乗算し、ウェイトの強度を増減させます"
+    bl_label = "Multiply vertex groups"
+    bl_description = "Multiply the weight of the vertex group by a numerical value to increase or decrease the weight strength"
     bl_options = {'REGISTER', 'UNDO'}
 
     items = [
-        ('ACTIVE', "アクティブのみ", "", 'HAND', 1),
-        ('UP', "アクティブより上", "", 'TRIA_UP_BAR', 2),
-        ('DOWN', "アクティブより下", "", 'TRIA_DOWN_BAR', 3),
-        ('ALL', "全て", "", 'ARROW_LEFTRIGHT', 4),
+        ('ACTIVE', "Active Only", "", 'HAND', 1),
+        ('UP', "Above Active", "", 'TRIA_UP_BAR', 2),
+        ('DOWN', "Below Active", "", 'TRIA_DOWN_BAR', 3),
+        ('ALL', "All", "", 'ARROW_LEFTRIGHT', 4),
     ]
-    target = bpy.props.EnumProperty(items=items, name="対象", default='ACTIVE')
-    value = bpy.props.FloatProperty(name="倍率", default=1.1, min=0.1, max=10, soft_min=0.1, soft_max=10, step=10, precision=2)
-    is_normalize = bpy.props.BoolProperty(name="他頂点グループも調節", default=True)
+    target = bpy.props.EnumProperty(items=items, name="Target", default='ACTIVE')
+    value = bpy.props.FloatProperty(name="Value", default=1.1, min=0.1, max=10, soft_min=0.1, soft_max=10, step=10, precision=2)
+    is_normalize = bpy.props.BoolProperty(name="Normalize", default=True)
 
     @classmethod
     def poll(cls, context):
@@ -660,11 +660,11 @@ class CNV_OT_multiply_vertex_group(bpy.types.Operator):
 @compat.BlRegister()
 class CNV_OT_remove_noassign_vertex_groups(bpy.types.Operator):
     bl_idname = 'object.remove_noassign_vertex_groups'
-    bl_label = "割り当てのない頂点グループを削除"
-    bl_description = "どの頂点にも割り当てられていない頂点グループを全て削除します"
+    bl_label = "Delete Empty Vertex Groups"
+    bl_description = "Will delete any vertex groups which do not have any vertices assigned to it"
     bl_options = {'REGISTER', 'UNDO'}
 
-    threshold = bpy.props.FloatProperty(name="これ以下の影響は切り捨て", default=0.000001, min=0.0, max=1.0, soft_min=0.0, soft_max=1.0, step=1, precision=10)
+    threshold = bpy.props.FloatProperty(name="Threshold", default=0.000001, min=0.0, max=1.0, soft_min=0.0, soft_max=1.0, step=1, precision=10)
 
     @classmethod
     def poll(cls, context):

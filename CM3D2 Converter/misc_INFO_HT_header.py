@@ -13,8 +13,8 @@ def menu_func(self, context):
 @compat.BlRegister()
 class CNV_OT_vertices_count_checker(bpy.types.Operator):
     bl_idname = 'mesh.vertices_count_checker'
-    bl_label = "頂点数をチェック"
-    bl_description = "選択メッシュがConverterで出力可能な頂点数に収まっているかをチェックします"
+    bl_label = "Check Vertice Count"
+    bl_description = "Check whether the exporter can output the selected mesh."
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -25,7 +25,7 @@ class CNV_OT_vertices_count_checker(bpy.types.Operator):
     def execute(self, context):
         me = context.object.data
         if not me.uv_layers.active:
-            self.report(type={'ERROR'}, message="UVが存在しないので測定できません。")
+            self.report(type={'ERROR'}, message="No UV Map. Cannot be Counted.")
             return {'FINISHED'}
         bm = bmesh.new()
         bm.from_mesh(me)
@@ -43,8 +43,8 @@ class CNV_OT_vertices_count_checker(bpy.types.Operator):
         inner_count = len(alreadys)
         real_count = len(me.vertices)
         if inner_count <= 65535:
-            self.report(type={'INFO'}, message="○ 出力可能な頂点数です、あと約%d頂点ほど余裕があります (頂点数:%d(+%d) UV分割で増加:+%d％)" % (65535 - inner_count, real_count, inner_count - real_count, int(inner_count / real_count * 100)))
+            self.report(type={'INFO'}, message="Good, There is space for more vertices, you may add %d more vertices (Vertices:%d(+%d) UV Splitting:+%d％)" % (65535 - inner_count, real_count, inner_count - real_count, int(inner_count / real_count * 100)))
         else:
-            self.report(type={'ERROR'}, message="× 出力できない頂点数です、あと約%d頂点減らしてください (頂点数:%d(+%d) UV分割で増加:+%d％)" % (inner_count - 65535, real_count, inner_count - real_count, int(inner_count / real_count * 100)))
+            self.report(type={'ERROR'}, message="X, Too many vertices、please remove %d Vertices (Vertices:%d(+%d) Uv Splitting:+%d％)" % (inner_count - 65535, real_count, inner_count - real_count, int(inner_count / real_count * 100)))
 
         return {'FINISHED'}

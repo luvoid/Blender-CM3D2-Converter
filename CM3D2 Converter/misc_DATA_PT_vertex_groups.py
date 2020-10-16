@@ -20,7 +20,7 @@ def menu_func(self, context):
                 flag = True
         if flag:
             col = self.layout.column(align=True)
-            col.label(text="CM3D2用 頂点グループ名変換", icon_value=common.kiss_icon())
+            col.label(text="Convert names for CM3D2", icon_value=common.kiss_icon())
             row = col.row(align=True)
             row.operator('object.decode_cm3d2_vertex_group_names', icon='BLENDER', text="CM3D2 → Blender")
             row.operator('object.encode_cm3d2_vertex_group_names', icon_value=common.kiss_icon(), text="Blender → CM3D2")
@@ -30,8 +30,8 @@ def menu_func(self, context):
 @compat.BlRegister()
 class CNV_OT_decode_cm3d2_vertex_group_names(bpy.types.Operator):
     bl_idname = 'object.decode_cm3d2_vertex_group_names'
-    bl_label = "頂点グループ名をCM3D2用→Blender用に変換"
-    bl_description = "CM3D2で使われてるボーン名(頂点グループ名)をBlenderで左右対称編集できるように変換します"
+    bl_label = "Convert Vertex Group Names for Blender"
+    bl_description = "Names are converted for use with Blender's mirror functions."
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -72,9 +72,9 @@ class CNV_OT_decode_cm3d2_vertex_group_names(bpy.types.Operator):
                     vg.name = vg_name
                 convert_count += 1
         if convert_count == 0:
-            self.report(type={'WARNING'}, message="変換できる名前が見つかりませんでした")
+            self.report(type={'WARNING'}, message="A Name that could not be converted was found. Mission Failed.")
         else:
-            self.report(type={'INFO'}, message="頂点グループ名をBlender用に変換しました")
+            self.report(type={'INFO'}, message="Vertex group names were converted for Blender. Mission Accomplished.")
         context.window_manager.progress_end()
         return {'FINISHED'}
 
@@ -82,8 +82,8 @@ class CNV_OT_decode_cm3d2_vertex_group_names(bpy.types.Operator):
 @compat.BlRegister()
 class CNV_OT_encode_cm3d2_vertex_group_names(bpy.types.Operator):
     bl_idname = 'object.encode_cm3d2_vertex_group_names'
-    bl_label = "頂点グループ名をBlender用→CM3D2用に変換"
-    bl_description = "CM3D2で使われてるボーン名(頂点グループ名)に戻します"
+    bl_label = "Convert vertex group names for CM3D2"
+    bl_description = "Converts bone names for CM3D2."
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -123,8 +123,8 @@ class CNV_OT_encode_cm3d2_vertex_group_names(bpy.types.Operator):
                     vg.name = vg_name
                 convert_count += 1
         if convert_count == 0:
-            self.report(type={'WARNING'}, message="変換できる名前が見つかりませんでした")
+            self.report(type={'WARNING'}, message="A Name that could not be converted was found. Mission Failed.")
         else:
-            self.report(type={'INFO'}, message="頂点グループ名をCM3D2用に戻しました")
+            self.report(type={'INFO'}, message="Names were converted for CM3D2. Mission Accomplished")
         context.window_manager.progress_end()
         return {'FINISHED'}

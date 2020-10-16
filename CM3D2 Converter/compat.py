@@ -3,6 +3,7 @@ import bpy
 import re
 import struct
 import os
+import mathutils
 from typing import Any, Optional
 
 
@@ -216,6 +217,35 @@ def mul4(w, x, y, z):
         return w * x * y * z
 
     return w @ x @ y @ z
+    
+def opengl_quat_to_mat3(q):
+    w = q.w
+    x = q.x
+    y = q.y
+    z = q.z
+    
+    return mathutils.Matrix(
+        [( 1 - 2*y*y - 2*z*z,     2*x*y + 2*w*z,     2*x*z - 2*w*y), 
+         (     2*x*y - 2*w*z, 1 - 2*x*x - 2*z*z,     2*y*z + 2*w*x), 
+         (     2*x*z + 2*w*y,     2*y*z - 2*w*x, 1 - 2*x*x - 2*y*y)]
+    )
+
+def opengl_to_blend_mat4(mat4):
+    return mul(
+        mat4,
+        mathutils.Matrix(
+            [( 1,  0,  0,  0), 
+             ( 0,  0,  1,  0), 
+             ( 0,  1,  0,  0),
+             ( 0,  0,  0,  1)]
+        )
+    )
+    
+def set_bone_matrix(bone, mat):
+    #if !IS_LEGACY
+    bone.matrix = mat
+    if isinstance(bone, bpy.types.EditBone):
+        bone.align_roll((mat[0][0],mat[1][0],mat[2][0]))
 
 
 LEGACY_ICONS = {

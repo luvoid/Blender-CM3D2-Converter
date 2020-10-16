@@ -11,41 +11,41 @@ def menu_func(self, context):
     icon_id = common.kiss_icon()
     box = self.layout.box()
     column = box.column(align=False)
-    column.prop(context.active_object.data, 'use_paint_mask_vertex', icon='VERTEXSEL', text="頂点選択モード")
-    column.operator('mesh.selected_mesh_vertex_group_blur', text="選択部をぼかす", icon_value=icon_id)
-    column.operator('mesh.selected_mesh_vertex_group_calculation', text="選択部に四則演算", icon_value=icon_id)
+    column.prop(context.active_object.data, 'use_paint_mask_vertex', icon='VERTEXSEL', text="Vertex selection mode")
+    column.operator('mesh.selected_mesh_vertex_group_blur', text="Blur the selected part", icon_value=icon_id)
+    column.operator('mesh.selected_mesh_vertex_group_calculation', text="Four arithmetic operation", icon_value=icon_id)
 
 
 @compat.BlRegister()
 class CNV_OT_selected_mesh_vertex_group_blur(bpy.types.Operator):
     bl_idname = 'mesh.selected_mesh_vertex_group_blur'
-    bl_label = "選択部の頂点グループをぼかす"
-    bl_description = "選択メッシュの頂点グループの割り当てをぼかします"
+    bl_label = "Blur the vertex group of the selected part"
+    bl_description = "Blurs the vertex groups of the selected parts."
     bl_options = {'REGISTER', 'UNDO'}
 
     items = [
-        ('LINER', "リニア", "", 'LINCURVE', 1),
-        ('TRIGONOMETRIC', "スムーズ", "", 'SMOOTHCURVE', 2),
+        ('LINER', "Linear", "", 'LINCURVE', 1),
+        ('TRIGONOMETRIC', "Trigonometric", "", 'SMOOTHCURVE', 2),
     ]
-    smooth_method = bpy.props.EnumProperty(items=items, name="減衰タイプ", default='TRIGONOMETRIC')
+    smooth_method = bpy.props.EnumProperty(items=items, name="Damping type", default='TRIGONOMETRIC')
 
-    selection_blur_range_multi = bpy.props.FloatProperty(name="選択をぼかす範囲倍率", default=4.0, min=0.0, max=100.0, soft_min=0.0, soft_max=100.0, step=50, precision=1)
-    selection_blur_accuracy = bpy.props.IntProperty(name="選択をぼかす分割精度", default=3, min=0, max=10, soft_min=1, soft_max=10)
+    selection_blur_range_multi = bpy.props.FloatProperty(name="Blur Range", default=4.0, min=0.0, max=100.0, soft_min=0.0, soft_max=100.0, step=50, precision=1)
+    selection_blur_accuracy = bpy.props.IntProperty(name="Blur Accuracy", default=3, min=0, max=10, soft_min=1, soft_max=10)
 
     items = [
-        ('ALL', "全て", "", 'COLLAPSEMENU', 1),
-        ('ACTIVE', "アクティブのみ", "", 'LAYER_ACTIVE', 2),
+        ('ALL', "All", "", 'COLLAPSEMENU', 1),
+        ('ACTIVE', "Active", "", 'LAYER_ACTIVE', 2),
     ]
-    target_vertex_group = bpy.props.EnumProperty(items=items, name="対象頂点グループ", default='ALL')
+    target_vertex_group = bpy.props.EnumProperty(items=items, name="Target vertex groups", default='ALL')
     items = [
-        ('NORMAL', "通常・ぼかし", "", 'BRUSH_BLUR', 1),
-        ('ADD', "増加・拡張", "", 'BRUSH_DARKEN', 2),
-        ('SUB', "減少・縮小", "", 'BRUSH_LIGHTEN', 3),
+        ('NORMAL', "Normal", "", 'BRUSH_BLUR', 1),
+        ('ADD', "Add", "", 'BRUSH_DARKEN', 2),
+        ('SUB', "Sub", "", 'BRUSH_LIGHTEN', 3),
     ]
-    blur_mode = bpy.props.EnumProperty(items=items, name="ぼかしモード", default='NORMAL')
-    blur_range_multi = bpy.props.FloatProperty(name="ウェイトをぼかす範囲倍率", default=4.0, min=0.0, max=100.0, soft_min=0.0, soft_max=100.0, step=50, precision=1)
-    blur_count = bpy.props.IntProperty(name="ウェイトをぼかす回数", default=1, min=1, max=100, soft_min=1, soft_max=100)
-    is_vertex_group_limit_total = bpy.props.BoolProperty(name="ウェイト数を4つに制限", default=True)
+    blur_mode = bpy.props.EnumProperty(items=items, name="Blur Mode", default='NORMAL')
+    blur_range_multi = bpy.props.FloatProperty(name="Blur Range", default=4.0, min=0.0, max=100.0, soft_min=0.0, soft_max=100.0, step=50, precision=1)
+    blur_count = bpy.props.IntProperty(name="Blur Amount", default=1, min=1, max=100, soft_min=1, soft_max=100)
+    is_vertex_group_limit_total = bpy.props.BoolProperty(name="Limit total weights.", default=True)
 
     @classmethod
     def poll(cls, context):
@@ -61,15 +61,15 @@ class CNV_OT_selected_mesh_vertex_group_blur(bpy.types.Operator):
     def draw(self, context):
         self.layout.prop(self, 'smooth_method')
 
-        self.layout.label(text="選択をぼかす", icon='UV_SYNC_SELECT')
-        self.layout.prop(self, 'selection_blur_range_multi', text="範囲 | 辺の長さの平均×")
-        self.layout.prop(self, 'selection_blur_accuracy', text="精度 (分割数)")
+        self.layout.label(text="Blur Selected", icon='UV_SYNC_SELECT')
+        self.layout.prop(self, 'selection_blur_range_multi', text="Range | Average of side lengths ×")
+        self.layout.prop(self, 'selection_blur_accuracy', text="Accuracy (number of steps)")
 
-        self.layout.label(text="頂点グループをぼかす", icon='GROUP_VERTEX')
-        self.layout.prop(self, 'target_vertex_group', text="対象グループ")
-        self.layout.prop(self, 'blur_mode', text="モード")
-        self.layout.prop(self, 'blur_range_multi', text="範囲 | 辺の長さの平均×")
-        self.layout.prop(self, 'blur_count', text="実行回数")
+        self.layout.label(text="Blur Vertex Group", icon='GROUP_VERTEX')
+        self.layout.prop(self, 'target_vertex_group', text="Target Group")
+        self.layout.prop(self, 'blur_mode', text="Mode")
+        self.layout.prop(self, 'blur_range_multi', text="Range | Average of side lengths ×")
+        self.layout.prop(self, 'blur_count', text="Blur Count")
         self.layout.prop(self, 'is_vertex_group_limit_total', icon='IMGDISPLAY')
 
     def execute(self, context):
@@ -248,31 +248,31 @@ class CNV_OT_selected_mesh_vertex_group_blur(bpy.types.Operator):
 @compat.BlRegister()
 class CNV_OT_selected_mesh_vertex_group_calculation(bpy.types.Operator):
     bl_idname = 'mesh.selected_mesh_vertex_group_calculation'
-    bl_label = "選択部の頂点グループに四則演算"
-    bl_description = "選択メッシュの頂点グループの割り当てに四則演算を施します"
+    bl_label = "Four arithmetic operations on the vertex groups of the selection"
+    bl_description = "Applies four arithmetic operations to the vertex groups of selection."
     bl_options = {'REGISTER', 'UNDO'}
 
     items = [
-        ('LINER', "リニア", "", 'LINCURVE', 1),
-        ('TRIGONOMETRIC', "スムーズ", "", 'SMOOTHCURVE', 2),
+        ('LINER', "Iinear", "", 'LINCURVE', 1),
+        ('TRIGONOMETRIC', "Trigonometric", "", 'SMOOTHCURVE', 2),
     ]
-    smooth_method = bpy.props.EnumProperty(items=items, name="減衰タイプ", default='TRIGONOMETRIC')
+    smooth_method = bpy.props.EnumProperty(items=items, name="Smooth Methid", default='TRIGONOMETRIC')
 
-    selection_blur_range_multi = bpy.props.FloatProperty(name="選択をぼかす範囲倍率", default=4.0, min=0.0, max=100.0, soft_min=0.0, soft_max=100.0, step=50, precision=1)
-    selection_blur_accuracy = bpy.props.IntProperty(name="選択をぼかす分割精度", default=3, min=0, max=10, soft_min=1, soft_max=10)
+    selection_blur_range_multi = bpy.props.FloatProperty(name="Blur Range", default=4.0, min=0.0, max=100.0, soft_min=0.0, soft_max=100.0, step=50, precision=1)
+    selection_blur_accuracy = bpy.props.IntProperty(name="Blur Accuracy", default=3, min=0, max=10, soft_min=1, soft_max=10)
 
     items = [
-        ('ACTIVE', "アクティブのみ", "", 'LAYER_ACTIVE', 1),
+        ('ACTIVE', "Active", "", 'LAYER_ACTIVE', 1),
     ]
-    target_vertex_group = bpy.props.EnumProperty(items=items, name="対象頂点グループ", default='ACTIVE')
+    target_vertex_group = bpy.props.EnumProperty(items=items, name="Target Vertex Group", default='ACTIVE')
     items = [
-        ('ADD', "加算", "", 'ZOOMIN', 1),
-        ('SUB', "減算", "", 'ZOOMOUT', 2),
-        ('MULTI', "乗算", "", 'X', 3),
-        ('DIV', "除算", "", 'FULLSCREEN_EXIT', 4),
+        ('ADD', "Add", "", 'ZOOMIN', 1),
+        ('SUB', "Sub", "", 'ZOOMOUT', 2),
+        ('MULTI', "Multi", "", 'X', 3),
+        ('DIV', "Div", "", 'FULLSCREEN_EXIT', 4),
     ]
-    calculation_mode = bpy.props.EnumProperty(items=items, name="四則演算モード", default='ADD')
-    calculation_value = bpy.props.FloatProperty(name="値", default=1.0, min=-100.0, max=100.0, soft_min=-100.0, soft_max=100.0, step=10, precision=1)
+    calculation_mode = bpy.props.EnumProperty(items=items, name="Arithmetic operation mode", default='ADD')
+    calculation_value = bpy.props.FloatProperty(name="Value", default=1.0, min=-100.0, max=100.0, soft_min=-100.0, soft_max=100.0, step=10, precision=1)
 
     @classmethod
     def poll(cls, context):
@@ -282,17 +282,17 @@ class CNV_OT_selected_mesh_vertex_group_calculation(bpy.types.Operator):
         return False
 
     def draw(self, context):
-        self.layout.label(text="選択をぼかす", icon='UV_SYNC_SELECT')
+        self.layout.label(text="Blur the selection of the vertex groups.", icon='UV_SYNC_SELECT')
         self.layout.prop(self, 'smooth_method')
-        self.layout.prop(self, 'selection_blur_range_multi', text="範囲 | 辺の長さの平均×")
-        self.layout.prop(self, 'selection_blur_accuracy', text="精度 (分割数)")
+        self.layout.prop(self, 'selection_blur_range_multi', text="Range | Average of side length ×")
+        self.layout.prop(self, 'selection_blur_accuracy', text="Accuracy (Steps)")
 
-        self.layout.label(text="四則演算", icon='BRUSH_ADD')
-        self.layout.prop(self, 'target_vertex_group', text="対象グループ")
-        self.layout.prop(self, 'calculation_mode', text="モード")
-        self.layout.prop(self, 'calculation_value', text="値")
+        self.layout.label(text="Four arithmetic operations", icon='BRUSH_ADD')
+        self.layout.prop(self, 'target_vertex_group', text="Target Group")
+        self.layout.prop(self, 'calculation_mode', text="Mode")
+        self.layout.prop(self, 'calculation_value', text="Value")
 
-        calculation_text = "式： 元のウェイト "
+        calculation_text = "Expression: Original weight "
         if self.calculation_mode == 'ADD':
             calculation_text += "＋"
         elif self.calculation_mode == 'SUB':
@@ -309,7 +309,7 @@ class CNV_OT_selected_mesh_vertex_group_calculation(bpy.types.Operator):
             pass
 
         if self.calculation_mode == 'DIV' and self.calculation_value == 0.0:
-            self.report(type={'ERROR'}, message="0で除算することはできません、中止します")
+            self.report(type={'ERROR'}, message="Cannot divide by zero, Aborting.")
             return {'CANCELLED'}
 
         ob = context.active_object

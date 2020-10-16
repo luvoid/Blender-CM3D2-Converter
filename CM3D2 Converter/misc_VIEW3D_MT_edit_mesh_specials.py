@@ -11,18 +11,18 @@ def menu_func(self, context):
     self.layout.separator()
     self.layout.operator('mesh.selected_mesh_vertex_group_blur', icon_value=icon_id)
     self.layout.separator()
-    self.layout.operator('mesh.selected_face_sort_front', text="選択面の描画順を最前面に", icon_value=icon_id).is_back = False
-    self.layout.operator('mesh.selected_face_sort_front', text="選択面の描画順を最背面に", icon_value=icon_id).is_back = True
+    self.layout.operator('mesh.selected_face_sort_front', text="Draw this object first", icon_value=icon_id).is_back = False
+    self.layout.operator('mesh.selected_face_sort_front', text="Draw this object further back", icon_value=icon_id).is_back = True
 
 
 @compat.BlRegister()
 class CNV_OT_selected_mesh_sort_front(bpy.types.Operator):
     bl_idname = 'mesh.selected_face_sort_front'
-    bl_label = "選択面の描画順を最前面に"
-    bl_description = "選択中の面の描画順を最も前面/背面に並び替えます"
+    bl_label = "The drawing order of the selected surface is set to the forefront"
+    bl_description = "Rearranges the drawing order of the currently selected face to the front / back"
     bl_options = {'REGISTER', 'UNDO'}
 
-    is_back = bpy.props.BoolProperty(name="最背面")
+    is_back = bpy.props.BoolProperty(name="Back")
 
     @classmethod
     def poll(cls, context):

@@ -19,30 +19,30 @@ def menu_func(self, context):
 @compat.BlRegister()
 class CNV_OT_render_cm3d2_icon(bpy.types.Operator):
     bl_idname = 'render.render_cm3d2_icon'
-    bl_label = "CM3D2メニュー用のアイコンをレンダリング"
-    bl_description = "CM3D2内のアイコン画像に使用できそうな画像をレンダリングします"
+    bl_label = "Render a CM3D2 Style Icon"
+    bl_description = "Renders a small icon that looks very similar to the icons found in official content."
     bl_options = {'REGISTER', 'UNDO'}
 
     items = [
-        ('FACE_TEXTURE', "面のテクスチャで", "", 'FACESEL_HLT', 1),
-        ('NOW_MATERIAL', "今のマテリアルで", "", 'MATERIAL', 2),
+        ('FACE_TEXTURE', "With Textures", "", 'FACESEL_HLT', 1),
+        ('NOW_MATERIAL', "With Material", "", 'MATERIAL', 2),
     ]
-    mode = bpy.props.EnumProperty(items=items, name="モード", default='FACE_TEXTURE')
+    mode = bpy.props.EnumProperty(items=items, name="Mode", default='FACE_TEXTURE')
 
-    use_freestyle = bpy.props.BoolProperty(name="輪郭線を描画", default=True)
-    line_thickness = bpy.props.FloatProperty(name="線の太さ", default=0.2, min=0, max=0.5, soft_min=0, soft_max=0.5, step=10, precision=2, subtype='PIXEL')
-    line_color = bpy.props.FloatVectorProperty(name="線の色", default=(0, 0, 0), min=0, max=1, soft_min=0, soft_max=1, step=10, precision=2, subtype='COLOR', size=3)
+    use_freestyle = bpy.props.BoolProperty(name="Outline", default=True)
+    line_thickness = bpy.props.FloatProperty(name="Outline Thickness", default=0.2, min=0, max=0.5, soft_min=0, soft_max=0.5, step=10, precision=2, subtype='PIXEL')
+    line_color = bpy.props.FloatVectorProperty(name="Outline Color", default=(0, 0, 0), min=0, max=1, soft_min=0, soft_max=1, step=10, precision=2, subtype='COLOR', size=3)
 
-    resolution = bpy.props.IntProperty(name="解像度", default=80, min=10, max=800, soft_min=10, soft_max=800, subtype='PIXEL')
-    camera_angle = bpy.props.FloatVectorProperty(name="カメラ角度", default=(0.576667, 0.576667, 0.578715), min=-10, max=10, soft_min=-10, soft_max=10, step=1, precision=2, subtype='DIRECTION', size=3)
-    camera_move = bpy.props.FloatVectorProperty(name="カメラ移動", default=(0, 0), min=-10, max=10, soft_min=-10, soft_max=10, step=10, precision=2, subtype='XYZ', size=2)
-    zoom_multi = bpy.props.IntProperty(name="ズーム倍率", default=100, min=10, max=190, soft_min=10, soft_max=190, step=10, subtype='PERCENTAGE')
+    resolution = bpy.props.IntProperty(name="Resolution", default=80, min=10, max=800, soft_min=10, soft_max=800, subtype='PIXEL')
+    camera_angle = bpy.props.FloatVectorProperty(name="Camera Angle", default=(0.576667, 0.576667, 0.578715), min=-10, max=10, soft_min=-10, soft_max=10, step=1, precision=2, subtype='DIRECTION', size=3)
+    camera_move = bpy.props.FloatVectorProperty(name="Camera Movement", default=(0, 0), min=-10, max=10, soft_min=-10, soft_max=10, step=10, precision=2, subtype='XYZ', size=2)
+    zoom_multi = bpy.props.IntProperty(name="Distance", default=100, min=10, max=190, soft_min=10, soft_max=190, step=10, subtype='PERCENTAGE')
 
-    use_background_color = bpy.props.BoolProperty(name="背景を使用", default=True)
-    background_color = bpy.props.FloatVectorProperty(name="背景色", default=(1, 1, 1), min=0, max=1, soft_min=0, soft_max=1, step=10, precision=2, subtype='COLOR', size=3)
-    is_round_background = bpy.props.BoolProperty(name="隅を丸める", default=True)
+    use_background_color = bpy.props.BoolProperty(name="Use Background", default=True)
+    background_color = bpy.props.FloatVectorProperty(name="Background Color", default=(1, 1, 1), min=0, max=1, soft_min=0, soft_max=1, step=10, precision=2, subtype='COLOR', size=3)
+    is_round_background = bpy.props.BoolProperty(name="Round Corners", default=True)
 
-    layer_image = bpy.props.StringProperty(name="重ねる画像", default="")
+    layer_image = bpy.props.StringProperty(name="Overlay", default="")
 
     @classmethod
     def poll(cls, context):
@@ -83,19 +83,19 @@ class CNV_OT_render_cm3d2_icon(bpy.types.Operator):
     def draw(self, context):
         self.layout.prop(self, 'resolution', icon=compat.icon('FILE_IMAGE'), slider=True)
         col = self.layout.column(align=True)
-        col.label(text="テクスチャ参照方法", icon=compat.icon('SHADING_TEXTURE'))
+        col.label(text="Texture reference method", icon=compat.icon('SHADING_TEXTURE'))
         row = col.row()
         row.prop(self, 'mode', icon=compat.icon('SHADING_TEXTURE'), expand=True)
         self.layout.separator()
 
         row = compat.layout_split(self.layout, factor=1 / 3, align=True)
-        row.prop(self, 'use_freestyle', icon='LINE_DATA', text="輪郭線")
+        row.prop(self, 'use_freestyle', icon='LINE_DATA', text="Outline")
         row.prop(self, 'line_thickness', icon='ARROW_LEFTRIGHT', slider=True, text="")
         row.prop(self, 'line_color', icon='COLOR', text="")
         self.layout.separator()
 
         col = self.layout.column(align=True)
-        col.label(text="カメラ角度", icon='FILE_REFRESH')
+        col.label(text="Camera Angle", icon='FILE_REFRESH')
         col.prop(self, 'camera_angle', text="")
         self.layout.prop(self, 'camera_move', icon='ARROW_LEFTRIGHT')
         self.layout.prop(self, 'zoom_multi', icon='VIEWZOOM', slider=True)

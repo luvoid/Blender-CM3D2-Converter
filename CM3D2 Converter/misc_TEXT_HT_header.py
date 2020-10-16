@@ -8,7 +8,7 @@ from . import compat
 def menu_func(self, context):
     texts = bpy.data.texts
     text_keys = texts.keys()
-    self.layout.label(text="CM3D2用:", icon_value=common.kiss_icon())
+    self.layout.label(text="For CM3D2:", icon_value=common.kiss_icon())
     row = self.layout.row(align=True)
     if 'BoneData' in text_keys:
         txt = bpy.data.texts['BoneData']
@@ -52,11 +52,11 @@ def menu_func(self, context):
 @compat.BlRegister()
 class CNV_OT_show_text(bpy.types.Operator):
     bl_idname = 'text.show_text'
-    bl_label = "テキストを表示"
-    bl_description = "指定したテキストをこの領域に表示します"
+    bl_label = "Display Text"
+    bl_description = "Displays the specified text in this area"
     bl_options = {'REGISTER', 'UNDO'}
 
-    name = bpy.props.StringProperty(name="テキスト名")
+    name = bpy.props.StringProperty(name="Text name")
 
     @classmethod
     def poll(cls, context):
@@ -70,8 +70,8 @@ class CNV_OT_show_text(bpy.types.Operator):
 @compat.BlRegister()
 class CNV_OT_copy_text_bone_data(bpy.types.Operator):
     bl_idname = 'text.copy_text_bone_data'
-    bl_label = "テキストのボーン情報をコピー"
-    bl_description = "テキストのボーン情報をカスタムプロパティへ貼付ける形にしてクリップボードにコピーします"
+    bl_label = "Copy the Bone Data in the text"
+    bl_description = "Bone data is copied to clipboard so it can be pasted in the custom properties."
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -92,15 +92,15 @@ class CNV_OT_copy_text_bone_data(bpy.types.Operator):
                 continue
             output_text += "LocalBoneData:" + line + "\n"
         context.window_manager.clipboard = output_text
-        self.report(type={'INFO'}, message="ボーン情報をクリップボードにコピーしました")
+        self.report(type={'INFO'}, message="Bonedata was copied, mission accomplished")
         return {'FINISHED'}
 
 
 @compat.BlRegister()
 class CNV_OT_paste_text_bone_data(bpy.types.Operator):
     bl_idname = 'text.paste_text_bone_data'
-    bl_label = "テキストのボーン情報を貼付け"
-    bl_description = "クリップボード内のボーン情報をテキストデータに貼付けます"
+    bl_label = "Paste Bone Data"
+    bl_description = "Paste Bone Data from clipboard into text editor."
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -136,18 +136,18 @@ class CNV_OT_paste_text_bone_data(bpy.types.Operator):
                     local_bone_data_text.write(line[14:] + "\n")  # len('LocalBoneData:') == 14
         bone_data_text.current_line_index = 0
         local_bone_data_text.current_line_index = 0
-        self.report(type={'INFO'}, message="ボーン情報をクリップボードから貼付けました")
+        self.report(type={'INFO'}, message="Bone Data was pasted, mission accomplished.")
         return {'FINISHED'}
 
 
 @compat.BlRegister()
 class CNV_OT_remove_all_material_texts(bpy.types.Operator):
     bl_idname = 'text.remove_all_material_texts'
-    bl_label = "マテリアル情報テキストを全削除"
-    bl_description = "CM3D2で使用できるマテリアルテキストを全て削除します"
+    bl_label = "Delete all .mate data"
+    bl_description = "Removes .mate data in the text editor"
     bl_options = {'REGISTER', 'UNDO'}
 
-    is_keep_used_material = bpy.props.BoolProperty(name="使用する分は保管", default=True)
+    is_keep_used_material = bpy.props.BoolProperty(name="Keep Used Materials", default=True)
 
     @classmethod
     def poll(cls, context):

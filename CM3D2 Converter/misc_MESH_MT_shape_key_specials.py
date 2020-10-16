@@ -24,13 +24,13 @@ def menu_func(self, context):
 @compat.BlRegister()
 class CNV_OT_quick_shape_key_transfer(bpy.types.Operator):
     bl_idname = 'object.quick_shape_key_transfer'
-    bl_label = "クイック・シェイプキー転送"
-    bl_description = "アクティブなメッシュに他の選択メッシュのシェイプキーを高速で転送します"
+    bl_label = "Quick shape key transfer"
+    bl_description = "Fast transfer of other selected mesh's shape keys to active mesh"
     bl_options = {'REGISTER', 'UNDO'}
 
-    is_first_remove_all = bpy.props.BoolProperty(name="最初に全シェイプキーを削除", default=True)
-    subdivide_number = bpy.props.IntProperty(name="参照元の分割", default=1, min=0, max=10, soft_min=0, soft_max=10)
-    is_remove_empty = bpy.props.BoolProperty(name="変形のないシェイプキーを削除", default=True)
+    is_first_remove_all = bpy.props.BoolProperty(name="First delete all shape keys", default=True)
+    subdivide_number = bpy.props.IntProperty(name="Split referrer", default=1, min=0, max=10, soft_min=0, soft_max=10)
+    is_remove_empty = bpy.props.BoolProperty(name="Remove shape key without deformation", default=True)
 
     @classmethod
     def poll(cls, context):
@@ -156,14 +156,14 @@ class CNV_OT_quick_shape_key_transfer(bpy.types.Operator):
 @compat.BlRegister()
 class CNV_OT_precision_shape_key_transfer(bpy.types.Operator):
     bl_idname = 'object.precision_shape_key_transfer'
-    bl_label = "空間ぼかし・シェイプキー転送"
-    bl_description = "アクティブなメッシュに他の選択メッシュのシェイプキーを遠いほどぼかして転送します"
+    bl_label = "Space blur/shape key transfer"
+    bl_description = "Transfers the shape keys of other selected meshes to the active mesh, blurring them further"
     bl_options = {'REGISTER', 'UNDO'}
 
-    is_first_remove_all = bpy.props.BoolProperty(name="最初に全シェイプキーを削除", default=True)
-    subdivide_number = bpy.props.IntProperty(name="参照元の分割", default=1, min=0, max=10, soft_min=0, soft_max=10)
-    extend_range = bpy.props.FloatProperty(name="範囲倍率", default=1.1, min=1.0001, max=5.0, soft_min=1.0001, soft_max=5.0, step=10, precision=2)
-    is_remove_empty = bpy.props.BoolProperty(name="変形のないシェイプキーを削除", default=True)
+    is_first_remove_all = bpy.props.BoolProperty(name="First delete all shape keys", default=True)
+    subdivide_number = bpy.props.IntProperty(name="Split referrer", default=1, min=0, max=10, soft_min=0, soft_max=10)
+    extend_range = bpy.props.FloatProperty(name="Range magnification", default=1.1, min=1.0001, max=5.0, soft_min=1.0001, soft_max=5.0, step=10, precision=2)
+    is_remove_empty = bpy.props.BoolProperty(name="Remove shape key without deformation", default=True)
 
     @classmethod
     def poll(cls, context):
@@ -328,16 +328,16 @@ class CNV_OT_precision_shape_key_transfer(bpy.types.Operator):
 @compat.BlRegister()
 class CNV_OT_multiply_shape_key(bpy.types.Operator):
     bl_idname = 'object.multiply_shape_key'
-    bl_label = "シェイプキーの変形に乗算"
-    bl_description = "シェイプキーの変形に数値を乗算し、変形の強度を増減させます"
+    bl_label = "Multiply shape key variants"
+    bl_description = "Multiply the shape key deformation by a number to increase or decrease the strength of the deformation"
     bl_options = {'REGISTER', 'UNDO'}
 
-    multi = bpy.props.FloatProperty(name="倍率", description="シェイプキーの拡大率です", default=1.1, min=-10, max=10, soft_min=-10, soft_max=10, step=10, precision=2)
+    multi = bpy.props.FloatProperty(name="Magnification", description="Shape key expansion rate", default=1.1, min=-10, max=10, soft_min=-10, soft_max=10, step=10, precision=2)
     items = [
-        ('ACTIVE', "アクティブのみ", "", 'HAND', 1),
-        ('UP', "アクティブより上", "", 'TRIA_UP_BAR', 2),
-        ('DOWN', "アクティブより下", "", 'TRIA_DOWN_BAR', 3),
-        ('ALL', "全て", "", 'ARROW_LEFTRIGHT', 4),
+        ('ACTIVE', "Active only", "", 'HAND', 1),
+        ('UP', "Above active", "", 'TRIA_UP_BAR', 2),
+        ('DOWN', "Below active", "", 'TRIA_DOWN_BAR', 3),
+        ('ALL', "All", "", 'ARROW_LEFTRIGHT', 4),
     ]
     mode = bpy.props.EnumProperty(items=items, name="対象", default='ACTIVE')
 
@@ -391,31 +391,31 @@ class CNV_OT_multiply_shape_key(bpy.types.Operator):
 @compat.BlRegister()
 class CNV_OT_blur_shape_key(bpy.types.Operator):
     bl_idname = 'object.blur_shape_key'
-    bl_label = "シェイプキーぼかし"
-    bl_description = "アクティブ、もしくは全てのシェイプキーをぼかします"
+    bl_label = "Shape key blur"
+    bl_description = "Blur active or all shape keys"
     bl_options = {'REGISTER', 'UNDO'}
 
     items = [
-        ('ACTIVE', "アクティブのみ", "", 'HAND', 1),
-        ('UP', "アクティブより上", "", 'TRIA_UP_BAR', 2),
-        ('DOWN', "アクティブより下", "", 'TRIA_DOWN_BAR', 3),
-        ('ALL', "全て", "", 'ARROW_LEFTRIGHT', 4),
+        ('ACTIVE', "Active only", "", 'HAND', 1),
+        ('UP', "Above active", "", 'TRIA_UP_BAR', 2),
+        ('DOWN', "Below active", "", 'TRIA_DOWN_BAR', 3),
+        ('ALL', "All", "", 'ARROW_LEFTRIGHT', 4),
     ]
-    target = bpy.props.EnumProperty(items=items, name="対象", default='ACTIVE')
-    radius = bpy.props.FloatProperty(name="範囲倍率", default=3, min=0.1, max=50, soft_min=0.1, soft_max=50, step=50, precision=2)
-    strength = bpy.props.IntProperty(name="強さ", default=1, min=1, max=10, soft_min=1, soft_max=10)
+    target = bpy.props.EnumProperty(items=items, name="Target", default='ACTIVE')
+    radius = bpy.props.FloatProperty(name="Range magnification", default=3, min=0.1, max=50, soft_min=0.1, soft_max=50, step=50, precision=2)
+    strength = bpy.props.IntProperty(name="Strength", default=1, min=1, max=10, soft_min=1, soft_max=10)
     items = [
-        ('BOTH', "増減両方", "", 'AUTOMERGE_ON', 1),
-        ('ADD', "増加のみ", "", 'TRIA_UP', 2),
-        ('SUB', "減少のみ", "", 'TRIA_DOWN', 3),
+        ('BOTH', "Both increase and decrease", "", 'AUTOMERGE_ON', 1),
+        ('ADD', "Increase only", "", 'TRIA_UP', 2),
+        ('SUB', "Decrease only", "", 'TRIA_DOWN', 3),
     ]
-    effect = bpy.props.EnumProperty(items=items, name="ぼかし効果", default='BOTH')
+    effect = bpy.props.EnumProperty(items=items, name="Blur effect", default='BOTH')
     items = [
-        ('LINER', "ライナー", "", 'LINCURVE', 1),
-        ('SMOOTH1', "スムーズ1", "", 'SMOOTHCURVE', 2),
-        ('SMOOTH2', "スムーズ2", "", 'SMOOTHCURVE', 3),
+        ('LINER', "Linear", "", 'LINCURVE', 1),
+        ('SMOOTH1', "Smooth 1", "", 'SMOOTHCURVE', 2),
+        ('SMOOTH2', "Smooth 2", "", 'SMOOTHCURVE', 3),
     ]
-    blend = bpy.props.EnumProperty(items=items, name="減衰タイプ", default='LINER')
+    blend = bpy.props.EnumProperty(items=items, name="Attenuation type", default='LINER')
 
     @classmethod
     def poll(cls, context):
@@ -541,12 +541,12 @@ class CNV_OT_blur_shape_key(bpy.types.Operator):
 @compat.BlRegister()
 class CNV_OT_change_base_shape_key(bpy.types.Operator):
     bl_idname = 'object.change_base_shape_key'
-    bl_label = "このシェイプキーをベースに"
-    bl_description = "アクティブなシェイプキーを他のシェイプキーのベースにします"
+    bl_label = "Based on this shape key"
+    bl_description = "Base active shape key on other shape keys"
     bl_options = {'REGISTER', 'UNDO'}
 
-    is_deform_mesh = bpy.props.BoolProperty(name="素メッシュを調整", default=True)
-    is_deform_other_shape = bpy.props.BoolProperty(name="他シェイプを調整", default=True)
+    is_deform_mesh = bpy.props.BoolProperty(name="Adjust the raw mesh", default=True)
+    is_deform_other_shape = bpy.props.BoolProperty(name="Adjust other shapes", default=True)
 
     @classmethod
     def poll(cls, context):

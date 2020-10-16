@@ -24,7 +24,7 @@ def menu_func(self, context):
     if bone_data_count or enabled_clipboard:
         col = self.layout.column(align=True)
         row = col.row(align=True)
-        row.label(text="CM3D2用ボーン情報", icon_value=common.kiss_icon())
+        row.label(text="CM3D2 Bone Data", icon_value=common.kiss_icon())
         sub_row = row.row()
         sub_row.alignment = 'RIGHT'
         if 'BoneData:0' in ob and 'LocalBoneData:0' in ob:
@@ -36,15 +36,15 @@ def menu_func(self, context):
         else:
             sub_row.label(text="0", icon='CHECKBOX_DEHLT')
         row = col.row(align=True)
-        row.operator('object.copy_object_bone_data_property', icon='COPYDOWN', text="コピー")
-        row.operator('object.paste_object_bone_data_property', icon='PASTEDOWN', text="貼付け")
+        row.operator('object.copy_object_bone_data_property', icon='COPYDOWN', text="Copy")
+        row.operator('object.paste_object_bone_data_property', icon='PASTEDOWN', text="Paste")
         row.operator('object.remove_object_bone_data_property', icon='X', text="")
 
 @compat.BlRegister()
 class CNV_OT_copy_object_bone_data_property(bpy.types.Operator):
     bl_idname = 'object.copy_object_bone_data_property'
-    bl_label = "ボーン情報をコピー"
-    bl_description = "カスタムプロパティのボーン情報をクリップボードにコピーします"
+    bl_label = "Copy the Bone Data from the object's custom properties"
+    bl_description = "Copies the bone Data in the object's custom properties to the clipboard."
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -79,15 +79,15 @@ class CNV_OT_copy_object_bone_data_property(bpy.types.Operator):
             if 10 < pass_count:
                 break
         context.window_manager.clipboard = output_text
-        self.report(type={'INFO'}, message="ボーン情報をクリップボードにコピーしました")
+        self.report(type={'INFO'}, message="Bone Data was copied to the clipboard.")
         return {'FINISHED'}
 
 
 @compat.BlRegister()
 class CNV_OT_paste_object_bone_data_property(bpy.types.Operator):
     bl_idname = 'object.paste_object_bone_data_property'
-    bl_label = "ボーン情報を貼付け"
-    bl_description = "カスタムプロパティのボーン情報をクリップボードから貼付けます"
+    bl_label = "Paste Bone Data"
+    bl_description = "Paste Bone Data from the clipboard into the object's custom properties. NOTE:Any data in custom properties will be replaced."
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -138,15 +138,15 @@ class CNV_OT_paste_object_bone_data_property(bpy.types.Operator):
                     name = "LocalBoneData:" + str(local_bone_data_count)
                     ob[name] = line[14:]  # len('LocalBoneData:') == 14
                     local_bone_data_count += 1
-        self.report(type={'INFO'}, message="ボーン情報をクリップボードから貼付けました")
+        self.report(type={'INFO'}, message="Data was pasted, mission accomplished")
         return {'FINISHED'}
 
 
 @compat.BlRegister()
 class CNV_OT_remove_object_bone_data_property(bpy.types.Operator):
     bl_idname = 'object.remove_object_bone_data_property'
-    bl_label = "ボーン情報を削除"
-    bl_description = "カスタムプロパティのボーン情報を全て削除します"
+    bl_label = "Remove the bone Data"
+    bl_description = "Remove all bone Data for the custom properties"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -161,7 +161,7 @@ class CNV_OT_remove_object_bone_data_property(bpy.types.Operator):
         return context.window_manager.invoke_props_dialog(self)
 
     def draw(self, context):
-        self.layout.label(text="カスタムプロパティのボーン情報を全て削除します", icon='CANCEL')
+        self.layout.label(text="Remove all bone Data form the custom properties?", icon='CANCEL')
 
     def execute(self, context):
         ob = context.active_object
@@ -185,5 +185,5 @@ class CNV_OT_remove_object_bone_data_property(bpy.types.Operator):
                 pass_count += 1
             if 10 < pass_count:
                 break
-        self.report(type={'INFO'}, message="ボーン情報を削除しました")
+        self.report(type={'INFO'}, message="Bone Data was removed. Mission Accomplished.")
         return {'FINISHED'}

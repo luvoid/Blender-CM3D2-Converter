@@ -7,8 +7,8 @@ from . import compat
 @compat.BlRegister()
 class CNV_OT_import_cm3d2_tex(bpy.types.Operator):
     bl_idname = 'image.import_cm3d2_tex'
-    bl_label = "texファイルを開く"
-    bl_description = "CM3D2で使用されるテクスチャファイル(.tex)を読み込みます"
+    bl_label = "Import .tex"
+    bl_description = "Imports a CM3D2 tex file (.tex)"
     bl_options = {'REGISTER'}
 
     filepath = bpy.props.StringProperty(subtype='FILE_PATH')
@@ -16,10 +16,10 @@ class CNV_OT_import_cm3d2_tex(bpy.types.Operator):
     filter_glob = bpy.props.StringProperty(default="*.tex;*.png", options={'HIDDEN'})
 
     items = [
-        ('PACK', "内部にパックする", "", 'PACKAGE', 1),
-        ('PNG', "PNGに変換してPNGを開く", "", 'IMAGE_DATA', 2),
+        ('PACK', "Package", "", 'PACKAGE', 1),
+        ('PNG', "Opens or converts to png", "", 'IMAGE_DATA', 2),
     ]
-    mode = bpy.props.EnumProperty(items=items, name="展開方法", default='PNG')
+    mode = bpy.props.EnumProperty(items=items, name="Mode", default='PNG')
 
     def invoke(self, context, event):
         prefs = common.preferences()
@@ -33,7 +33,7 @@ class CNV_OT_import_cm3d2_tex(bpy.types.Operator):
     def draw(self, context):
         box = self.layout.box()
         col = box.column(align=True)
-        col.label(text="展開方法", icon='FILESEL')
+        col.label(text="Mode", icon='FILESEL')
         col.prop(self, 'mode', icon='FILESEL', expand=True)
 
     def execute(self, context):
@@ -43,12 +43,12 @@ class CNV_OT_import_cm3d2_tex(bpy.types.Operator):
             if tex_data is None:
                 # bpy.ops.image.open(filepath=self.filepath)
                 # img = context.edit_image
-                self.report(type={'ERROR'}, message="texファイルのヘッダが正しくありません。" + self.fielpath)
+                self.report(type={'ERROR'}, message="Failed to open the file, it does not exist or is inaccessible" + self.filepath)
                 return {'CANCELLED'}
 
             tex_format = tex_data[1]
             if not (tex_format == 3 or tex_format == 5):
-                self.report(type={'ERROR'}, message="未対応フォーマットのtexです。format=" + str(tex_format))
+                self.report(type={'ERROR'}, message="Unsupported tex format! format=" + str(tex_format))
                 return {'CANCELLED'}
 
             root, ext = os.path.splitext(self.filepath)
@@ -69,7 +69,7 @@ class CNV_OT_import_cm3d2_tex(bpy.types.Operator):
             return {'FINISHED'}
 
         except:
-            self.report(type={'ERROR'}, message="ファイルを開くのに失敗しました、アクセス不可かファイルが存在しません。"+ self.filepath)
+            self.report(type={'ERROR'}, message="Failed to open file, inaccessible or file does not exist."+ self.filepath)
             return {'CANCELLED'}
 
 

@@ -13,12 +13,12 @@ def menu_func(self, context):
 @compat.BlRegister()
 class CNV_OT_apply_prime_field(bpy.types.Operator):
     bl_idname = 'pose.apply_prime_field'
-    bl_label = "現在のポーズで素体化"
-    bl_description = "現在のポーズで衣装をモデリングしやすくする素体を作成します"
+    bl_label = "Apply Prime Field"
+    bl_description = "A body will be created that makes custom modeling easy with the current pose."
     bl_options = {'REGISTER', 'UNDO'}
 
-    is_apply_armature_modifier = bpy.props.BoolProperty(name="関係するメッシュのアーマチュアを適用", default=True)
-    is_deform_preserve_volume = bpy.props.BoolProperty(name="アーマチュア適用は体積を維持", default=True)
+    is_apply_armature_modifier = bpy.props.BoolProperty(name="Apply Armature Modifier", default=True)
+    is_deform_preserve_volume = bpy.props.BoolProperty(name="Conserve Volume", default=True)
 
     @classmethod
     def poll(cls, context):
@@ -100,7 +100,8 @@ class CNV_OT_apply_prime_field(bpy.types.Operator):
                 bone.keyframe_insert(data_path='scale', frame=i)
         bpy.ops.pose.constraints_clear()
 
-        common.remove_data((temp_ob, temp_arm))
+        common.remove_data(temp_arm)
+        common.remove_data(temp_ob)
 
         bpy.ops.pose.select_all(action='DESELECT')
         for bone in pre_selected_pose_bones:

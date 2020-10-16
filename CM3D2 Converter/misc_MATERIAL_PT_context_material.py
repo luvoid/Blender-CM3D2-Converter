@@ -29,8 +29,8 @@ def menu_func(self, context):
             col.operator('material.new_cm3d2', icon_value=common.kiss_icon())
             col.operator('material.new_com3d2', icon='ERROR')
         row = col.row(align=True)
-        row.operator('material.import_cm3d2_mate', icon='FILE_FOLDER', text="mateから")
-        opr = row.operator('material.paste_material', icon='PASTEDOWN', text="クリップボードから")
+        row.operator('material.import_cm3d2_mate', icon='FILE_FOLDER', text="From mate")
+        opr = row.operator('material.paste_material', icon='PASTEDOWN', text="From the clipboard")
         opr.is_decorate, opr.is_create = True, True
     else:
         if 'shader1' in mate and 'shader2' in mate:
@@ -39,9 +39,9 @@ def menu_func(self, context):
             row = compat.layout_split(box, factor=0.5)
             row.label(text="CM3D2用", icon_value=common.kiss_icon())
             sub_row = row.row(align=True)
-            sub_row.operator('material.export_cm3d2_mate', icon='FILE_FOLDER', text="mateへ")
-            sub_row.operator('material.copy_material', icon='COPYDOWN', text="コピー")
-            sub_row.operator('material.paste_material', icon='PASTEDOWN', text="貼付け")
+            sub_row.operator('material.export_cm3d2_mate', icon='FILE_FOLDER', text="To mate")
+            sub_row.operator('material.copy_material', icon='COPYDOWN', text="Copy")
+            sub_row.operator('material.paste_material', icon='PASTEDOWN', text="Paste")
 
             icon = 'ERROR'
             shader1 = mate['shader1']
@@ -50,11 +50,11 @@ def menu_func(self, context):
             icon = shader_prop.get('icon')
 
             row = compat.layout_split(box, factor=0.333333333333333333333)
-            row.label(text="種類:")
+            row.label(text="Type:")
             row.label(text=type_name, icon=icon)
-            box.prop(mate, 'name', icon='SORTALPHA', text="マテリアル名")
-            box.prop(mate, '["shader1"]', icon='MATERIAL', text="シェーダー1")
-            box.prop(mate, '["shader2"]', icon=compat.icon('SHADING_RENDERED'), text="シェーダー2")
+            box.prop(mate, 'name', icon='SORTALPHA', text="Material name")
+            box.prop(mate, '["shader1"]', icon='MATERIAL', text="Shader 1")
+            box.prop(mate, '["shader2"]', icon=compat.icon('SHADING_RENDERED'), text="Shader 2")
 
             box.operator('material.decorate_material', icon=compat.icon('SHADING_TEXTURE'))
 
@@ -66,7 +66,7 @@ def menu_func(self, context):
                 row.alignment = 'LEFT'
                 op = row.operator('wm.context_set_int', icon='DOWNARROW_HLT', text="", emboss=False)
                 op.data_path, op.value, op.relative = 'material["CM3D2 Texture Expand"]', 0, False
-                row.label(text="簡易テクスチャ情報", icon_value=common.kiss_icon())
+                row.label(text="Simple texture information", icon_value=common.kiss_icon())
 
                 if compat.IS_LEGACY:
                     for slot in mate.texture_slots:
@@ -93,7 +93,7 @@ def menu_func(self, context):
                             sub_row = compat.layout_split(row, factor=0.333333333333333333333, align=True)
                             sub_row.label(text=name, icon_value=sub_row.icon(tex))
                             sub_row.prop(slot, 'color', text="")
-                            sub_row.prop(slot, 'diffuse_color_factor', icon='IMAGE_RGB_ALPHA', text="透明度", slider=True)
+                            sub_row.prop(slot, 'diffuse_color_factor', icon='IMAGE_RGB_ALPHA', text="Transparency", slider=True)
                             row.operator('material.quick_texture_show', text="", icon='RIGHTARROW').texture_name = tex.name
                         elif node_type == 'f':
                             row = box.row(align=True)
@@ -109,14 +109,14 @@ def menu_func(self, context):
                 row.alignment = 'LEFT'
                 op = row.operator('wm.context_set_int', icon='RIGHTARROW', text="", emboss=False)
                 op.data_path, op.value, op.relative = 'material["CM3D2 Texture Expand"]', 1, False
-                row.label(text="簡易テクスチャ情報", icon_value=common.kiss_icon())
+                row.label(text="Simple texture information", icon_value=common.kiss_icon())
 
         else:
             if is_com_mode:
-                self.layout.operator('material.new_com3d2', text="COM3D2用に変更", icon_value=common.kiss_icon())
+                self.layout.operator('material.new_com3d2', text="Changed for COM3D2", icon_value=common.kiss_icon())
             else:
-                self.layout.operator('material.new_com3d2', text="COM3D2用に変更", icon_value=common.kiss_icon())
-                self.layout.operator('material.new_cm3d2', text="CM3D2用に変更", icon_value=common.kiss_icon())
+                self.layout.operator('material.new_com3d2', text="Changed for COM3D2", icon_value=common.kiss_icon())
+                self.layout.operator('material.new_cm3d2', text="Changed for CM3D2", icon_value=common.kiss_icon())
 
 
 @compat.BlRegister(only_latest=True)
@@ -146,8 +146,8 @@ class Material_PT_properries(bpy.types.Panel):
                 col.operator('material.new_cm3d2', icon_value=common.kiss_icon())
                 col.operator('material.new_com3d2', icon='ERROR')
             row = col.row(align=True)
-            row.operator('material.import_cm3d2_mate', icon='FILE_FOLDER', text="mateから")
-            opr = row.operator('material.paste_material', icon='PASTEDOWN', text="クリップボードから")
+            row.operator('material.import_cm3d2_mate', icon='FILE_FOLDER', text="From mate")
+            opr = row.operator('material.paste_material', icon='PASTEDOWN', text="From the clipboard")
             opr.is_decorate, opr.is_create, opr.use_dialog = True, True, False
 
         else:
@@ -157,41 +157,41 @@ class Material_PT_properries(bpy.types.Panel):
                 row = compat.layout_split(box, factor=0.5)
                 row.label(text="CM3D2用", icon_value=common.kiss_icon())
                 sub_row = row.row(align=True)
-                sub_row.operator('material.export_cm3d2_mate', icon='FILE_FOLDER', text="mateへ")
-                sub_row.operator('material.copy_material', icon='COPYDOWN', text="コピー")
-                opr = sub_row.operator('material.paste_material', icon='PASTEDOWN', text="貼付け")
+                sub_row.operator('material.export_cm3d2_mate', icon='FILE_FOLDER', text="To mate")
+                sub_row.operator('material.copy_material', icon='COPYDOWN', text="Copy")
+                opr = sub_row.operator('material.paste_material', icon='PASTEDOWN', text="Paste")
                 opr.use_dialog = True
                 opr.is_create = False
 
                 shader1 = mate['shader1']
                 shader_prop = cm3d2_data.Handler.get_shader_prop(shader1)
-                type_name = shader_prop.get('type_name', '不明')
+                type_name = shader_prop.get('type_name', 'Unknown')
                 icon = shader_prop.get('icon', 'ERROR')
 
                 row = compat.layout_split(box, factor=1 / 3)
-                row.label(text="種類:")
+                row.label(text="Type:")
                 row.label(text=type_name, icon=icon)
-                box.prop(mate, 'name', icon='SORTALPHA', text="マテリアル名")
-                box.prop(mate, '["shader1"]', icon='MATERIAL', text="シェーダー1")
-                box.prop(mate, '["shader2"]', icon=compat.icon('SHADING_RENDERED'), text="シェーダー2")
+                box.prop(mate, 'name', icon='SORTALPHA', text="Material name")
+                box.prop(mate, '["shader1"]', icon='MATERIAL', text="Shader 1")
+                box.prop(mate, '["shader2"]', icon=compat.icon('SHADING_RENDERED'), text="Shader 2")
 
                 # For LEGACY
                 # box.operator('material.decorate_material', icon=compat.icon('SHADING_TEXTURE'))
                 if 'CM3D2 Texture Expand' not in mate:
-                    box.operator('material.setup_mate_expand', text="フラグセットアップ")
+                    box.operator('material.setup_mate_expand', text="Flag setup")
                     return
 
                 box = self.layout.box()
                 if mate['CM3D2 Texture Expand']:
                     if mate.use_nodes is False:
-                        box.operator('material.setup_mate_expand', text="フラグセットアップ")
+                        box.operator('material.setup_mate_expand', text="Flag setup")
                         return
 
                     row = box.row()
                     row.alignment = 'LEFT'
                     op = row.operator('wm.context_set_int', icon='DOWNARROW_HLT', text="", emboss=False)
                     op.data_path, op.value, op.relative = 'material["CM3D2 Texture Expand"]', 0, False
-                    row.label(text="マテリアルプロパティ", icon_value=common.kiss_icon())
+                    row.label(text="Material properties", icon_value=common.kiss_icon())
 
                     # ノード名はシリアル番号がついていない想定とする
                     tex_list, col_list, f_list = [], [], []
@@ -266,19 +266,19 @@ class Material_PT_properries(bpy.types.Panel):
                     row.alignment = 'LEFT'
                     op = row.operator('wm.context_set_int', icon='RIGHTARROW', text="", emboss=False)
                     op.data_path, op.value, op.relative = 'material["CM3D2 Texture Expand"]', 1, False
-                    row.label(text="マテリアルプロパティ", icon_value=common.kiss_icon())
+                    row.label(text="Material properties", icon_value=common.kiss_icon())
                     # op = row.operator('wm.context_set_int', icon='RIGHTARROW', text="", emboss=False)
 
             else:
                 if is_com_mode:
-                    self.layout.operator('material.new_com3d2', text="COM3D2用に変更", icon_value=common.kiss_icon())
+                    self.layout.operator('material.new_com3d2', text="Changed for COM3D2", icon_value=common.kiss_icon())
                 else:
-                    self.layout.operator('material.new_cm3d2', text="CM3D2用に変更", icon_value=common.kiss_icon())
-                    self.layout.operator('material.new_com3d2', text="COM3D2用に変更", icon_value=common.kiss_icon())
+                    self.layout.operator('material.new_cm3d2', text="Changed for CM3D2", icon_value=common.kiss_icon())
+                    self.layout.operator('material.new_com3d2', text="Changed for COM3D2", icon_value=common.kiss_icon())
 
 
 class new_mate_opr():
-    is_decorate = bpy.props.BoolProperty(name="種類に合わせてマテリアルを装飾", default=True)
+    is_decorate = bpy.props.BoolProperty(name="Decorate materials according to type", default=True)
     # is_replace_cm3d2_tex = bpy.props.BoolProperty(name="テクスチャを探す", default=False, description="CM3D2本体のインストールフォルダからtexファイルを探して開きます")
 
     @classmethod
@@ -624,35 +624,35 @@ class new_mate_opr():
 @compat.BlRegister()
 class CNV_OT_new_cm3d2(bpy.types.Operator, new_mate_opr):
     bl_idname = 'material.new_cm3d2'
-    bl_label = "CM3D2用マテリアルを新規作成"
-    bl_description = "Blender-CM3D2-Converterで使用できるマテリアルを新規で作成します"
+    bl_label = "Create new material for CM3D2"
+    bl_description = "Create a new material that can be used in Blender-CM3D2-Converter"
     bl_options = {'REGISTER', 'UNDO'}
 
-    shader_type = bpy.props.EnumProperty(items=cm3d2_data.Handler.create_shader_items(), name="種類", default='CM3D2/Toony_Lighted_Outline')
+    shader_type = bpy.props.EnumProperty(items=cm3d2_data.Handler.create_shader_items(), name="Type", default='CM3D2/Toony_Lighted_Outline')
 
 
 @compat.BlRegister()
 class CNV_OT_new_com3d2(bpy.types.Operator, new_mate_opr):
     bl_idname = 'material.new_com3d2'
-    bl_label = "COM3D2用マテリアルを新規作成"
-    bl_description = "Blender-CM3D2-Converterで使用できるマテリアルを新規で作成します"
+    bl_label = "Create new material for COM3D2"
+    bl_description = "Create a new material that can be used in Blender-CM3D2-Converter"
     bl_options = {'REGISTER', 'UNDO'}
 
-    shader_type = bpy.props.EnumProperty(items=cm3d2_data.Handler.create_comshader_items(), name="種類", default='CM3D2/Toony_Lighted_Outline')
+    shader_type = bpy.props.EnumProperty(items=cm3d2_data.Handler.create_comshader_items(), name="Type", default='CM3D2/Toony_Lighted_Outline')
 
 
 @compat.BlRegister()
 class CNV_OT_paste_material(bpy.types.Operator):
     bl_idname = 'material.paste_material'
-    bl_label = "クリップボードからマテリアルを貼付け"
-    bl_description = "クリップボード内のテキストからマテリアル情報を上書きします"
+    bl_label = "Paste material from clipboard"
+    bl_description = "Overwrite material information from text in clipboard"
     bl_options = {'REGISTER', 'UNDO'}
 
-    is_decorate = bpy.props.BoolProperty(name="種類に合わせてマテリアルを装飾", default=False)
-    is_replace_cm3d2_tex = bpy.props.BoolProperty(name="テクスチャを探す", default=False, description="CM3D2本体のインストールフォルダからtexファイルを探して開きます")
-    is_create = bpy.props.BoolProperty(name="マテリアルの新規作成", default=False)
-    override_name = bpy.props.BoolProperty(name="マテリアル名を上書きする", default=False)
-    use_dialog = bpy.props.BoolProperty(name="上書き設定", default=True)
+    is_decorate = bpy.props.BoolProperty(name="Decorate materials according to type", default=False)
+    is_replace_cm3d2_tex = bpy.props.BoolProperty(name="Find texture", default=False, description="Locate the tex file in the CM3D2 installation folder and open it.")
+    is_create = bpy.props.BoolProperty(name="Create new material", default=False)
+    override_name = bpy.props.BoolProperty(name="Overwrite material name", default=False)
+    use_dialog = bpy.props.BoolProperty(name="Overwrite setting", default=True)
 
     @classmethod
     def poll(cls, context):
@@ -691,7 +691,7 @@ class CNV_OT_paste_material(bpy.types.Operator):
         except Exception as e:
             # tb = sys.exc_info()[2]
             # e.with_traceback(tb)
-            self.report(type={'ERROR'}, message='マテリアル情報の貼付けを中止します。' + str(e))
+            self.report(type={'ERROR'}, message='The pasting of material information will be cancelled.' + str(e))
             return {'CANCELLED'}
 
         mate_name = mat_data.name
@@ -714,15 +714,15 @@ class CNV_OT_paste_material(bpy.types.Operator):
         else:
             cm3d2_data.MaterialHandler.apply_to(context, mate, mat_data, prefs.is_replace_cm3d2_tex)
 
-        self.report(type={'INFO'}, message="クリップボードからマテリアルを貼付けました")
+        self.report(type={'INFO'}, message="Paste material from clipboard")
         return {'FINISHED'}
 
 
 @compat.BlRegister()
 class CNV_OT_copy_material(bpy.types.Operator):
     bl_idname = 'material.copy_material'
-    bl_label = "マテリアルをクリップボードにコピー"
-    bl_description = "表示しているマテリアルをテキスト形式でクリップボードにコピーします"
+    bl_label = "Copy material to clipboard"
+    bl_description = "Copy the displayed material to the clipboard in text format"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -740,19 +740,19 @@ class CNV_OT_copy_material(bpy.types.Operator):
             else:
                 mat_data = cm3d2_data.MaterialHandler.parse_mate(mate)
         except Exception as e:
-            self.report(type={'ERROR'}, message="クリップボードへのコピーを中止します。:" + str(e))
+            self.report(type={'ERROR'}, message="Stoped copying to the clipboard:" + str(e))
             return {'CANCELLED'}
 
         context.window_manager.clipboard = mat_data.to_text()
-        self.report(type={'INFO'}, message="マテリアルテキストをクリップボードにコピーしました")
+        self.report(type={'INFO'}, message="Copied material text to clipboard")
         return {'FINISHED'}
 
 
 @compat.BlRegister()
 class CNV_OT_decorate_material(bpy.types.Operator):
     bl_idname = 'material.decorate_material'
-    bl_label = "マテリアルを装飾"
-    bl_description = "スロット内のマテリアルを全て設定に合わせて装飾します"
+    bl_label = "Decorate material"
+    bl_description = "Decorate all the materials in the slot to your settings"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -781,11 +781,11 @@ class CNV_OT_decorate_material(bpy.types.Operator):
 @compat.BlRegister()
 class CNV_OT_quick_texture_show(bpy.types.Operator):
     bl_idname = 'material.quick_texture_show'
-    bl_label = "このテクスチャを見る"
-    bl_description = "このテクスチャを見る"
+    bl_label = "View this texture"
+    bl_description = "View this texture"
     bl_options = {'REGISTER'}
 
-    texture_name = bpy.props.StringProperty(name="テクスチャ名")
+    texture_name = bpy.props.StringProperty(name="Texture name")
 
     @classmethod
     def poll(cls, context):
@@ -815,8 +815,8 @@ class CNV_OT_quick_texture_show(bpy.types.Operator):
 @compat.BlRegister()
 class CNV_OT_setup_material_expand(bpy.types.Operator):
     bl_idname = 'material.setup_mate_expand'
-    bl_label = "マテリアルのセットアップ"
-    bl_description = "マテリアルの各種フラグを初期化する"
+    bl_label = "Material setup"
+    bl_description = "Initialize various flags of material"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -837,8 +837,8 @@ class CNV_OT_setup_material_expand(bpy.types.Operator):
 @compat.BlRegister()
 class CNV_OT_material_prop_expand(bpy.types.Operator, common.NodeHandler):
     bl_idname = 'material.mateprop_expand'
-    bl_label = "マテリアルプロパティの詳細情報"
-    bl_description = "マテリアルプロパティの詳細情報の表示状態を切り替える"
+    bl_label = "Detailed information on material properties"
+    bl_description = "Toggle display state of detailed information of material property"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -868,9 +868,9 @@ def menu_mateprop_tex(context, layout, node):
     box = row.box()
 
     split = compat.layout_split(box, factor=LAYOUT_FACTOR)
-    split.label(text="プロパティ タイプ:")
+    split.label(text="Property type:")
     row = split.row()
-    row.label(text="テクスチャ", icon='TEXTURE')
+    row.label(text="Texture", icon='TEXTURE')
 
     # check_row = row.row(align=True)
     # sub_row = check_row.row()
@@ -885,7 +885,7 @@ def menu_mateprop_tex(context, layout, node):
         sub_box = box.box()
 
         if '.png' in img.name[-8:].lower():
-            sub_box.operator('texture.setup_image_name', text="拡張子を省略", icon='FILE')
+            sub_box.operator('texture.setup_image_name', text="Omit extension", icon='FILE')
 
         # row = compat.layout_split(sub_box, factor=LAYOUT_FACTOR, align=True)
         # row.label(text="テクスチャ名:")
@@ -893,13 +893,13 @@ def menu_mateprop_tex(context, layout, node):
 
         if 'cm3d2_path' in img:
             row = compat.layout_split(sub_box, factor=LAYOUT_FACTOR, align=True)
-            row.label(text="テクスチャパス:")
+            row.label(text="Texture path:")
             row.prop(img, '["cm3d2_path"]', text="")
         else:
-            sub_box.operator('texture.set_cm3d2path', text="テクスチャパスを生成", icon='FILE').node_name = node.name
+            sub_box.operator('texture.set_cm3d2path', text="Generate texture path", icon='FILE').node_name = node.name
 
         row = compat.layout_split(sub_box, factor=LAYOUT_FACTOR, align=True)
-        row.label(text="実ファイルパス:")
+        row.label(text="Real file path:")
         # TODO ファイル選択用オペレータを自作(.pngフィルタ)
         row.prop(img, 'filepath', text="")
 
@@ -909,14 +909,14 @@ def menu_mateprop_tex(context, layout, node):
 
         tex_map = node.texture_mapping
         split = compat.layout_split(sub_box, factor=LAYOUT_FACTOR, align=True)
-        split.label(text="オフセット:")
+        split.label(text="offset:")
         row = split.row(align=True)
         row.prop(tex_map, 'translation', index=0, text="x")
         row.prop(tex_map, 'translation', index=1, text="y")
         row.operator('texture.reset_offset', text="", icon='CANCEL').node_name = node.name
 
         split = compat.layout_split(sub_box, factor=LAYOUT_FACTOR, align=True)
-        split.label(text="スケール:")
+        split.label(text="scale:")
         row = split.row(align=True)
         row.prop(tex_map, 'scale', index=0, text="x")
         row.prop(tex_map, 'scale', index=1, text="y")
@@ -926,13 +926,13 @@ def menu_mateprop_tex(context, layout, node):
         col = row.column()
         if os.path.exists(img.filepath) is False:
             col.enabled = False
-        col.operator('image.show_image', text="画像を表示", icon='ZOOM_IN').image_name = img.name
+        col.operator('image.show_image', text="Show image", icon='ZOOM_IN').image_name = img.name
 
         # else:
-        # 	row.label(text="画像を表示", icon='ZOOM_IN')
+        # 	row.label(text="Show image", icon='ZOOM_IN')
 
         if len(img.pixels):
-            row.operator('image.quick_export_cm3d2_tex', text="texで保存", icon=compat.icon('FILE_FOLDER')).node_name = node.name
+            row.operator('image.quick_export_cm3d2_tex', text="Save as tex", icon=compat.icon('FILE_FOLDER')).node_name = node.name
         else:
             row.operator('image.replace_cm3d2_tex', icon='BORDERMOVE').node_name = node.name
 
@@ -941,7 +941,7 @@ def menu_mateprop_tex(context, layout, node):
     if desc:
         sub_box = box.box()
         col = sub_box.column(align=True)
-        col.label(text="解説", icon='TEXT')
+        col.label(text="Explanation", icon='TEXT')
         for line in desc:
             col.label(text=line)
 
@@ -955,9 +955,9 @@ def menu_mateprop_col(context, layout, node):
     box = row.box()
 
     split = compat.layout_split(box, factor=LAYOUT_FACTOR)
-    split.label(text="プロパティ タイプ:")
+    split.label(text="Property type:")
     row = split.row()
-    row.label(text="色", icon='COLOR')
+    row.label(text="Color", icon='COLOR')
 
     # check_row = row.row(align=True)
     # sub_row = check_row.row()
@@ -970,7 +970,7 @@ def menu_mateprop_col(context, layout, node):
     col = node.outputs[0]
     col_val = col.default_value
     if node.name in ['_ShadowColor', '_RimColor', '_OutlineColor']:
-        row.operator('texture.auto_set_color_value', icon='AUTO', text="自動設定").node_name = node.name
+        row.operator('texture.auto_set_color_value', icon='AUTO', text="Automatic setting").node_name = node.name
     opr = row.operator('texture.set_color_value', text="", icon=compat.icon('MESH_CIRCLE'))
     opr.node_name, opr.color = node.name, [0, 0, 0, col_val[3]]
     opr = row.operator('texture.set_color_value', text="", icon=compat.icon('SHADING_SOLID'))
@@ -982,7 +982,7 @@ def menu_mateprop_col(context, layout, node):
         opr = row.operator('texture.set_color_value', text="", icon='TRIA_LEFT')
         opr.node_name, opr.color = node.name, col_val[:3] + (0,)
 
-        row.prop(col, 'default_value', index=3, icon='IMAGE_RGB_ALPHA', text="色の透明度", slider=True)
+        row.prop(col, 'default_value', index=3, icon='IMAGE_RGB_ALPHA', text="Color transparency", slider=True)
 
         opr = row.operator('texture.set_color_value', text="", icon='TRIA_RIGHT')
         opr.node_name, opr.color = node.name, col_val[:3] + (1,)
@@ -992,7 +992,7 @@ def menu_mateprop_col(context, layout, node):
     if desc:
         sub_box = box.box()
         col = sub_box.column(align=True)
-        col.label(text="解説", icon='TEXT')
+        col.label(text="Explanation", icon='TEXT')
         for line in desc:
             col.label(text=line)
 
@@ -1007,9 +1007,9 @@ def menu_mateprop_f(context, layout, node):
     box = row.box()
 
     split = compat.layout_split(box, factor=LAYOUT_FACTOR)
-    split.label(text="プロパティ タイプ:")
+    split.label(text="Property type:")
     row = split.row()
-    row.label(text="値", icon='ARROW_LEFTRIGHT')
+    row.label(text="Value", icon='ARROW_LEFTRIGHT')
 
     # check_row = row.row(align=True)
     # sub_row = check_row.row()
@@ -1049,7 +1049,7 @@ def menu_mateprop_f(context, layout, node):
 
     if prop_info.get('dispExact'):
         split = compat.layout_split(box, factor=LAYOUT_FACTOR)
-        split.label(text="正確な値: ")
+        split.label(text="Exact value: ")
         split.label(text="{0:f}".format(node.outputs[0].default_value))
 
     # TODO expand
@@ -1057,6 +1057,6 @@ def menu_mateprop_f(context, layout, node):
     if desc:
         sub_box = box.box()
         col = sub_box.column(align=True)
-        col.label(text="解説", icon='TEXT')
+        col.label(text="Explanation", icon='TEXT')
         for line in desc:
             col.label(text=line)

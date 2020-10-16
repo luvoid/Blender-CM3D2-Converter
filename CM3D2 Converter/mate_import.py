@@ -11,16 +11,16 @@ from . import cm3d2_data
 @compat.BlRegister()
 class CNV_OT_import_cm3d2_mate(bpy.types.Operator):
     bl_idname = 'material.import_cm3d2_mate'
-    bl_label = "mateを開く"
-    bl_description = "mateファイルをマテリアルとして開きます"
+    bl_label = "Import Mate"
+    bl_description = "Open a .mate file as a material."
     bl_options = {'REGISTER', 'UNDO'}
 
     filepath = bpy.props.StringProperty(subtype='FILE_PATH')
     filename_ext = ".mate"
     filter_glob = bpy.props.StringProperty(default="*.mate", options={'HIDDEN'})
 
-    is_decorate = bpy.props.BoolProperty(name="種類に合わせてマテリアルを装飾", default=True)
-    # is_replace_cm3d2_tex = bpy.props.BoolProperty(name="テクスチャを探す", default=True, description="CM3D2本体のインストールフォルダからtexファイルを探して開きます")
+    is_decorate = bpy.props.BoolProperty(name="Decorate the material according to its type", default=True)
+    is_replace_cm3d2_tex = bpy.props.BoolProperty(name="Find textures", default=True, description="Will search for the textures.")
 
     @classmethod
     def poll(cls, context):
@@ -51,7 +51,7 @@ class CNV_OT_import_cm3d2_mate(bpy.types.Operator):
         try:
             file = open(self.filepath, 'rb')
         except:
-            self.report(type={'ERROR'}, message="ファイルを開くのに失敗しました、アクセス不可かファイルが存在しません。file=%s" % self.filepath)
+            self.report(type={'ERROR'}, message="Failed to open file, inaccessible or file does not exist: file=%s" % self.filepath)
             return {'CANCELLED'}
 
         try:
@@ -59,7 +59,7 @@ class CNV_OT_import_cm3d2_mate(bpy.types.Operator):
                 mat_data = cm3d2_data.MaterialHandler.read(file)
 
         except Exception as e:
-            self.report(type={'ERROR'}, message="mateファイルのインポートを中止します。" + str(e))
+            self.report(type={'ERROR'}, message="This is not a .mate file for CM3D2。" + str(e))
             return {'CANCELLED'}
 
         if not context.material_slot:
@@ -80,15 +80,15 @@ class CNV_OT_import_cm3d2_mate(bpy.types.Operator):
 @compat.BlRegister()
 class CNV_OT_import_cm3d2_mate_text(bpy.types.Operator):
     bl_idname = 'text.import_cm3d2_mate_text'
-    bl_label = "mateを開く"
-    bl_description = "mateファイルをテキストとして開きます"
+    bl_label = "Import a mate"
+    bl_description = "Open a mate file in the text editor as text"
     bl_options = {'REGISTER', 'UNDO'}
 
     filepath = bpy.props.StringProperty(subtype='FILE_PATH')
     filename_ext = ".mate"
     filter_glob = bpy.props.StringProperty(default="*.mate", options={'HIDDEN'})
 
-    is_overwrite = bpy.props.BoolProperty(name="現在のテキストに上書き", default=False)
+    is_overwrite = bpy.props.BoolProperty(name="Overwrites current text in the text editor.", default=False)
 
     @classmethod
     def poll(cls, context):
@@ -114,14 +114,14 @@ class CNV_OT_import_cm3d2_mate_text(bpy.types.Operator):
         if self.is_overwrite:
             edit_text = getattr(context, 'edit_text')
             if not edit_text:
-                self.report(type={'ERROR'}, message="上書きする為のテキストデータが見つかりません")
+                self.report(type={'ERROR'}, message="Text data could not be overwritten")
                 return {'CANCELLED'}
             edit_text.clear()
 
         try:
             file = open(self.filepath, 'rb')
         except:
-            self.report(type={'ERROR'}, message="ファイルを開くのに失敗しました、アクセス不可かファイルが存在しません")
+            self.report(type={'ERROR'}, message="Failed to open the file, File does not exist or is not accessible")
             return {'CANCELLED'}
 
         try:
@@ -129,7 +129,7 @@ class CNV_OT_import_cm3d2_mate_text(bpy.types.Operator):
                 mat_data = cm3d2_data.MaterialHandler.read(file)
 
         except Exception as e:
-            self.report(type={'ERROR'}, message="mateファイルのインポートを中止します。" + str(e))
+            self.report(type={'ERROR'}, message="Failed to import the file." + str(e))
             return {'CANCELLED'}
 
         if not context.material_slot:
