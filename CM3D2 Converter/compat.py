@@ -242,9 +242,9 @@ def opengl_to_blend_mat4(mat4):
     )
     
 def set_bone_matrix(bone, mat):
-    #if !IS_LEGACY
     bone.matrix = mat
-    if isinstance(bone, bpy.types.EditBone):
+    if not IS_LEGACY and isinstance(bone, bpy.types.EditBone):
+        #print("Bone align_roll: ", (mat[0][0],mat[1][0],mat[2][0]))
         bone.align_roll((mat[0][0],mat[1][0],mat[2][0]))
 
 

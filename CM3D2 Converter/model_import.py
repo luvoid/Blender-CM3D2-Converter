@@ -478,7 +478,7 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator):
             progress_count_total = 0.0
             for data in material_data:
                 progress_count_total += len(data['data'])
-            self.progress_plus_value = 1.0 / progress_count_total
+            self.progress_plus_value = 1.0 / (progress_count_total if progress_count_total > 0.0 else 1.0)
             self.progress_count = 6.0
 
             face_seek = 0
