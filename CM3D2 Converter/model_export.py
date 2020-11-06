@@ -54,7 +54,9 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
 
     is_convert_tris = bpy.props.BoolProperty(name="Triangulate", default=True, description="Will triangulate any none triangular faces.")
     is_normalize_weight = bpy.props.BoolProperty(name="Normalize Weights", default=True, description="Will normalize all Vertex Weights so that the sum of the weights on a single vertex is equal to 1.")
+    is_clean_vertex_groups = bpy.props.BoolProperty(name="Clean Vertex Groups", default=True, description="Will remove Verticies from Vertex Groups where their weight is zero.")
     is_convert_bone_weight_names = bpy.props.BoolProperty(name="Convert Vertex Groups for CM3D2", default=True, description="This will change the vertex group names to CM3D2's format if it is in Blenders format.")
+    
 
     is_batch = bpy.props.BoolProperty(name="Batch Mode", default=False, description="Does not switch modes or select incorrect locations")
 
@@ -175,6 +177,7 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
 
         sub_box = box.box()
         sub_box.prop(self, 'is_normalize_weight', icon='MOD_VERTEX_WEIGHT')
+        sub_box.prop(self, 'is_clean_vertex_groups', icon='MOD_VERTEX_WEIGHT')
         sub_box.prop(self, 'is_convert_bone_weight_names', icon_value=common.kiss_icon())
         sub_box = box.box()
         sub_box.prop(prefs, 'is_apply_modifiers', icon='MODIFIER')
@@ -200,7 +203,8 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
         prev_mode = None
         try:
             ob_source = context.active_object
-            ob_name = ob_source.name
+            selected_objs.append(ob_source)
+            ob_name = ob_source.name # luvoid : Fix error where object is active but not selected
             ob_main = None
             if self.is_batch:
                 # アクティブオブジェクトを１つコピーするだけでjoinしない
@@ -361,6 +365,8 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
                 self.base_bone_name = base_bone_candidate
             else:
                 return self.report_cancel("The second half of the Object name should be the bone names(?)")
+        
+        bone_name_indices = {bone['name']: index for index, bone in enumerate(bone_data)}
         context.window_manager.progress_update(2)
 
         # LocalBoneData情報読み込み
@@ -375,24 +381,38 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
             local_bone_data = self.local_bone_data_parser(self.indexed_data_generator(target, prefix="LocalBoneData:"))
         if len(local_bone_data) <= 0:
             return self.report_cancel("LocalBoneData in text does not contain valid data")
+        
         local_bone_name_indices = {bone['name']: index for index, bone in enumerate(local_bone_data)}
         context.window_manager.progress_update(3)
-
+        
+        used_local_bone = {index: False for index, bone in enumerate(local_bone_data)}
+        
         # ウェイト情報読み込み
         vertices = []
         is_over_one = 0
         is_under_one = 0
+        is_in_too_many = 0
         for i, vert in enumerate(me.vertices):
             vgs = []
             for vg in vert.groups:
                 name = common.encode_bone_name(ob.vertex_groups[vg.group].name, self.is_convert_bone_weight_names)
                 index = local_bone_name_indices.get(name, -1)
-                if 0 <= index and 0.0 < vg.weight:
+                if 0 <= index and (0.0 < vg.weight or not self.is_clean_vertex_groups):
                     vgs.append([index, vg.weight])
+                    # luvoid : track used bones
+                    used_local_bone[index] = True
+                    boneindex = bone_name_indices.get(name, -1)
+                    while boneindex >= 0:
+                        parent = bone_data[boneindex]
+                        localindex = local_bone_name_indices.get(parent['name'], -1)
+                        used_local_bone[localindex] = True
+                        boneindex = parent['parent_index']
             if len(vgs) == 0:
                 if not self.is_batch:
                     self.select_no_weight_vertices(context, local_bone_name_indices)
                 return self.report_cancel("A Vertex with no Weight assigned has been found. Aborting.")
+            if len(vgs) > 4:
+                is_in_too_many += 1
             vgs = sorted(vgs, key=itemgetter(1), reverse=True)[0:4]
             total = sum(vg[1] for vg in vgs)
             if self.is_normalize_weight:
@@ -410,11 +430,29 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
                 'face_indexs': list(map(itemgetter(0), vgs)),
                 'weights': list(map(itemgetter(1), vgs)),
             })
+        
         if 1 <= is_over_one:
-            self.report(type={'INFO'}, message="A vertex whose total weight is more then 1 has been found. Please Normalize Weights." % is_over_one)
+            self.report(type={'WARNING'}, message="Found %d vertices whose total weight is more then 1. Please Normalize Weights." % is_over_one)
         if 1 <= is_under_one:
-            self.report(type={'INFO'}, message="A vertex whose total weight is less then 1 has been found. Please Normalize Weights." % is_under_one)
+            self.report(type={'WARNING'}, message="Found %d vertices whose total weight is less then 1. Please Normalize Weights." % is_under_one)
+        
+        # luvoid : warn that there are vertices in too many vertex groups
+        if is_in_too_many > 0:
+            self.report(type={'WARNING'}, message="Found %d vertices that are in more than 4 vertex groups. Please Clean Vertex Groups" % is_in_too_many)
+                
+        # luvoid : check for unused local bones that the game will delete
+        is_deleted = 0
+        deleted_names = "The game will delete these local bones"
+        for i in range(len(used_local_bone)):
+            if used_local_bone[i] == False:
+                is_deleted += 1
+                deleted_names = deleted_names + '\n' + local_bone_data[i]['name']
+        if is_deleted > 0:
+            self.report(type={'WARNING'}, message="Found %d local bones with no vertices assigned. See log for more info." % is_deleted)
+            self.report(type={'INFO'}, message=deleted_names)
+                
         context.window_manager.progress_update(4)
+        
 
         try:
             writer = common.open_temporary(self.filepath, 'wb', is_backup=self.is_backup)
@@ -429,16 +467,15 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
         }
         try:
             with writer:
-                self.write_model(context, writer, **model_datas)
+                self.write_model(context, ob, writer, **model_datas)
         except common.CM3D2ExportException as e:
             self.report(type={'ERROR'}, message=str(e))
             return {'CANCELLED'}
 
         return {'FINISHED'}
 
-    def write_model(self, context, writer, bone_data=[], local_bone_data=[], vertices=[]):
+    def write_model(self, context, ob, writer, bone_data=[], local_bone_data=[], vertices=[]):
         """モデルデータをファイルオブジェクトに書き込む"""
-        ob = context.active_object
         me = ob.data
         prefs = common.preferences()
 
