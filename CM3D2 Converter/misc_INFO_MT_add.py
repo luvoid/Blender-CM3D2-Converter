@@ -20,11 +20,11 @@ class misc_INFO_MT_add_cm3d2(bpy.types.Menu):
     def draw(self, context):
         self.layout.operator('wm.append_cm3d2_figure', text="body001", icon_value=common.kiss_icon()).object_name = "body001.body"
         self.layout.separator()
-        self.layout.operator('wm.append_cm3d2_figure', text="Large boob shapekey Body", icon=compat.icon('PIVOT_INDIVIDUAL')).object_name = "Milk bag prevention element (That's the machine translation)"
+        self.layout.operator('wm.append_cm3d2_figure', text="Large boob shapekey Body", icon=compat.icon('PIVOT_INDIVIDUAL')).object_name = "乳袋防止素体"
         self.layout.separator()
-        self.layout.operator('wm.append_cm3d2_figure', text="T-Pose Body", icon='MOD_ARMATURE').object_name = "T-Pose Body"
-        self.layout.operator('wm.append_cm3d2_figure', text="Legs only T-pose Body", icon='SOUND').object_name = "Legs only T-pose Body"
-        self.layout.operator('wm.append_cm3d2_figure', text="Arms only T-pose Body", icon='OUTLINER_DATA_ARMATURE').object_name = "Arms only T-pose Body"
+        self.layout.operator('wm.append_cm3d2_figure', text="T-Pose Body", icon='MOD_ARMATURE').object_name = "Tスタンス素体"
+        self.layout.operator('wm.append_cm3d2_figure', text="Legs only T-pose Body", icon='SOUND').object_name = "Tスタンス素体 足のみ"
+        self.layout.operator('wm.append_cm3d2_figure', text="Arms only T-pose Body", icon='OUTLINER_DATA_ARMATURE').object_name = "Tスタンス素体 手のみ"
         self.layout.separator()
         self.layout.operator('wm.append_cm3d2_figure', text="Rig for anm Outputs", icon='OUTLINER_OB_ARMATURE').object_name = "anm出力用リグ・身体メッシュ"
         self.layout.operator('wm.append_cm3d2_figure', text="Rig for anms Outputs (Males)", icon='ARMATURE_DATA').object_name = "anm出力用リグ(男)・身体メッシュ"

@@ -577,10 +577,35 @@ class new_mate_opr():
             f_list.append(_OutlineWidth)
             f_list.append(_RimPower)
             f_list.append(_RimShift)
+        
+        # luvoid : set properties of the mate
+        mate.preview_render_type = 'FLAT'
+        if self.shader_type.find('Trans') > -1:
+                mate.blend_method = 'BLEND'
+        
+        if not self.shader_type.find('Outline') > -1:
+            mate.use_backface_culling = True
+        
+        # luvoid : create cm3d2 shader node group and material output node
+        cmnode = None
+        if not compat.IS_LEGACY:
+            mate.use_nodes = True
+            cm3d2_data.clear_nodes(mate.node_tree.nodes)
+            cmtree = bpy.data.node_groups.get('CM3D2 Shader')
+            if not cmtree:
+                blend_path = os.path.join(os.path.dirname(__file__), "append_data.blend")
+                with context.blend_data.libraries.load(blend_path) as (data_from, data_to):
+                    data_to.node_groups = ['CM3D2 Shader']
+                cmtree = data_to.node_groups[0]
+            cmnode = mate.node_tree.nodes.new('ShaderNodeGroup')
+            cmnode.node_tree = cmtree
+            matout = mate.node_tree.nodes.new('ShaderNodeOutputMaterial')
+            matout.location = (300,0)
+            mate.node_tree.links.new(matout.inputs.get('Surface'), cmnode.outputs.get('Surface'))
 
         texpath_dict = common.get_texpath_dict()
         slot_index = 0
-
+        
         for data in tex_list:
             key = data[0]
             tex_name = data[1]
@@ -598,20 +623,34 @@ class new_mate_opr():
                             me.uv_textures.active.data[face.index].image = tex.image
             if compat.IS_LEGACY:
                 slot_index += 1
+            else:
+                # luvoid : attatch tex node to cmnode sockets
+                socket = cmnode.inputs.get(key+" Color")
+                if socket:
+                    mate.node_tree.links.new(socket, tex.outputs.get('Color'))
+                socket = cmnode.inputs.get(key+" Alpha")
+                if socket:
+                    mate.node_tree.links.new(socket, tex.outputs.get('Alpha'))
 
         for data in col_list:
-            common.create_col(context, mate, data[0], data[1][:4], slot_index)
-            if compat.IS_LEGACY:
-                slot_index += 1
-
-        for data in f_list:
-            common.create_float(context, mate, data[0], data[1], slot_index)
+            node = common.create_col(context, mate, data[0], data[1][:4], slot_index)
             if compat.IS_LEGACY:
                 slot_index += 1
             else:
-                pass
-                # val.type = 'VALUE'
-                # mate.node_tree.links.new(bsdf.inputs['xxx'], val.outputs['Value'])
+                # luvoid : attatch color node to cmnode socket
+                socket = cmnode.inputs.get(data[0])
+                if socket:
+                    mate.node_tree.links.new(socket, node.outputs.get('Color'))
+
+        for data in f_list:
+            node = common.create_float(context, mate, data[0], data[1], slot_index)
+            if compat.IS_LEGACY:
+                slot_index += 1
+            else:
+                # luvoid : attatch float node to cmnode socket
+                socket = cmnode.inputs.get(data[0])
+                if socket:
+                    mate.node_tree.links.new(socket, node.outputs.get('Value'))
 
         if compat.IS_LEGACY:
             common.decorate_material(mate, self.is_decorate, me, ob.active_material_index)
