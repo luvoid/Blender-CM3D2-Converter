@@ -4,7 +4,7 @@ This README was google translated. [Original readme can be found here](https://g
 Model file format (.model) used in 3D adult games "[Custom Made 3D2](http://kisskiss.tv/cm3d2/)" and "[Custom Made 3D2](http://com3d2.jp/)" )
 It is an add-on for handling in "[Blender](https://www.blender.org/)" which is a free 3D integrated environment.
 For those who can perform basic Blender operations to some extent,
-For the first time, [Blender Tutorial](https://www.google.co.jp/#q=Blender+%E3%83%81%E3%83%A5%E3%83%BC%E3%83%88 Let's start with% E3% 83% AA% E3% 82% A2% E3% 83% AB) and so on.
+For the first time, let's start with [Blender Tutorial](https://www.google.co.jp/#q=Blender+%E3%83%81%E3%83%A5%E3%83%BC%E3%83%88%E3%83%AA%E3%82%A2%E3%83%AB) and so on.
 Once you get used to it, try [CM3D2 Converter Tutorial](http://seesaawiki.jp/eastpoint/d/blender_MOD01).
 
 **Important Note**
