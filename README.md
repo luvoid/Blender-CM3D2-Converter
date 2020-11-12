@@ -13,7 +13,7 @@ Once you get used to it, try [CM3D2 Converter Tutorial](http://seesaawiki.jp/eas
 * Data imported / created using Blender-CM3D2-Converter on Blender-2.7x
 Even if I open it with Blender-2.8x as it is, it does not migrate normally.
   (Since texture_slots is deprecated in Blender-2.8x, it is necessary to move various data of texture_slots to node_tree before migration)
-* ** How to use ** The following description may not be compatible with Blender-2.8x.
+* **How to use** The following description may not be compatible with Blender-2.8x.
 * Changes in Blender-2.8x
   * Changed the settings of tex, col, f that were done in the texture tab to be done from the material tab
   * Changed material property to node_tree. Along with this, the "Decorate Material" option is abolished.
