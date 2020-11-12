@@ -1,4 +1,5 @@
-This README was google translated. [Original readme can be found here](https://github.com/trzr/Blender-CM3D2-Converter/blob/master/README.md)
+This README was google translated, and has not been updated to include new functionality in "luv" versions. [Original readme can be found here](https://github.com/trzr/Blender-CM3D2-Converter/blob/master/README.md)
+
 
 # Blender-CM3D2-Converter
 Model file format (.model) used in 3D adult games "[Custom Made 3D2](http://kisskiss.tv/cm3d2/)" and "[Custom Made 3D2](http://com3d2.jp/)" )
