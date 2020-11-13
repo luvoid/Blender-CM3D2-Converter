@@ -443,7 +443,7 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
         # luvoid : check for unused local bones that the game will delete
         is_deleted = 0
         deleted_names = "The game will delete these local bones"
-        for i in range(len(used_local_bone)):
+        for i in range(len(used_local_bone)-1):
             if used_local_bone[i] == False:
                 is_deleted += 1
                 deleted_names = deleted_names + '\n' + local_bone_data[i]['name']
