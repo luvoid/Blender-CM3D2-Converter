@@ -1,417 +1,427 @@
+This README was google translated, and has not been updated to include new functionality in "luv" versions. [Original readme can be found here](https://github.com/trzr/Blender-CM3D2-Converter/blob/master/README.md)
+
+
 # Blender-CM3D2-Converter
-　3Dアダルトゲーム「[カスタムメイド3D2](http://kisskiss.tv/cm3d2/)」「[カスタムオーダーメイド3D2](http://com3d2.jp/)」で使用されるモデルファイル形式(.model)を  
-　フリー3D統合環境である「[Blender](https://www.blender.org/)」で扱うためのアドオンです。  
-　ある程度Blenderの基本操作をできる人を対象にしています、  
-　初めての人は[Blenderのチュートリアル](https://www.google.co.jp/#q=Blender+%E3%83%81%E3%83%A5%E3%83%BC%E3%83%88%E3%83%AA%E3%82%A2%E3%83%AB)などから始めましょう。  
-　慣れてきたら[CM3D2 Converterのチュートリアル](http://seesaawiki.jp/eastpoint/d/blender_MOD01)もやってみましょう。  
+Model file format (.model) used in 3D adult games "[Custom Made 3D2](http://kisskiss.tv/cm3d2/)" and "[Custom Made 3D2](http://com3d2.jp/)" )
+It is an add-on for handling in "[Blender](https://www.blender.org/)" which is a free 3D integrated environment.
+For those who can perform basic Blender operations to some extent,
+For the first time, let's start with [Blender Tutorial](https://www.google.co.jp/#q=Blender+%E3%83%81%E3%83%A5%E3%83%BC%E3%83%88%E3%83%AA%E3%82%A2%E3%83%AB) and so on.
+Once you get used to it, try [CM3D2 Converter Tutorial](http://seesaawiki.jp/eastpoint/d/blender_MOD01).
 
-**注意点**
-* 本ブランチのモジュールはBlender-2.7xで動作しません。  
-* Blender-2.8xへの移行作業中のため、正常に動作しない機能があります。  
-* Blender-2.7x上でBlender-CM3D2-Converterを用いて取り込み・作成したデータを  
-そのままBlender-2.8xで開いても正常に移行されません。  
-  (Blender-2.8xでtexture_slotsが廃止されたため、移行前にtexture_slotsの各種データをnode_treeに移しておく必要があります)
-* **使い方**以降の記述は、Blender-2.8xに対応していない可能性があります
-* Blender-2.8xでの変更点
-  * テクスチャタブで行っていたtex,col,fの設定をマテリアルタブから行うよう変更
-  * マテリアルプロパティをnode_treeに変更。これに伴い「マテリアルを装飾」オプションを廃止  
-  (現時点では、マテリアル装飾は_MainTexと_Shininessのみ反映)
-* 現在未対応
-  * ベイク機能
-  * アイコンレンダリング機能
-  * append_data.blendの動作確認
+**Important Note**
+* Modules in this branch will not work with Blender-2.7x.
+* Some functions may not work properly due to the migration work to Blender-2.8x.
+* Data imported / created using Blender-CM3D2-Converter on Blender-2.7x
+Even if I open it with Blender-2.8x as it is, it does not migrate normally.
+  (Since texture_slots is deprecated in Blender-2.8x, it is necessary to move various data of texture_slots to node_tree before migration)
+* **How to use** The following description may not be compatible with Blender-2.8x.
+* Changes in Blender-2.8x
+  * Changed the settings of tex, col, f that were done in the texture tab to be done from the material tab
+  * Changed material property to node_tree. Along with this, the "Decorate Material" option is abolished.
+  (Currently, material decoration reflects only _MainTex and _Shininess)
+* Currently not supported
+  * Bake function
+  * Icon rendering function
+  * Operation check of append_data.blend
 
-## 目次
-* [インストール](#インストール)
-* [使い方](#使い方)
-* [メモ](#メモ)
-* [機能一覧](#機能一覧)
-* [規約](#規約)
-* [modelのフォーマット](#modelのフォーマット)
-* [課題](#課題)
+## Table of Contents
+* [Install](#Install)
+* [How to Use](#How-to-Use)
+* [Memo](#Memo)
+* [Function list](#Function-List)
+* [Terms](#Terms)
+* [Model Format](#Model-Format)
+* [Issues](#Issues)
 
-## インストール
-　まず、Blender-[2.8](http://download.blender.org/release/Blender2.80/)がインストールされており[日本語化](http://ch.nicovideo.jp/hiiragik/blomaga/ar501365)している事が前提です。  
-　画面右上の緑色の「Clone or download」→「[Download ZIP](https://github.com/trzr/Blender-CM3D2-Converter/archive/bl_28.zip)」からファイルをダウンロード・解凍し、  
-　Windows10なら「C:\Users\ユーザー名\AppData\Roaming\Blender Foundation\Blender\2.80\scripts\addons\CM3D2 Converter\＊.py」となるように配置してください。  
-　もしかしたらフォルダが存在しないかもしれませんが、その場合は作成してください。  
-　![配置](http://i.imgur.com/QvbMDR1.jpg)  
-　Blenderを起動しユーザー設定のアドオンタブで「cm3d」等で検索、  
-　「Import-Export: CM3D2 Converter」をオンにすれば一時的に有効になります。  
-　次回起動時も有効にしたい場合、「プリファレンスを保存」ボタンを押下するか、「プリファレンスを自動保存」を有効にして保存してください。  
-　![有効化](http://i.imgur.com/6jmFWxQ.jpg)  
-　一度インストールしてしまえば、アドオン設定画面かヘルプメニューからアップデート可能です。  
-　![更新](http://i.imgur.com/KFvMeH0.jpg)  
+## Install
+First, Blender-[2.8](http://download.blender.org/release/Blender2.80/) is installed and [Japanese localization](http://ch.nicovideo.jp/hiiragik/blomaga/) It is assumed that ar501365) is done. **NOTE: "luv" version supports Blender 2.78+, 2.80+, 2.90+ and does not need Japanese localization.**
+Download and unzip the file from the green "Clone or download" → "[Download ZIP](https://github.com/trzr/Blender-CM3D2-Converter/archive/bl_28.zip)" at the top right of the screen.
+For Windows 10, place it so that it is "C:\Users\user_name\AppData\Roaming\Blender Foundation\Blender\2.80\scripts\addons\CM3D2 Converter\*.py".
+Maybe the folder does not exist, but in that case please create it.
+![Arrangement](http://i.imgur.com/QvbMDR1.jpg)
+Start Blender and search for "cm3d" etc. in the add-on tab of the user settings,
+If you turn on "Import-Export: CM3D2 Converter", it will be enabled temporarily.
+If you want to enable it at the next startup, click the "Save Preferences" button or enable "Auto Save Preferences" and save.
+![Activate](http://i.imgur.com/6jmFWxQ.jpg)
+Once installed, it can be updated from the add-on setting screen or the help menu.
+![Updated](http://i.imgur.com/KFvMeH0.jpg)
 
-## 使い方
-　各種ファイルは.arcファイルから[CM3D2 Tool](http://www.hongfire.com/forum/showthread.php/445616)等で取り出しておいて下さい。  
-　  
-　.modelの読み込みは  
-　　ファイル > インポート > CM3D2 Model (.model)  
-　.modelの書き出しも同じように  
-　　ファイル > エクスポート > CM3D2 Model (.model)  
-　![model入出力手順](http://i.imgur.com/p2V7D5m.jpg)  
-　  
-　.texの読み込みは  
-　　UV/画像エディター > 画像 > texファイルを開く  
-　.texの書き出しも同じように  
-　　UV/画像エディター > 画像 > texファイルを保存  
-　![tex入出力手順](http://i.imgur.com/K7EZfz2.jpg)  
-　  
-　.mateの読み込みは  
-　　プロパティ > マテリアル > mateから  
-　.mateの書き出しは  
-　　プロパティ > マテリアル > フォルダアイコンのボタン  
-　![mate入出力手順](http://i.imgur.com/eRMFTFZ.jpg)  
-　  
-　どれもファイル選択時の左下にオプションがあります。  
+## How to Use
+Please extract various files from the .arc file with [CM3D2 Tool](http://www.hongfire.com/forum/showthread.php/445616) etc.
 
-## メモ
+.model loading
+File > Import > CM3D2 Model (.model)
+Exporting .model in the same way
+File > Export > CM3D2 Model (.model)
+![Model input / output procedure](http://i.imgur.com/p2V7D5m.jpg)
 
-### ボーン
-　ボーン情報は「BoneData」と「LocalBoneData」というテキストデータ、  
-　![テキスト](http://i.imgur.com/pvgSZy5.jpg)  
-　もしくは、オブジェクトかアーマチュアデータ内のカスタムプロパティに保存されています。  
-　![カスタムプロパティ](http://i.imgur.com/HHzvdAK.jpg)  
-　エクスポート時にどれを参照するかを選ぶ事が可能です。  
-　これらを編集すればボーン設定を変更することも可能ですが、慣れない内は変えない事をおすすめします。  
-　なお、[有志のアドオン](https://github.com/trzr/Blender-CM3D2-BoneUtil)によってボーン情報を簡単に編集可能になったようです。  
+Reading .tex
+UV / image editor > image > open tex file
+Export .tex in the same way
+UV / image editor > image > save tex file
+![Tex input / output procedure](http://i.imgur.com/K7EZfz2.jpg)
 
-### オブジェクト
-　読み込んだモデルによってはオブジェクトの中心点が3D空間の中心とズレている場合があります。  
-　その場合は出力時にもその位置に中心点を合わせてからエクスポートして下さい。  
+.mate loading
+From Properties > Materials > mate
+Exporting .mate
+Properties > Materials > Folder icon button
+![Mate input / output procedure](http://i.imgur.com/eRMFTFZ.jpg)
 
-### メッシュ
-　四角ポリゴンがあっても自動で三角ポリゴンに変換して出力しますが、手動で三角化した方が綺麗です。  
-　五角ポリゴン以上でも一応出力できますが、予想した形状とはならない可能性が高いのでこちらも手動で三角化を推奨。  
-　ウェイトが割り当てられていない頂点があった場合、エラーを出して中止します。  
-　ウェイト値の合計が1.0でなくても、エクスポート時に自動的に調整します。  
-　ウェイトの数が5つ以上でも、自動的に割り当てが大きい順で4つ選ばれます。  
-　頂点数は65535未満でないと中止します。  
-　(UVが分離されている頂点は重複してカウントされるので、65535未満でもエラーを出す可能性あり。)  
+All have options at the bottom left when selecting a file.
 
-### マテリアル
-　マテリアル情報は、マテリアルとテクスチャと画像の設定値によって保管しています。  
-　シェーダーの種類(CM3D2/Toony_Lighted_Outlineなど)は、  
-　マテリアルタブの上部で変更可能です。  
-　![マテリアルタブ上部](http://i.imgur.com/t6fhfXt.jpg)  
-　  
-　またマテリアル情報をテキストでも保管しているので(名前は「Material:0」等)出力時に設定を変えれば  
-　そちらを参照する事も可能です。自分が編集しやすい方を活用して下さい。  
-　  
-　インポート時にマテリアルの見た目が変更されることがありますが、エクスポート時には関係ありません。  
+## Note
 
-### テクスチャ
-　![テクスチャタブ](http://i.imgur.com/4UxSChV.jpg)  
-　テクスチャタブでマテリアルの見た目についての詳細設定を行います。  
-　設定値の種類には大きく分けて3種類あります。  
-#### 「テクスチャ」タイプ
-　　![テクスチャタイプ](http://i.imgur.com/YwwtNqQ.jpg)  
-　　唯一、画像を指定します。  
-　　テクスチャパスは一致していなくても動作に問題ありませんが、  
-　　テクスチャ名は.texファイル名をきちんと指定しましょう。  
-#### 「色」タイプ
-　　![色タイプ](http://i.imgur.com/RwIFreJ.jpg)  
-　　名前の通り色を指定します。  
-#### 「値」タイプ
-　　![値タイプ](http://i.imgur.com/vmMxRCW.jpg)  
-　　小数も指定可能な数値を設定します。  
-#### 設定値の一例
-##### 　　_MainTex
-###### 　　　　面の色を決めるテクスチャ。
-##### 　　_ShadowTex
-###### 　　　　面が陰になった部分の色を決めるテクスチャ。
-##### 　　_Color
-###### 　　　　追加の色。おそらく乗算なので白で無効。
-##### 　　_ShadowColor
-###### 　　　　影になった部分の色。おそらく乗算なので白で無効。
-##### 　　_RimColor
-###### 　　　　メッシュの縁にできる反射光の色。黒で無効。
-##### 　　_OutlineColor
-###### 　　　　輪郭線の色。
-##### 　　_Shininess
-###### 　　　　光沢の強さ(Blenderでいうスペキュラー)。
-##### 　　_OutlineWidth
-###### 　　　　輪郭線の太さ。
-##### 　　_RimPower
-###### 　　　　メッシュの縁にできる反射光の濃さ・強度。
-##### 　　_RimShift
-###### 　　　　メッシュの縁にできる反射光の幅。
+### Bone
+Bone information is text data "BoneData" and "LocalBoneData",
+![Text](http://i.imgur.com/pvgSZy5.jpg)
+Alternatively, it is stored in an object or a custom property in the armature data.
+![Custom Properties](http://i.imgur.com/HHzvdAK.jpg)
+It is possible to select which one to refer to when exporting.
+It is possible to change the bone settings by editing these, but it is recommended that you do not change it unless you are accustomed to it.
+In addition, it seems that bone information can be easily edited by [volunteer add-on](https://github.com/trzr/Blender-CM3D2-BoneUtil).
 
-### その他
-　元の.modelに上書きする必要はありません。  
-　データ名が「○○.001」のように末尾に連番が付いていても自動的に削除されます。  
+### Object
+Depending on the loaded model, the center point of the object may deviate from the center of the 3D space.
+In that case, please export after aligning the center point with that position even at the time of output.
 
-## おまけツール (Misc Tools)
-　　このアドオンで追加された機能はアイコン「![専用アイコン](http://i.imgur.com/4RSwhad.png)」で統一されています。  
-### CM3D2用マテリアルを新規作成
-　　このアドオンで使える仕様のマテリアルを新規作成できます。  
-　　「マテリアル」タブ > 「CM3D2用マテリアルを新規作成」ボタン。  
-　　出来るだけ汎用的な初期値にしていますが、細かい調整は必要になると思われます。  
-　　![CM3D2用マテリアルを新規作成](http://i.imgur.com/l6TgmhY.jpg)
-### クイック・ウェイト転送
-　　メッシュデータの転送(ウェイト転送)を使いやすくしたものです。  
-　　参考にするモデル → 割り当てるモデル の順で選択し、  
-　　「メッシュデータ」タブ > 「頂点グループ」パネル > 「▼」ボタン > 「クイック・ウェイト転送」ボタン。  
-　　オプションを変更しなければ、不要な頂点グループを削除してくれます。  
-　　![クイック・ウェイト転送](http://i.imgur.com/r7Bq6ux.jpg)  
-### 頂点グループぼかし
-　　頂点グループ(ウェイト)をぼかしてスムーズにします。  
-　　モデルを選択し、「メッシュデータ」タブ > 「頂点グループ」パネル >  
-　　>「▼」ボタン > 「頂点グループぼかし」ボタン。  
-　　ウェイト転送でコピーしたウェイトがガタガタの時などにどうぞ。  
-　　![頂点グループぼかし](http://i.imgur.com/p3HNTVR.jpg)  
-### シェイプキー強制転送
-　　最も近い面(頂点)からシェイプキーをコピーします。  
-　　参考にするモデル → 割り当てるモデル の順で選択し、  
-　　「メッシュデータ」タブ > 「シェイプキー」パネル > 「▼」ボタン > 「シェイプキー強制転送」ボタン。  
-　　あらかじめ参考にするモデルを分割しておくことで、コピーの精度を上げることが可能です。  
-　　![シェイプキー強制転送](http://i.imgur.com/6y1s8Vd.jpg)  
-### シェイプキーの変形を拡大/縮小
-　　シェイプキーの変形を強くしたり、もしくは弱くできます。  
-　　モデルを選択し「メッシュデータ」タブ > 「シェイプキー」パネル >  
-　　> 「▼」ボタン > 「シェイプキーの変形を拡大/縮小」ボタン。  
-　　シェイプキーを転送したにも関わらず身体が服を突き抜ける場合などに、  
-　　これで変形を大きくすると修正できるかもしれません。  
-　　![シェイプキーの変形を拡大/縮小](http://i.imgur.com/vw9NO6Z.jpg)  
-### シェイプキーをぼかす
-　　シェイプキーの変形をぼかしてスムーズにします。  
-　　モデルを選択し「メッシュデータ」タブ > 「シェイプキー」パネル >  
-　　> 「▼」ボタン > 「シェイプキーをぼかす」ボタン。  
-　　「シェイプキー強制転送」でコピーした変形がガタガタの時などにどうぞ。  
-　　![シェイプキーをぼかす](http://i.imgur.com/P69O44k.jpg)  
-### ボーン/頂点グループ名をCM3D2用←→Blender用に変換
-　　ボーンと頂点グループの名前をBlenderで左右対称編集できるように変換したり元に戻せます。  
-　　メッシュを選択し「メッシュデータ」タブ > 「頂点グループ」パネル >  
-　　> 「▼」ボタン > 「頂点グループ名を～」ボタン。  
-　　もしくはアーマチュアを選択し「アーマチュアデータ」タブ > 「ボーン名を～」ボタン。  
-　　![ボーン/頂点グループ名をCM3D2用←→Blender用に変換](http://i.imgur.com/6O5K5gm.jpg)
+### Mesh
+Even if there is a square polygon, it is automatically converted to a triangular polygon and output, but it is better to manually triangulate it.
+Although it is possible to output even if it is a pentagonal polygon or more, it is highly possible that the shape will not be the expected shape, so it is recommended to manually triangulate it as well.
+If there is a vertex to which no weight is assigned, an error will be issued and the process will be stopped.
+Even if the total weight value is not 1.0, it will be adjusted automatically at the time of export.
+Even if the number of weights is 5 or more, 4 will be automatically selected in descending order of allocation.
+If the number of vertices is not less than 65535, it will be canceled.
+(Because the vertices with separated UVs are counted twice, an error may occur even if it is less than 65535.)
 
-## 機能一覧
-* 「プロパティ」エリア → 「アーマチュアデータ」タブ
-	- ボーン名をCM3D2用→Blender用に変換
-		* CM3D2で使われてるボーン名をBlenderで左右対称編集できるように変換します
-	- ボーン名をBlender用→CM3D2用に変換
-		* CM3D2で使われてるボーン名に元に戻します
-	- ボーン情報をコピー
-		* カスタムプロパティのボーン情報をクリップボードにコピーします
-	- ボーン情報を貼り付け
-		* カスタムプロパティのボーン情報をクリップボードから貼り付けます
-	- ボーン情報を削除
-		* カスタムプロパティのボーン情報を全て削除します
-* 「プロパティ」エリア → 「モディファイア」タブ
-	- モディファイア強制適用
-		* シェイプキーのあるメッシュのモディファイアでも強制的に適用します
-* 「プロパティ」エリア → 「メッシュデータ」タブ → 「頂点グループ」パネル
-	- 頂点グループ名をCM3D2用→Blender用に変換
-		* CM3D2で使われてるボーン名(頂点グループ名)をBlenderで左右対称編集できるように変換します
-	- 頂点グループ名をBlender用→CM3D2用に変換
-		* CM3D2で使われてるボーン名(頂点グループ名)に戻します
-* 「UV/画像エディター」エリア → ヘッダー
-* 「UV/画像エディター」エリア → プロパティ → 「画像」パネル
-* 画面右上 (「情報」エリア → ヘッダー)
-	- 頂点数をチェック
-		* 選択メッシュがConverterで出力可能な頂点数に収まっているかをチェックします
-* 「3Dビュー」エリア → 追加(Shift+A) → CM3D2
-	- CM3D2用の素体をインポート
-		* CM3D2関係の素体を現在のシーンにインポートします
-* 「3Dビュー」エリア → 追加(Shift+A) → カーブ
-	- 髪の房を追加
-		* アニメ調の髪の房を追加します
-* 画面上部 (「情報」エリア → ヘッダー) → ヘルプ
-	- CM3D2 Converterを更新
-		* GitHubから最新版のCM3D2 Converterアドオンをダウンロードし上書き更新します
-	- CM3D2 Converterの設定画面を開く
-		* CM3D2 Converterアドオンの設定画面を表示します
-* 「プロパティ」エリア → 「マテリアル」タブ
-	- CM3D2用マテリアルを新規作成
-		* Blender-CM3D2-Converterで使用できるマテリアルを新規で作成します
-	- クリップボードからマテリアルを貼り付け
-		* クリップボード内のマテリアル情報から新規マテリアルを作成します
-	- クリップボードからマテリアルを貼り付け
-		* クリップボード内のテキストからマテリアル情報を上書きします
-	- マテリアルをクリップボードにコピー
-		* 表示しているマテリアルをテキスト形式でクリップボードにコピーします
-	- マテリアルを装飾
-		* スロット内のマテリアルを全て設定に合わせて装飾します
-	- このテクスチャを見る
-		* このテクスチャを見る
-* 「プロパティ」エリア → 「メッシュデータ」タブ → 「シェイプキー」パネル → ▼ボタン
-	- クイック・シェイプキー転送
-		* アクティブなメッシュに他の選択メッシュのシェイプキーを高速で転送します
-	- 空間ぼかし・シェイプキー転送
-		* アクティブなメッシュに他の選択メッシュのシェイプキーを遠いほどぼかして転送します
-	- シェイプキーの変形に乗算
-		* シェイプキーの変形に数値を乗算し、変形の強度を増減させます
-	- シェイプキーぼかし
-		* アクティブ、もしくは全てのシェイプキーをぼかします
-	- このシェイプキーをベースに
-		* アクティブなシェイプキーを他のシェイプキーのベースにします
-* 「プロパティ」エリア → 「メッシュデータ」タブ → 「頂点グループ」パネル → ▼ボタン
-	- クイック・ウェイト転送
-		* アクティブなメッシュに他の選択メッシュの頂点グループを高速で転送します
-	- 空間ぼかし・ウェイト転送
-		* アクティブなメッシュに他の選択メッシュの頂点グループを遠いほどぼかして転送します
-	- 頂点グループぼかし
-		* アクティブ、もしくは全ての頂点グループをぼかします
-	- 旧・頂点グループぼかし
-		* アクティブ、もしくは全ての頂点グループをぼかします
-	- 頂点グループに乗算
-		* 頂点グループのウェイトに数値を乗算し、ウェイトの強度を増減させます
-	- 割り当てのない頂点グループを削除
-		* どの頂点にも割り当てられていない頂点グループを全て削除します
-* 「プロパティ」エリア → 「オブジェクト」タブ
-	- ボーン情報をコピー
-		* カスタムプロパティのボーン情報をクリップボードにコピーします
-	- ボーン情報を貼り付け
-		* カスタムプロパティのボーン情報をクリップボードから貼り付けます
-	- ボーン情報を削除
-		* カスタムプロパティのボーン情報を全て削除します
-* 「プロパティ」エリア → 「オブジェクト」タブ → 「トランスフォーム」パネル
-	- オブジェクトの位置を合わせる
-		* アクティブオブジェクトの中心位置を、他の選択オブジェクトの中心位置に合わせます
-* 「プロパティ」エリア → 「レンダー」タブ → 「ベイク」パネル
-	- ベイク用の画像を作成
-		* アクティブオブジェクトに素早くベイク用の空の画像を用意します
-	- AO・ベイク
-		* アクティブオブジェクトに素早くAOをベイクします
-	- 擬似AO・ベイク
-		* アクティブオブジェクトに素早く擬似AOをベイクします
-	- ヘミライト・ベイク
-		* アクティブオブジェクトに素早くヘミライトの陰をベイクします
-	- 影・ベイク
-		* アクティブオブジェクトに素早く影をベイクします
-	- 側面陰・ベイク
-		* アクティブオブジェクトに素早く側面陰をベイクします
-	- グラデーション・ベイク
-		* アクティブオブジェクトに素早くグラデーションをベイクします
-	- 金属・ベイク
-		* アクティブオブジェクトに素早く金属風にベイクします
-	- ヘアー・ベイク
-		* アクティブオブジェクトに素早くCM3D2の髪風のテクスチャをベイクします
-	- UV縁・ベイク
-		* アクティブオブジェクトに素早くUVの縁を黒くベイクします
-	- メッシュ縁・ベイク
-		* アクティブオブジェクトに素早くメッシュの縁を黒くベイクします
-	- 密度・ベイク
-		* アクティブオブジェクトに素早く密度をベイクします
-	- メッシュ間距離・ベイク
-		* アクティブオブジェクトに他オブジェクトとの距離をベイクします
-	- 膨らみ・ベイク
-		* アクティブオブジェクトに膨らんでいる部分を白くベイクします
-	- 白い液体・ベイク
-		* アクティブオブジェクトに白い液体をベイクします
-* 「プロパティ」エリア → 「レンダー」タブ → 「レンダー」パネル
-	- CM3D2メニュー用のアイコンをレンダリング
-		* CM3D2内のアイコン画像に使用できそうな画像をレンダリングします
-* 「プロパティ」エリア → 「テクスチャ」タブ
-	- 画像を表示
-		* 指定の画像をUV/画像エディターに表示します
-	- テクスチャを探す
-		* CM3D2本体のインストールフォルダからtexファイルを探して開きます
-	- 設定をプレビューに同期
-		* 設定値をテクスチャのプレビューに適用してわかりやすくします
-	- トゥーンを選択
-		* CM3D2にデフォルトで入っているトゥーンテクスチャを選択できます
-	- 色設定値を自動設定
-		* 色関係の設定値をテクスチャの色情報から自動で設定します
-	- texで保存
-		* テクスチャの画像を同フォルダにtexとして保存します
-	- 色設定値を設定
-		* 色タイプの設定値を設定します
-* 「テキストエディター」エリア → ヘッダー
-	- テキストを表示
-		* 指定したテキストをこの領域に表示します
-	- テキストのボーン情報をコピー
-		* テキストのボーン情報をカスタムプロパティへ貼り付ける形にしてクリップボードにコピーします
-	- テキストのボーン情報を貼り付け
-		* クリップボード内のボーン情報をテキストデータに貼り付けます
-	- マテリアル情報テキストを全削除
-		* CM3D2で使用できるマテリアルテキストを全て削除します
-* 「3Dビュー」エリア → メッシュ編集モード → 「W」キー
-	- 選択面の描画順を最前面に
-		* 選択中の面の描画順を最も前面/背面に並び替えます
-* 「3Dビュー」エリア → ポーズモード → Ctrl+A (ポーズ → 適用)
-	- 現在のポーズで素体化
-		* 現在のポーズで衣装をモデリングしやすくする素体を作成します
-* 「3Dビュー」エリア → 「ウェイトペイント」モード → ツールシェルフ → 「ウェイトツール」パネル
-	- 選択部の頂点グループをぼかす
-		* 選択メッシュの頂点グループの割り当てをぼかします
-	- 選択部の頂点グループに四則演算
-		* 選択メッシュの頂点グループの割り当てに四則演算を施します
+### Material
+Material information is stored according to the material, texture, and image settings.
+The type of shader (CM3D2/Toony_Lighted_Outline, etc.) is
+It can be changed at the top of the material tab.
+![Upper material tab](http://i.imgur.com/t6fhfXt.jpg)
 
-## 規約
-[公式のMOD規約](http://kisskiss.tv/kiss/diary.php?no=558)を厳守して下さい。  
+Also, since the material information is also stored as text (name is "Material: 0" etc.), if you change the setting at the time of output
+It is also possible to refer to that. Please use the one that is easy for you to edit.
 
-## modelのフォーマット
-* (String) 「CM3D2_MESH」固定
-* (Int) バージョン番号
-* (String) モデル名
-* (String) 基点ボーン名
-* (Int) ボーン数
-* for ボーン数
-	- (String) ボーン名
-	- (Char) フラグ？
-* for ボーン数
-	- (Int) 親番号
-* for ボーン数
-	- (Float×3) ボーン位置
-	- (Float×4) ボーン回転
-* (Int) 頂点数
-* (Int) メッシュ数 (マテリアル数)
-* (Int) 使用ボーン数
-* for 使用ボーン数
-	- (String) ボーン名
-* for 使用ボーン数
-	- (Float×16) ボーン変換行列
-* for 頂点数
-	- (Float×3) 頂点位置
-	- (Float×3) 法線方向
-	- (Float×2) UV位置
-* (Int) 頂点数 (接空間情報を出力しない場合は0)
-* for 頂点数
-	- (Float×4) 接線(x,y,z) binormal
-* for 頂点数
-	- (Short×4) 割り当てるボーン番号×4
-	- (Float×4) 割り当てるウェイト×4
-* for メッシュ数
-	- (Int) 面数
-	- for 面数
-		* (Short) 頂点番号
-* (Int) マテリアル数 (メッシュ数)
-* for マテリアル数
-	- (String) マテリアル名
-	- (String) 使用シェーダー
-	- (String) 使用シェーダー
-	- while
-		* (String) 設定値タイプ
-		* if 設定値タイプ == "tex"
-			- (String) テクスチャ名
-			- (String) テクスチャタイプ
-			- if テクスチャタイプ == "tex2d"
-				* (String) 画像名
-				* (String) 画像パス
-				* (Float×4) 色 (RGBA)
-		* else if 設定値タイプ == "col"
-			- (String) 色名
-			- (Float×4) 色 (RGBA)
-		* else if 設定値タイプ == "f"
-			- (String) 値名
-			- (Float) 値
-		* else if 設定値タイプ == "end"
-			- break
+The appearance of the material may change when importing, but it does not matter when exporting.
+
+### Texture
+![Texture tab](http://i.imgur.com/4UxSChV.jpg)
+Make detailed settings for the appearance of the material on the Texture tab.
+There are roughly three types of setting values.
+#### "Texture" type
+![Texture type](http://i.imgur.com/YwwtNqQ.jpg)
+Only specify the image.
+There is no problem in operation even if the texture paths do not match,
+For the texture name, specify the .tex file name properly.
+#### "Color" type
+![Color type](http://i.imgur.com/RwIFreJ.jpg)
+Specify the color as the name suggests.
+#### "Value" type
+![Value type](http://i.imgur.com/vmMxRCW.jpg)
+Set a numerical value that can also specify a decimal number.
+#### Example of setting value
+##### _MainTex
+###### Texture that determines the color of the surface.
+##### _ShadowTex
+###### Texture that determines the color of the shaded area.
+##### _Color
+###### Additional colors. Probably multiplication, so white is invalid.
+##### _ShadowColor
+###### The color of the shaded area. Probably multiplication, so white is invalid.
+##### _RimColor
+###### The color of the reflected light that can be formed on the edge of the mesh. Invalid in black.
+##### _OutlineColor
+###### Outline color.
+##### _Shininess
+###### Gloss strength (specular in Blender).
+##### _OutlineWidth
+###### The thickness of the contour line.
+##### _RimPower
+###### The intensity and intensity of the reflected light that can be formed on the edge of the mesh.
+##### _RimShift
+###### The width of the reflected light that can be formed on the edge of the mesh.
+
+### Other
+There is no need to overwrite the original .model.
+Even if the data name has a serial number at the end, such as "○○ .001", it will be automatically deleted.
+
+## Extra Tools (Misc Tools)
+The functions added by this add-on are unified with the icon "! [Dedicated icon](http://i.imgur.com/4RSwhad.png)".
+
+### Create new material for CM3D2
+You can create a new material with specifications that can be used with this add-on.
+"Material" tab> "Create new material for CM3D2" button.
+The initial value is as general as possible, but it seems that fine adjustment is required.
+![Create a new material for CM3D2](http://i.imgur.com/l6TgmhY.jpg)
+
+### Quick weight transfer
+Easy to use mesh data transfer (wait transfer).
+Select the model to be referred to → the model to be assigned,
+"Mesh data" tab> "Vertex group" panel> "▼" button> "Quick weight transfer" button.
+If you do not change the option, it will delete unnecessary vertex groups.
+![Quick weight transfer](http://i.imgur.com/r7Bq6ux.jpg)
+
+### Vertex group blur
+Blur the vertex group (weight) to make it smooth.
+Select a model, "Mesh Data" tab> "Vertex Group" panel>
+> "▼" button> "Vertex group blur" button.
+Please use when the weight copied by weight transfer is rattling.
+![Vertex group blur](http://i.imgur.com/p3HNTVR.jpg)
+
+### Shape key forced transfer
+Copy the shape key from the nearest face (vertex).
+Select the model to be referred to → the model to be assigned,
+"Mesh data" tab> "Shape key" panel> "▼" button> "Shape key forced transfer" button.
+It is possible to improve the accuracy of copying by dividing the model to be referred to in advance.
+![Forced transfer of shape key](http://i.imgur.com/6y1s8Vd.jpg)
+
+### Enlarge / reduce shape key deformation
+The deformation of the shape key can be strengthened or weakened.
+Select a model and select the "Mesh Data" tab> "Shape Key" panel>
+> "▼" button> "Enlarge / reduce shape key deformation" button.
+When the body penetrates the clothes even though the shape key has been transferred, etc.
+It may be possible to correct it by increasing the deformation with this.
+![Enlarge / reduce the deformation of the shape key](http://i.imgur.com/vw9NO6Z.jpg)
+
+### Blur the shape key
+Blur the deformation of the shape key to make it smooth.
+Select a model and select the "Mesh Data" tab> "Shape Key" panel>
+> "▼" button> "Blur shape key" button.
+Please use it when the deformation copied by "Shape key forced transfer" is rattling.
+![Blur the shape key](http://i.imgur.com/P69O44k.jpg)
+
+### Convert bone / vertex group name for CM3D2 ← → Blender
+The names of bones and vertex groups can be converted or restored so that they can be edited symmetrically with Blender.
+Select a mesh and select the "Mesh Data" tab> "Vertex Group" panel>
+> "▼" button> "Vertex group name ~" button.
+Or select the armature and click the "Armature Data" tab> "Bone Name" button.
+![Convert bone / vertex group name for CM3D2 ← → for Blender](http://i.imgur.com/6O5K5gm.jpg)
+
+## Functions list
+* "Properties" area-> "Armature Data" tab
+--Convert bone name from CM3D2 to Blender
+* Converts the bone name used in CM3D2 so that it can be edited symmetrically with Blender.
+--Convert bone name from Blender to CM3D2
+* Restore the bone name used in CM3D2
+--Copy bone information
+* Copy the bone information of the custom property to the clipboard
+--Paste bone information
+* Paste custom property bone information from clipboard
+--Delete bone information
+* Delete all bone information of custom properties
+* "Properties" area-> "Modifiers" tab
+--Forced application of modifiers
+* Forced to apply even to mesh modifiers with shape keys
+* "Properties" area-> "Mesh Data" tab-> "Vertex Group" panel
+--Convert vertex group name from CM3D2 to Blender
+* Converts the bone name (vertex group name) used in CM3D2 so that it can be edited symmetrically with Blender.
+--Convert vertex group name from Blender to CM3D2
+* Revert to the bone name (vertex group name) used in CM3D2
+* "UV / Image Editor" area → Header
+* "UV / Image Editor" area-> Properties-> "Image" panel
+* Upper right of the screen ("Information" area → Header)
+--Check the number of vertices
+* Check if the selected mesh fits within the number of vertices that can be output by Converter
+* "3D View" area → Add (Shift + A) → CM3D2
+--Import the body for CM3D2
+* Import CM3D2 related elements into the current scene
+* "3D view" area → Add (Shift + A) → Curve
+--Add a tuft of hair
+* Add an animated hair tuft
+* Top of screen ("Information" area → Header) → Help
+--Updated CM3D2 Converter
+* Download the latest version of CM3D2 Converter add-on from GitHub and overwrite it
+--Open the CM3D2 Converter setting screen
+* Display the setting screen of CM3D2 Converter add-on
+* "Properties" area-> "Material" tab
+--Create a new material for CM3D2
+* Blender-CM3D2-Create a new material that can be used with Converter
+--Paste material from clipboard
+* Create a new material from the material information in the clipboard
+--Paste material from clipboard
+* Overwrite material information from text in clipboard
+--Copy material to clipboard
+* Copy the displayed material to the clipboard in text format
+--Decorate material
+* Decorate all the materials in the slot according to the settings
+--See this texture
+* See this texture
+* "Properties" area-> "Mesh data" tab-> "Shape key" panel-> ▼ button
+--Quick shape key transfer
+* Fast transfer the shape keys of other selected meshes to the active mesh
+--Spatial blur / shape key transfer
+* Transfers the shape keys of other selected meshes to the active mesh by blurring them farther.
+--Multiply the shape key transformation
+* Multiply the shape key deformation by a number to increase or decrease the strength of the deformation
+--Shape key blur
+* Blur active or all shape keys
+--Based on this shape key
+* Base the active shape key on other shape keys
+* "Properties" area-> "Mesh data" tab-> "Vertex group" panel-> ▼ button
+--Quick wait transfer
+* Fast transfer vertex groups of other selected meshes to the active mesh
+--Spatial blur / weight transfer
+* Transfers the vertex groups of other selected meshes to the active mesh by blurring them farther.
+--Vertex group blur
+* Blur active or all vertex groups
+--Old / vertex group blur
+* Blur active or all vertex groups
+--Multiply the vertex group
+* Multiply the weights of the vertex group by a number to increase or decrease the strength of the weights.
+--Delete unassigned vertex group
+* Delete all vertex groups that are not assigned to any vertex
+* Properties area → Objects tab
+--Copy bone information
+* Copy the bone information of the custom property to the clipboard
+--Paste bone information
+* Paste custom property bone information from clipboard
+--Delete bone information
+* Delete all bone information of custom properties
+* Properties area → Objects tab → Transforms panel
+--Align objects
+* Align the center position of the active object with the center position of other selected objects
+* Properties area → Render tab → Bake panel
+--Create an image for baking
+* Quickly prepare an empty image for baking on the active object
+--AO Bake
+* Quickly bake AO to active object
+--Pseudo AO / Bake
+* Quickly bake pseudo AO to active object
+--Hemilite Bake
+* Quickly bake the shade of hemilite on the active object
+--Shadow / Bake
+* Quickly bake shadows on active objects
+--Side shade / bake
+* Quickly bake side shades on active objects
+--Gradient bake
+* Quickly bake gradients to active objects
+--Metal / Bake
+* Quickly bake to active objects in a metallic style
+--Hair Bake
+* Quickly bake CM3D2 hair-like textures on active objects
+--UV edge / bake
+* Quickly bake UV edges black on active objects
+--Mesh edge / bake
+* Quickly bake the edges of the mesh black to the active object
+--Density / Bake
+* Quickly bake density to active objects
+--Distance between meshes / bake
+* Bake the distance between the active object and other objects
+--Bulge / Bake
+* Bake the bulging part of the active object white
+--White liquid bake
+* Bake a white liquid on the active object
+* "Properties" area-> "Render" tab-> "Render" panel
+--Rendering icons for CM3D2 menu
+* Renders an image that could be used for the icon image in CM3D2
+* "Properties" area → "Texture" tab
+--Display image
+* Display the specified image in the UV / image editor
+-Find textures
+* Find and open the tex file in the installation folder of the CM3D2 main unit.
+--Sync settings to preview
+* Apply settings to texture preview for clarity
+--Select Toon
+* You can select the toon texture that is included in CM3D2 by default
+--Automatically set color settings
+* Automatically set color-related settings from the texture color information
+--Save as tex
+* Save the texture image as tex in the same folder
+--Set color setting value
+* Set the color type setting
+* "Text Editor" area → Header
+--Display text
+* Display the specified text in this area
+--Copy text bone information
+* Paste the text bone information into a custom property and copy it to the clipboard
+--Paste text bone information
+* Paste the bone information in the clipboard into the text data
+--Delete all material information text
+* Remove all material text available in CM3D2
+* "3D view" area → mesh edit mode → "W" key
+--The drawing order of the selected surface is in the foreground
+* Sorts the drawing order of the selected faces to the front / back.
+* "3D View" area → Pause mode → Ctrl + A (Pause → Apply)
+--Body in the current pose
+* Create a body that makes it easier to model costumes in the current pose
+* "3D View" area → "Weight Paint" mode → Tool shelf → "Weight Tools" panel
+--Blur the vertex group of the selection
+* Blur the vertex group assignments for the selected mesh
+--Four arithmetic operations on the vertex group of the selection
+* Performs four arithmetic operations on the allocation of vertex groups in the selected mesh.
+
+## Terms
+Please adhere to the [Official MOD Terms](http://kisskiss.tv/kiss/diary.php?no=558).
+
+## Model Format
+* (String) Fixed to "CM3D2_MESH"
+* (Int) Version number
+* (String) Model name
+* (String) Base bone name
+* (Int) Number of bones
+* for number of bones
+-(String) Bone name
+-(Char) Flag?
+* for number of bones
+-(Int) Parent number
+* for number of bones
+-(Float × 3) Bone position
+-(Float x 4) Bone rotation
+* (Int) Number of vertices
+* (Int) Number of meshes (number of materials)
+* (Int) Number of bones used
+* for Number of bones used
+-(String) Bone name
+* for Number of bones used
+-(Float × 16) Bone transformation matrix
+* for number of vertices
+-(Float × 3) Vertex position
+-(Float × 3) Normal direction
+-(Float x 2) UV position
+* (Int) Number of vertices (0 if tangent space information is not output)
+* for number of vertices
+-(Float × 4) Tangent (x, y, z) binormal
+* for number of vertices
+-(Short x 4) Assign bone number x 4
+-(Float x 4) Assigned weight x 4
+* for mesh number
+-(Int) Number of pages
+--for number of pages
+* (Short) Vertex number
+* (Int) Number of materials (number of meshes)
+* for number of materials
+-(String) Material name
+-(String) Shader used
+-(String) Shader used
+--while
+* (String) Setting value type
+* if setting value type == "tex"
+-(String) Texture name
+-(String) Texture Type
+--if texture type == "tex2d"
+* (String) Image name
+* (String) Image path
+* (Float x 4) Color (RGBA)
+* else if setting value type == "col"
+-(String) Color name
+-(Float x 4) Color (RGBA)
+* else if setting value type == "f"
+-(String) Value name
+-(Float) value
+* else if setting value type == "end"
+--break
 * while
-	- (String) 設定値タイプ
-	- if 設定値タイプ == "morph"
-		* (String) モーフ名
-		* (Int) 変更頂点数
-		* for 変更頂点数
-			- (Short) 頂点番号
-			- (Float×3) 頂点位置
-			- (Float×3) 法線方向
-	- else if 設定値タイプ == "end"
-		* break
+-(String) Setting value type
+--if setting value type == "morph"
+* (String) Morph name
+* (Int) Number of changed vertices
+* for Number of changed vertices
+-(Short) Vertex number
+-(Float × 3) Vertex position
+-(Float × 3) Normal direction
+--other if setting value type == "end"
+* break
 
-## 課題
-* ボーン情報を人力で編集可能な形にする([有志のアドオンにより実現](https://github.com/trzr/Blender-CM3D2-BoneUtil))
-* モーションファイル(.anm)関係の完全対応
+## Task
+* Make bone information editable by human power ([Realized by volunteer add-on](https://github.com/trzr/Blender-CM3D2-BoneUtil))
+* Full support for motion files (.anm)
