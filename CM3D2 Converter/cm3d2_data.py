@@ -469,14 +469,15 @@ class Material():
 
     @property
     def name(self):
-        return self.name2
+        return self.name2 or self.name1
 
     def read(self, reader, read_header=True):
-        header = common.read_str(reader)
-        if header != 'CM3D2_MATERIAL':
-            raise Exception("mateファイルではありません。ヘッダ:%s" % header)
-        self.version = struct.unpack('<i', reader.read(4))[0]
-        self.name1 = common.read_str(reader)
+        if read_header:
+            header = common.read_str(reader)
+            if header != 'CM3D2_MATERIAL':
+                raise Exception("mateファイルではありません。ヘッダ:%s" % header)
+            self.version = struct.unpack('<i', reader.read(4))[0]
+            self.name1 = common.read_str(reader)
         self.name2 = common.read_str(reader)
 
         self.shader1 = common.read_str(reader)
@@ -495,7 +496,7 @@ class Material():
                     tex_item = [prop_name, tex_name, tex_path, offset, scale]
                 else:
                     tex_item = [prop_name]
-                self.te_list.append(tex_item)
+                self.tex_list.append(tex_item)
 
             elif prop_type == 'col':
                 prop_name = common.read_str(reader)
@@ -510,7 +511,7 @@ class Material():
             elif prop_type == 'end':
                 break
             else:
-                raise Exception("Materialプロパティに未知の設定値タイプ(%s)が見つかりました。" % prop_type)
+                raise Exception("Materialプロパティに未知の設定値タイプ({prop})が見つかりました。".format(prop=prop_type))
 
     def write(self, writer, write_header=True):
         if write_header:
@@ -685,22 +686,22 @@ class MaterialHandler:
                     f_item = cls.parse_f_node(node, remove_serial)
                     mat_data.f_list.append(f_item)
 
-        for node in nodes:
-            if not node.name.startswith('_'):
-                continue
-
-            node_type = node.type
-            if node_type == 'TEX_IMAGE':
-                tex_item = cls.parse_tex_node(node, remove_serial)
-                mat_data.tex_list.append(tex_item)
-            elif node_type == 'RGB':
-                col_item = cls.parse_col_node(node, remove_serial)
-                mat_data.col_list.append(col_item)
-
-            elif node_type == 'VALUE':
-                f_item = cls.parse_f_node(node, remove_serial)
-                mat_data.f_list.append(f_item)
-
+        #for node in nodes:
+        #    if not node.name.startswith('_'):
+        #        continue
+        #
+        #    node_type = node.type
+        #    if node_type == 'TEX_IMAGE':
+        #        tex_item = cls.parse_tex_node(node, remove_serial)
+        #        mat_data.tex_list.append(tex_item)
+        #    elif node_type == 'RGB':
+        #        col_item = cls.parse_col_node(node, remove_serial)
+        #        mat_data.col_list.append(col_item)
+        #
+        #    elif node_type == 'VALUE':
+        #        f_item = cls.parse_f_node(node, remove_serial)
+        #        mat_data.f_list.append(f_item)
+        
         return mat_data
 
     @classmethod
@@ -818,18 +819,21 @@ class MaterialHandler:
 
     @classmethod
     def apply_to(cls, context, mate, mat_data, replace_tex=True):
-
         mate['shader1'] = mat_data.shader1
         mate['shader2'] = mat_data.shader2
 
+        if mate.use_nodes is False:
+            mate.use_nodes = True
+
         nodes = mate.node_tree.nodes
-        # nodes.clear()
+        nodes.clear()
         # OUTPUT_MATERIAL, BSDF_PRINCIPLEDは消さない
-        if len(nodes) > 2:
-            clear_nodes(nodes)
+        #if len(nodes) > 2:
+        #    clear_nodes(nodes)
 
         for tex_item in mat_data.tex_list:
             prop_name = tex_item[0]
+
             if len(tex_item) < 2:
                 common.create_tex(context, mate, prop_name)
             else:

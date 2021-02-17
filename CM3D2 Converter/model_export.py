@@ -37,9 +37,9 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
     base_bone_name = bpy.props.StringProperty(name="基点ボーン名", default="*")
 
     items = [
-        ('ARMATURE', "アーマチュア", "", 'OUTLINER_OB_ARMATURE', 1),
-        ('TEXT', "テキスト", "", 'FILE_TEXT', 2),
-        ('OBJECT_PROPERTY', "オブジェクト内プロパティ", "", 'OBJECT_DATAMODE', 3),
+        ('ARMATURE'         , "アーマチュア", "", 'OUTLINER_OB_ARMATURE', 1),
+        ('TEXT'             , "テキスト", "", 'FILE_TEXT', 2),
+        ('OBJECT_PROPERTY'  , "オブジェクト内プロパティ", "", 'OBJECT_DATAMODE', 3),
         ('ARMATURE_PROPERTY', "アーマチュア内プロパティ", "", 'ARMATURE_DATA', 4),
     ]
     bone_info_mode = bpy.props.EnumProperty(items=items, name="ボーン情報元", default='OBJECT_PROPERTY', description="modelファイルに必要なボーン情報をどこから引っ張ってくるか選びます")
@@ -52,6 +52,7 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
 
     is_arrange_name = bpy.props.BoolProperty(name="データ名の連番を削除", default=True, description="「○○.001」のような連番が付属したデータ名からこれらを削除します")
 
+    is_align_to_base_bone = bpy.props.BoolProperty(name="Align to Base Bone", default=False, description="Align the object to it's base bone")
     is_convert_tris = bpy.props.BoolProperty(name="四角面を三角面に", default=True, description="四角ポリゴンを三角ポリゴンに変換してから出力します、元のメッシュには影響ありません")
     is_normalize_weight = bpy.props.BoolProperty(name="ウェイトの合計を1.0に", default=True, description="4つのウェイトの合計値が1.0になるように正規化します")
     is_convert_bone_weight_names = bpy.props.BoolProperty(name="頂点グループ名をCM3D2用に変換", default=True, description="全ての頂点グループ名をCM3D2で使える名前にしてからエクスポートします")
@@ -162,6 +163,7 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
             row.enabled = False
 
         prefs = common.preferences()
+        
         box = self.layout.box()
         col = box.column(align=True)
         col.label(text="ボーン情報元", icon='BONE_DATA')
@@ -169,12 +171,13 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
         col = box.column(align=True)
         col.label(text="マテリアル情報元", icon='MATERIAL')
         col.prop(self, 'mate_info_mode', icon='MATERIAL', expand=True)
+        
         box = self.layout.box()
         box.label(text="メッシュオプション")
-        box.prop(self, 'is_convert_tris', icon='MESH_DATA')
-        box.prop(prefs, 'skip_shapekey', icon='SHAPEKEY_DATA')
-        box.prop(self, 'export_tangent', icon='CURVE_BEZCIRCLE')
-
+        box.prop(self , 'is_align_to_base_bone', icon=compat.icon('OBJECT_ORIGIN'  ))
+        box.prop(self , 'is_convert_tris'      , icon=compat.icon('MESH_DATA'      ))
+        box.prop(prefs, 'skip_shapekey'        , icon=compat.icon('SHAPEKEY_DATA'  ))
+        box.prop(self , 'export_tangent'       , icon=compat.icon('CURVE_BEZCIRCLE'))
         sub_box = box.box()
         sub_box.prop(self, 'is_normalize_weight', icon='MOD_VERTEX_WEIGHT')
         sub_box.prop(self, 'is_clean_vertex_groups', icon='MOD_VERTEX_WEIGHT')
@@ -203,8 +206,9 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
         prev_mode = None
         try:
             ob_source = context.active_object
-            selected_objs.append(ob_source)
-            ob_name = ob_source.name # luvoid : Fix error where object is active but not selected
+            if ob_source not in selected_objs:
+                selected_objs.append(ob_source) # luvoid : Fix error where object is active but not selected
+            ob_name = ob_source.name
             ob_main = None
             if self.is_batch:
                 # アクティブオブジェクトを１つコピーするだけでjoinしない
@@ -212,7 +216,7 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
                 compat.set_select(ob_source, False)
                 ob_main = self.copy_and_activate_ob(context, ob_source)
 
-                if prefs.is_apply_modifiers:
+                if prefs.is_apply_modifiers and bpy.ops.object.forced_modifier_apply.poll(context):
                     bpy.ops.object.forced_modifier_apply(is_applies=[True for i in range(32)])
             else:
                 selected_count = 0
@@ -228,7 +232,7 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
                         if selected == ob_source:
                             ob_main = ob_created
                         if prefs.is_apply_modifiers:
-                            bpy.ops.object.forced_modifier_apply(is_applies=[True for i in range(32)])
+                            bpy.ops.object.forced_modifier_apply(apply_viewport_visible=True)
 
                         selected_count += 1
 
@@ -290,6 +294,10 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
             ob.active_shape_key_index = 0
             me.update()
 
+        if self.is_align_to_base_bone:
+            bpy.ops.object.align_to_base_bone(scale=1.0/self.scale, is_preserve_mesh=True, bone_info_mode=self.bone_info_mode)
+            me.update()
+
         # データの成否チェック
         if self.bone_info_mode == 'ARMATURE':
             arm_ob = ob.parent
@@ -345,7 +353,7 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
         base_bone_candidate = None
         bone_data = []
         if self.bone_info_mode == 'ARMATURE':
-            bone_data = self.armature_bone_data_parser(arm_ob)
+            bone_data = self.armature_bone_data_parser(context, arm_ob)
             base_bone_candidate = arm_ob.data['BaseBone']
         elif self.bone_info_mode == 'TEXT':
             bone_data_text = context.blend_data.texts["BoneData"]
@@ -446,7 +454,7 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
             print(index, is_used)
             if is_used == False:
                 is_deleted += 1
-                deleted_names = deleted_names + '\n' + local_bone_data[i]['name']
+                deleted_names = deleted_names + '\n' + local_bone_data[index]['name']
             elif is_used == True:
                 pass
             else:
@@ -559,17 +567,18 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
         cm_uvs = []
         # 頂点情報を書き出し
         for i, vert in enumerate(bm.verts):
-            co = vert.co * self.scale
+            co = compat.convert_bl_to_cm_space( vert.co * self.scale )
             if me.has_custom_normals:
                 no = custom_normals[vert.index]
             else:
                 no = vert.normal.copy()
+            no = compat.convert_bl_to_cm_space( no )
             for uv in vert_uvs[i]:
                 cm_verts.append(co)
                 cm_norms.append(no)
                 cm_uvs.append(uv)
-                writer.write(struct.pack('<3f', -co.x, co.y, co.z))
-                writer.write(struct.pack('<3f', -no.x, no.y, no.z))
+                writer.write(struct.pack('<3f', co.x, co.y, co.z))
+                writer.write(struct.pack('<3f', no.x, no.y, no.z))
                 writer.write(struct.pack('<2f', uv.x, uv.y))
         context.window_manager.progress_update(6)
 
@@ -647,9 +656,11 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
                         common.write_str(writer, shape_key.name)
                         writer.write(struct.pack('<i', len(morph)))
                         for v_index, vec, normal in morph:
+                            vec    = compat.convert_bl_to_cm_space(vec   )
+                            normal = compat.convert_bl_to_cm_space(normal)
                             writer.write(struct.pack('<H', v_index))
-                            writer.write(struct.pack('<3f', -vec.x, vec.y, vec.z))
-                            writer.write(struct.pack('<3f', -normal.x, normal.y, normal.z))
+                            writer.write(struct.pack('<3f', vec.x, vec.y, vec.z))
+                            writer.write(struct.pack('<3f', normal.x, normal.y, normal.z))
             finally:
                 context.blend_data.meshes.remove(temp_me)
         common.write_str(writer, 'end')
@@ -740,17 +751,29 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
                 a2 = v3 - v1
                 s1 = w2 - w1
                 s2 = w3 - w1
+                
+                r_inverse = (s1.x * s2.y - s2.x * s1.y)
 
-                r = 1.0 / (s1.x * s2.y - s2.x * s1.y)
-                sdir = mathutils.Vector(((s2.y * a1.x - s1.y * a2.x) * r, (s2.y * a1.y - s1.y * a2.y) * r, (s2.y * a1.z - s1.y * a2.z) * r))
-                tan1[i1] += sdir
-                tan1[i2] += sdir
-                tan1[i3] += sdir
+                if r_inverse != 0:
+                    # print("i1 = {i1}   i2 = {i2}   i3 = {i3}".format(i1=i1, i2=i2, i3=i3))
+                    # print("v1 = {v1}   v2 = {v2}   v3 = {v3}".format(v1=v1, v2=v2, v3=v3))
+                    # print("w1 = {w1}   w2 = {w2}   w3 = {w3}".format(w1=w1, w2=w2, w3=w3))
 
-                tdir = mathutils.Vector(((s1.x * a2.x - s2.x * a1.x) * r, (s1.x * a2.y - s2.x * a1.y) * r, (s1.x * a2.z - s2.x * a1.z) * r))
-                tan2[i1] += tdir
-                tan2[i2] += tdir
-                tan2[i3] += tdir
+                    # print("a1 = {a1}   a2 = {a2}".format(a1=a1, a2=a2))
+                    # print("s1 = {s1}   s2 = {s2}".format(s1=s1, s2=s2))
+                    
+                    # print("r_inverse = ({s1x} * {s2y} - {s2x} * {s1y}) = {r_inverse}".format(r_inverse=r_inverse, s1x=s1.x, s1y=s1.y, s2x=s2.x, s2y=s2.y))
+                                                
+                    r = 1.0 / r_inverse
+                    sdir = mathutils.Vector(((s2.y * a1.x - s1.y * a2.x) * r, (s2.y * a1.y - s1.y * a2.y) * r, (s2.y * a1.z - s1.y * a2.z) * r))
+                    tan1[i1] += sdir
+                    tan1[i2] += sdir
+                    tan1[i3] += sdir
+
+                    tdir = mathutils.Vector(((s1.x * a2.x - s2.x * a1.x) * r, (s1.x * a2.y - s2.x * a1.y) * r, (s1.x * a2.z - s2.x * a1.z) * r))
+                    tan2[i1] += tdir
+                    tan2[i2] += tdir
+                    tan2[i3] += tdir
 
                 tri_idx += 3
 
@@ -784,14 +807,20 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
                 vert.select = True
         bpy.ops.object.mode_set(mode='EDIT')
 
-    def armature_bone_data_parser(self, ob):
+    def armature_bone_data_parser(self, context, ob):
         """アーマチュアを解析してBoneDataを返す"""
         arm = ob.data
+        
+        pre_active = compat.get_active(context)
+        pre_mode = ob.mode
+
+        compat.set_active(context, ob)
+        bpy.ops.object.mode_set(mode='EDIT')
 
         bones = []
         bone_name_indices = {}
         already_bone_names = []
-        bones_queue = arm.bones[:]
+        bones_queue = arm.edit_bones[:]
         while len(bones_queue):
             bone = bones_queue.pop(0)
 
@@ -814,24 +843,49 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
             unknown_flag = bone['UnknownFlag'] if 'UnknownFlag' in bone else 0
             parent_index = bone_name_indices[bone.parent.name] if bone.parent else -1
 
-            mat = bone.matrix_local.copy()
+            mat = bone.matrix.copy()
+            
             if bone.parent:
-                mat = compat.mul(bone.parent.matrix_local.inverted(), mat)
-
+                mat = compat.convert_bl_to_cm_bone_rotation(mat)
+                mat = compat.mul(bone.parent.matrix.inverted(), mat)
+                mat = compat.convert_bl_to_cm_bone_space(mat)
+            else:
+                mat = compat.convert_bl_to_cm_space(mat)
+                mat = compat.convert_bl_to_cm_bone_rotation(mat)
+            
             co = mat.to_translation() * self.scale
             rot = mat.to_quaternion()
-
-            if bone.parent:
-                co.x, co.y, co.z = -co.y, -co.x, co.z
-                rot.w, rot.x, rot.y, rot.z = rot.w, rot.y, rot.x, -rot.z
-            else:
-                co.x, co.y, co.z = -co.x, co.z, -co.y
-
-                fix_quat = mathutils.Euler((0, 0, math.radians(-90)), 'XYZ').to_quaternion()
-                fix_quat2 = mathutils.Euler((math.radians(-90), 0, 0), 'XYZ').to_quaternion()
-                rot = compat.mul3(rot, fix_quat, fix_quat2)
-
-                rot.w, rot.x, rot.y, rot.z = -rot.y, -rot.z, -rot.x, rot.w
+            
+            #if bone.parent:
+            #    co.x, co.y, co.z = -co.y, -co.x, co.z
+            #    rot.w, rot.x, rot.y, rot.z = rot.w, rot.y, rot.x, -rot.z
+            #else:
+            #    co.x, co.y, co.z = -co.x, co.z, -co.y
+            #
+            #    fix_quat  = compat.Z_UP_TO_Y_UP_QUAT    #mathutils.Euler((0, 0, math.radians(-90)), 'XYZ').to_quaternion()
+            #    fix_quat2 = compat.BLEND_TO_OPENGL_QUAT #mathutils.Euler((math.radians(-90), 0, 0), 'XYZ').to_quaternion()
+            #    rot = compat.mul3(rot, fix_quat, fix_quat2)
+            #    #rot = compat.mul3(fix_quat2, rot, fix_quat)
+            #
+            #    rot.w, rot.x, rot.y, rot.z = -rot.y, -rot.z, -rot.x, rot.w
+            
+            # luvoid : I copied this from the Bone-Util Addon by trzr
+            #if bone.parent:
+            #    co.x, co.y, co.z = -co.y, co.z, co.x
+            #    rot.w, rot.x, rot.y, rot.z = rot.w, rot.y, -rot.z, -rot.x
+            #else:
+            #    co.x, co.y, co.z = -co.x, co.z, -co.y
+            #    
+            #    rot = compat.mul(rot, mathutils.Quaternion((0, 0, 1), math.radians(90)))
+            #    rot.w, rot.x, rot.y, rot.z = -rot.w, -rot.x, rot.z, -rot.y
+            
+            #opengl_mat = compat.convert_blend_z_up_to_opengl_y_up_mat4(bone.matrix)
+            #
+            #if bone.parent:
+            #    opengl_mat = compat.mul(compat.convert_blend_z_up_to_opengl_y_up_mat4(bone.parent.matrix).inverted(), opengl_mat)
+            #
+            #co = opengl_mat.to_translation() * self.scale
+            #rot = opengl_mat.to_quaternion()
 
             bone_data.append({
                 'name': bone.name,
@@ -840,6 +894,9 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
                 'co': co.copy(),
                 'rot': rot.copy(),
             })
+        
+        compat.set_active(context, pre_active)
+        bpy.ops.object.mode_set(mode=pre_mode)
         return bone_data
 
     @staticmethod

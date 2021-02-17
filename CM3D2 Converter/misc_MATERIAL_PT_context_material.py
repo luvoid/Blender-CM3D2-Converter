@@ -120,7 +120,7 @@ def menu_func(self, context):
 
 
 @compat.BlRegister(only_latest=True)
-class Material_PT_properries(bpy.types.Panel):
+class MATERIAL_PT_cm3d2_properties(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = 'material'
@@ -152,9 +152,10 @@ class Material_PT_properries(bpy.types.Panel):
 
         else:
             if 'shader1' in mate and 'shader2' in mate:
-                box = self.layout.box()
+                box = self.layout#.box()
                 # row = box.split(percentage=0.3)
-                row = compat.layout_split(box, factor=0.5)
+                #row = compat.layout_split(box, factor=0.5)
+                row = self.layout.column()
                 row.label(text="CM3D2用", icon_value=common.kiss_icon())
                 sub_row = row.row(align=True)
                 sub_row.operator('material.export_cm3d2_mate', icon='FILE_FOLDER', text="mateへ")
@@ -578,31 +579,6 @@ class new_mate_opr():
             f_list.append(_RimPower)
             f_list.append(_RimShift)
         
-        # luvoid : set properties of the mate
-        mate.preview_render_type = 'FLAT'
-        if self.shader_type.find('Trans') > -1:
-                mate.blend_method = 'BLEND'
-        
-        if not self.shader_type.find('Outline') > -1:
-            mate.use_backface_culling = True
-        
-        # luvoid : create cm3d2 shader node group and material output node
-        cmnode = None
-        if not compat.IS_LEGACY:
-            mate.use_nodes = True
-            cm3d2_data.clear_nodes(mate.node_tree.nodes)
-            cmtree = bpy.data.node_groups.get('CM3D2 Shader')
-            if not cmtree:
-                blend_path = os.path.join(os.path.dirname(__file__), "append_data.blend")
-                with context.blend_data.libraries.load(blend_path) as (data_from, data_to):
-                    data_to.node_groups = ['CM3D2 Shader']
-                cmtree = data_to.node_groups[0]
-            cmnode = mate.node_tree.nodes.new('ShaderNodeGroup')
-            cmnode.node_tree = cmtree
-            matout = mate.node_tree.nodes.new('ShaderNodeOutputMaterial')
-            matout.location = (300,0)
-            mate.node_tree.links.new(matout.inputs.get('Surface'), cmnode.outputs.get('Surface'))
-
         texpath_dict = common.get_texpath_dict()
         slot_index = 0
         
@@ -623,39 +599,22 @@ class new_mate_opr():
                             me.uv_textures.active.data[face.index].image = tex.image
             if compat.IS_LEGACY:
                 slot_index += 1
-            else:
-                # luvoid : attatch tex node to cmnode sockets
-                socket = cmnode.inputs.get(key+" Color")
-                if socket:
-                    mate.node_tree.links.new(socket, tex.outputs.get('Color'))
-                socket = cmnode.inputs.get(key+" Alpha")
-                if socket:
-                    mate.node_tree.links.new(socket, tex.outputs.get('Alpha'))
 
         for data in col_list:
             node = common.create_col(context, mate, data[0], data[1][:4], slot_index)
             if compat.IS_LEGACY:
                 slot_index += 1
-            else:
-                # luvoid : attatch color node to cmnode socket
-                socket = cmnode.inputs.get(data[0])
-                if socket:
-                    mate.node_tree.links.new(socket, node.outputs.get('Color'))
 
         for data in f_list:
             node = common.create_float(context, mate, data[0], data[1], slot_index)
             if compat.IS_LEGACY:
                 slot_index += 1
-            else:
-                # luvoid : attatch float node to cmnode socket
-                socket = cmnode.inputs.get(data[0])
-                if socket:
-                    mate.node_tree.links.new(socket, node.outputs.get('Value'))
 
         if compat.IS_LEGACY:
             common.decorate_material(mate, self.is_decorate, me, ob.active_material_index)
         else:
             cm3d2_data.align_nodes(mate)
+            common.decorate_material(mate, self.is_decorate, me, ob.active_material_index)
 
         return {'FINISHED'}
 
@@ -701,7 +660,7 @@ class CNV_OT_paste_material(bpy.types.Operator):
 
         # if not data.startswith('1000'):
         # 	return False
-        if '\ttex\n' in data or '\tcol\n' in data or '\tf\n' in data:
+        if '\ntex\n\t' in data or '\ncol\n\t' in data or '\nf\n\t' in data:
             return True
 
         # if not data.startswith('1000'):

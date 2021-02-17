@@ -1,6 +1,7 @@
 # 「プロパティ」エリア → 「オブジェクト」タブ
 import re
 import bpy
+import mathutils
 from . import common
 from . import compat
 
@@ -187,3 +188,8 @@ class CNV_OT_remove_object_bone_data_property(bpy.types.Operator):
                 break
         self.report(type={'INFO'}, message="ボーン情報を削除しました")
         return {'FINISHED'}
+
+
+
+
+

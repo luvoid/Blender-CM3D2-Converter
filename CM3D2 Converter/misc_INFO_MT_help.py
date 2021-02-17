@@ -9,6 +9,7 @@ import datetime
 import xml.sax.saxutils
 import addon_utils
 import bpy
+import traceback
 from . import common
 from . import compat
 
@@ -32,10 +33,49 @@ class INFO_MT_help_CM3D2_Converter_RSS(bpy.types.Menu):
         try:
             response = urllib.request.urlopen(common.URL_ATOM)
             html = response.read().decode('utf-8')
-            titles = re.findall(r'\<title\>[　\s]*([^　\s][^\<]*[^　\s])[　\s]*\<\/title\>', html)[1:]
+            titles = re.findall(r'\<title\>[　\s]*([^　\s][^\<]*[^　\s])[　\s]*\<\/title\>', html)[1:] # matches: <title> something </title>
             updates = re.findall(r'\<updated\>([^\<\>]*)\<\/updated\>', html)[1:]
             links = re.findall(r'<link [^\<\>]*href="([^"]+)"/>', html)[2:]
-            version_datetime = datetime.datetime.strptime(str(common.bl_info["version"][0]) + "," + str(common.bl_info["version"][1]) + "," + str(common.bl_info["version"][2]) + "," + str(common.bl_info["version"][3]) + "," + str(common.bl_info["version"][4]) + "," + str(common.bl_info["version"][5]), '%Y,%m,%d,%H,%M,%S')
+            #version_datetime = datetime.datetime.strptime(str(common.bl_info["version"][0]) + "," + str(common.bl_info["version"][1]) + "," + str(common.bl_info["version"][2]) + "," + str(common.bl_info["version"][3]) + "," + str(common.bl_info["version"][4]) + "," + str(common.bl_info["version"][5]), '%Y,%m,%d,%H,%M,%S')
+            numbers_in_version = 0
+            sub_version = None
+            year = 2000
+            month = 1
+            day = 1
+            hour = 0
+            minute = 0
+            second = 0
+            ms = 0
+            for version_sub_value in common.bl_info["version"]:
+                number = None
+                if   type(version_sub_value) is int:
+                    number = version_sub_value
+                elif type(version_sub_value) is float:
+                    number = version_sub_value
+                elif type(version_sub_value) is str:
+                    match = re.match(r'(\d+)\.?(.*)', version_sub_value)
+                    if match:
+                        number = int(match.group(1))
+                        sub_str = match.group(2)
+                        if sub_str:
+                            sub_version = sum( ord(char) << 8*(len(sub_str)-byte-1) for byte, char in enumerate(sub_str) )
+                if number:
+                    if   numbers_in_version == 0:
+                        year   = number
+                    elif numbers_in_version == 1:
+                        month  = number
+                    elif numbers_in_version == 2:
+                        day    = number
+                    elif numbers_in_version == 3:
+                        hour   = number
+                    elif numbers_in_version == 4:
+                        minute = number
+                    elif numbers_in_version == 5:
+                        second = number
+                    numbers_in_version += 1
+                
+            version_datetime = datetime.datetime(year, month, day, hour, minute, second, ms)
+
 
             output_data = []
             update_diffs = []
@@ -82,13 +122,14 @@ class INFO_MT_help_CM3D2_Converter_RSS(bpy.types.Menu):
 
                 self.layout.operator('wm.url_open', text=text, icon=icon).url = link
         except:
+            traceback.print_exc()
             self.layout.label(text="更新の取得に失敗しました", icon='ERROR')
 
 
 @compat.BlRegister()
 class CNV_OT_update_cm3d2_converter(bpy.types.Operator):
     bl_idname = 'script.update_cm3d2_converter'
-    bl_label = "CM3D2 Converterを更新"
+    bl_label = "CM3D2 Converterを更新「luv」バージョン"
     bl_description = "GitHubから最新版のCM3D2 Converterアドオンをダウンロードし上書き更新します"
     bl_options = {'REGISTER'}
 

@@ -9,6 +9,7 @@ import bmesh
 import mathutils
 from . import fileutil
 from . import compat
+from . import cm3d2_data
 
 # アドオン情報
 bl_info = {}
@@ -97,7 +98,7 @@ def decode_bone_name(name, enable=True):
 
 
 # CM3D2用マテリアルを設定に合わせて装飾
-def decorate_material(mate, enable=True, me=None, mate_index=-1):
+def decorate_material_old(mate, enable=True, me=None, mate_index=-1):
     if not compat.IS_LEGACY or not enable or 'shader1' not in mate:
         return
 
@@ -298,6 +299,56 @@ def decorate_material(mate, enable=True, me=None, mate_index=-1):
     else:
         mate.use_nodes = False
         mate.use_shadeless = False
+
+# CM3D2用マテリアルを設定に合わせて装飾
+def decorate_material(mate, enable=True, me=None, mate_index=-1):
+    if not enable or 'shader1' not in mate:
+        return
+    if compat.IS_LEGACY:
+        return decorate_material_old(mate, enable=enable, me=me, mate_index=mate_index)
+
+    # luvoid : set properties of the mate
+    shader = mate['shader1']
+    mate.preview_render_type  = 'FLAT'
+    mate.blend_method         = 'BLEND' if 'Trans' in shader else 'OPAQUE'
+    mate.use_backface_culling = 'Outline' not in shader
+
+    # luvoid : create cm3d2 shader node group and material output node
+    cmnode = None
+    if not compat.IS_LEGACY:
+        mate.use_nodes = True
+        #cm3d2_data.clear_nodes(mate.node_tree.nodes)
+        cmtree = bpy.data.node_groups.get('CM3D2 Shader')
+        if not cmtree:
+            blend_path = os.path.join(os.path.dirname(__file__), "append_data.blend")
+            with bpy.data.libraries.load(blend_path) as (data_from, data_to):
+                data_to.node_groups = ['CM3D2 Shader']
+            cmtree = data_to.node_groups[0]
+        cmnode = mate.node_tree.nodes.new('ShaderNodeGroup')
+        cmnode.node_tree = cmtree
+        matout = mate.node_tree.nodes.new('ShaderNodeOutputMaterial')
+        matout.location = (300,0)
+        mate.node_tree.links.new(matout.inputs.get('Surface'), cmnode.outputs.get('Surface'))
+
+    for key, node in mate.node_tree.nodes.items():
+        if not key.startswith('_'):
+            continue
+        if type(node) == bpy.types.ShaderNodeTexImage:
+            # luvoid : attatch tex node to cmnode sockets
+            socket = cmnode.inputs.get(key+" Color")
+            if socket:
+                mate.node_tree.links.new(socket, node.outputs.get('Color'))
+            socket = cmnode.inputs.get(key+" Alpha")
+            if socket:
+                mate.node_tree.links.new(socket, node.outputs.get('Alpha'))
+        else:
+            # luvoid : attatch color/float node to cmnode socket
+            input_socket = cmnode.inputs.get(key)
+            output_socket = node.outputs.get('Color') or node.outputs.get('Value')
+            if input_socket and output_socket:
+                mate.node_tree.links.new(input_socket, output_socket)
+
+    
 
 
 # 画像のおおよその平均色を取得
@@ -545,10 +596,11 @@ def __replace_cm3d2_tex(img, texpath_dict: dict) -> bool:
         tex_data = load_cm3d2tex(tex_path)
         if tex_data is None:
             return False
-
-        with open(tex_path, 'wb') as png_file:
+        
+        png_path = tex_path[:-4] + ".png"
+        with open(png_path, 'wb') as png_file:
             png_file.write(tex_data[-1])
-        img.filepath = tex_path
+        img.filepath = png_path
         img.reload()
         return True
     except:
@@ -588,9 +640,12 @@ def load_cm3d2tex(path, skip_data=False):
 
 
 def create_tex(context, mate, node_name, tex_name=None, filepath=None, cm3d2path=None, tex_map_data=None, replace_tex=False, slot_index=-1):
+    if isinstance(context, bpy.types.Context):
+        context = context.copy()
+
     if compat.IS_LEGACY:
         slot = mate.texture_slots.create(slot_index)
-        tex = context.blend_data.textures.new(node_name, 'IMAGE')
+        tex = context['blend_data'].textures.new(node_name, 'IMAGE')
         slot.texture = tex
 
         if tex_name:
@@ -603,7 +658,7 @@ def create_tex(context, mate, node_name, tex_name=None, filepath=None, cm3d2path
                 img = bpy.data.images.load(filepath)
                 img.name = tex_name
             else:
-                img = context.blend_data.images.new(tex_name, 128, 128)
+                img = context['blend_data'].images.new(tex_name, 128, 128)
                 img.filepath = filepath
             img['cm3d2_path'] = cm3d2path
             img.source = 'FILE'
@@ -612,7 +667,7 @@ def create_tex(context, mate, node_name, tex_name=None, filepath=None, cm3d2path
             if replace_tex:
                 replaced = replace_cm3d2_tex(tex.image, reload_path=False)
                 if replaced and node_name == '_MainTex':
-                    ob = context.active_object
+                    ob = context['active_object']
                     me = ob.data
                     for face in me.polygons:
                         if face.material_index == ob.active_material_index:
@@ -634,7 +689,7 @@ def create_tex(context, mate, node_name, tex_name=None, filepath=None, cm3d2path
                     img = bpy.data.images.load(filepath)
                     img.name = tex_name
                 else:
-                    img = context.blend_data.images.new(tex_name, 128, 128)
+                    img = context['blend_data'].images.new(tex_name, 128, 128)
                     img.filepath = filepath
                 img.source = 'FILE'
                 tex.image = img
@@ -665,6 +720,9 @@ def create_tex(context, mate, node_name, tex_name=None, filepath=None, cm3d2path
 
 
 def create_col(context, mate, node_name, color, slot_index=-1):
+    if isinstance(context, bpy.types.Context):
+        context = context.copy()
+
     if compat.IS_LEGACY:
         if slot_index >= 0:
             mate.use_textures[slot_index] = False
@@ -672,7 +730,7 @@ def create_col(context, mate, node_name, color, slot_index=-1):
         node.color = color[:3]
         node.diffuse_color_factor = color[3]
         node.use_rgb_to_intensity = True
-        tex = context.blend_data.textures.new(node_name, 'BLEND')
+        tex = context['blend_data'].textures.new(node_name, 'BLEND')
         node.texture = tex
         node.use = False
     else:
@@ -686,13 +744,16 @@ def create_col(context, mate, node_name, color, slot_index=-1):
 
 
 def create_float(context, mate, node_name, value, slot_index=-1):
+    if isinstance(context, bpy.types.Context):
+        context = context.copy()
+
     if compat.IS_LEGACY:
         if slot_index >= 0:
             mate.use_textures[slot_index] = False
         node = mate.texture_slots.create(slot_index)
         node.diffuse_color_factor = value
         node.use_rgb_to_intensity = False
-        tex = context.blend_data.textures.new(node_name, 'BLEND')
+        tex = context['blend_data'].textures.new(node_name, 'BLEND')
         node.texture = tex
         node.use = False
     else:
@@ -972,3 +1033,318 @@ class NodeHandler():
             # 		break
 
         return None
+
+@compat.BlRegister()
+class CNV_UL_generic_selector(bpy.types.UIList):
+    bl_label       = "CNV_UL_generic_selector"
+    bl_options     = {'DEFAULT_CLOSED'}
+    bl_region_type = 'WINDOW'
+    bl_space_type  = 'PROPERTIES'
+
+    # Constants (flags)
+    # Be careful not to shadow FILTER_ITEM!
+    #bitflag_soft_filter = 1073741824 >> 0
+    bitflag_soft_filter  = 1073741824 >> 3
+
+    bitflag_forced_value = 1073741824 >> 10
+    bitflag_forced_true  = 1073741824 >> 11
+    bitflag_forced_false = 1073741824 >> 12
+
+    
+    cached_values = {}
+    expanded_layout = False
+
+    # Custom properties, saved with .blend file.
+    use_filter_name_reverse: bpy.props.BoolProperty(
+        name="Reverse Name",
+        default=False,
+        options=set(),
+        description="Reverse name filtering",
+    )
+    #use_filter_deform: bpy.props.BoolProperty(
+    #    name="Only Deform",
+    #    default=True,
+    #    options=set(),
+    #    description="Only show deforming vertex groups",
+    #)
+    #use_filter_deform_reverse: bpy.props.BoolProperty(
+    #    name="Other",
+    #    default=False,
+    #    options=set(),
+    #    description="Only show non-deforming vertex groups",
+    #)
+    #use_filter_empty: bpy.props.BoolProperty(
+    #    name="Filter Empty",
+    #    default=False,
+    #    options=set(),
+    #    description="Whether to filter empty vertex groups",
+    #)
+    #use_filter_empty_reverse: bpy.props.BoolProperty(
+    #    name="Reverse Empty",
+    #    default=False,
+    #    options=set(),
+    #    description="Reverse empty filtering",
+    #)
+    
+    # This allows us to have mutually exclusive options, which are also all disable-able!
+    def _gen_order_update(name1, name2):
+        def _u(self, ctxt):
+            if (getattr(self, name1)):
+                setattr(self, name2, False)
+        return _u
+    use_order_name: bpy.props.BoolProperty(
+        name="Name", default=False, options=set(),
+        description="Sort groups by their name (case-insensitive)",
+        update=_gen_order_update("use_order_name", "use_order_importance"),
+    )
+    use_filter_orderby_invert: bpy.props.BoolProperty(
+        name="Order by Invert",
+        default=False,
+        options=set(),
+        description="Invert the sort by order"
+    )
+    #use_order_importance: bpy.props.BoolProperty(
+    #    name="Importance",
+    #    default=False,
+    #    options=set(),
+    #    description="Sort groups by their average weight in the mesh",
+    #    update=_gen_order_update("use_order_importance", "use_order_name"),
+    #)
+        
+    # Usual draw item function.
+    def draw_item(self, context, layout, data, item, icon_value, active_data, active_propname, index, flt_flag):
+        # Just in case, we do not use it here!
+        self.use_filter_invert = False
+
+        # assert(isinstance(item, bpy.types.VertexGroup)
+        #vgroup = getattr(data, 'matched_vgroups')[item.index]
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            # Here we use one feature of new filtering feature: it can pass data to draw_item, through flt_flag
+            # parameter, which contains exactly what filter_items set in its filter list for this item!
+            # In this case, we show empty groups grayed out.
+            cached_value = self.cached_values.get(item.name, None)
+            if (cached_value != None) and (cached_value != item.value):
+                item.preferred = item.value
+
+            force_values = flt_flag & self.bitflag_forced_value
+            print("GET force_values =", force_values)
+            if force_values:
+                print("FORCE VALUES")
+                if flt_flag & self.bitflag_forced_true:
+                    item.value = True
+                elif flt_flag & self.bitflag_forced_false:
+                    item.value = False
+                else:
+                    item.value = item.preferred
+
+            self.cached_values[item.name] = item.value
+
+            if flt_flag & self.bitflag_soft_filter:
+                row = layout.row()
+                row.enabled = False
+                #row.alignment = 'LEFT'
+                row.prop(item, "value", text=item.name, icon=item.icon)
+            else:
+                layout.prop(item, "value", text=item.name, icon=item.icon)
+            
+            #layout.prop(item, "value", text=item.name, icon=item.icon)
+            icon = 'RADIOBUT_ON' if item.preferred else 'RADIOBUT_OFF'
+            layout.prop(item, "preferred", text="", icon=compat.icon(icon), emboss=False)
+        
+        elif self.layout_type in {'GRID'}:
+            layout.alignment = 'CENTER'
+            if flt_flag & self.VGROUP_EMPTY:
+                layout.enabled = False
+            layout.label(text="", icon_value=icon)
+
+    def draw_filter(self, context, layout):
+        # Nothing much to say here, it's usual UI code...
+        row = layout.row()
+        if not self.expanded_layout:
+            layout.active = True
+            layout.enabled = True
+            row.active = True
+            row.enabled = True
+            self.expanded_layout = True
+
+        subrow = row.row(align=True)
+        subrow.prop(self, "filter_name", text="")
+        icon = 'ZOOM_OUT' if self.use_filter_name_reverse else 'ZOOM_IN'
+        subrow.prop(self, "use_filter_name_reverse", text="", icon=icon)
+
+        #subrow = row.row(align=True)
+        #subrow.prop(self, "use_filter_deform", toggle=True)
+        #icon = 'ZOOM_OUT' if self.use_filter_deform_reverse else 'ZOOM_IN'
+        #subrow.prop(self, "use_filter_deform_reverse", text="", icon=icon)
+
+        #subrow = row.row(align=True)
+        #subrow.prop(self, "use_filter_empty", toggle=True)
+        #icon = 'ZOOM_OUT' if self.use_filter_empty_reverse else 'ZOOM_IN'
+        #subrow.prop(self, "use_filter_empty_reverse", text="", icon=icon)
+
+        row = layout.row(align=True)
+        row.label(text="Order by:")
+        row.prop(self, "use_order_name", toggle=True)
+        #row.prop(self, "use_order_importance", toggle=True)
+        icon = 'TRIA_UP' if self.use_filter_orderby_invert else 'TRIA_DOWN'
+        row.prop(self, "use_filter_orderby_invert", text="", icon=icon)
+
+    def filter_items(self, context, data, propname):
+        # This function gets the collection property (as the usual tuple (data, propname)), and must return two lists:
+        # * The first one is for filtering, it must contain 32bit integers were self.bitflag_filter_item marks the
+        #   matching item as filtered (i.e. to be shown), and 31 other bits are free for custom needs. Here we use the
+        #   first one to mark VGROUP_EMPTY.
+        # * The second one is for reordering, it must return a list containing the new indices of the items (which
+        #   gives us a mapping org_idx -> new_idx).
+        # Please note that the default UI_UL_list defines helper functions for common tasks (see its doc for more info).
+        # If you do not make filtering and/or ordering, return empty list(s) (this will be more efficient than
+        # returning full lists doing nothing!).
+        items = getattr(data, propname)
+        
+        #if self.armature == None:
+        #    target_ob, source_ob = common.get_target_and_source_ob(context)
+        #    armature_ob = target_ob.find_armature() or source_ob.find_armature()
+        #    self.armature = armature_ob and armature_ob.data or False
+        #
+        #if not self.local_bone_names:
+        #    target_ob, source_ob = common.get_target_and_source_ob(context)
+        #    bone_data_ob = (target_ob.get("LocalBoneData:0") and target_ob) or (source_ob.get("LocalBoneData:0") and source_ob) or None
+        #    if bone_data_ob:
+        #        local_bone_data = model_export.CNV_OT_export_cm3d2_model.local_bone_data_parser(model_export.CNV_OT_export_cm3d2_model.indexed_data_generator(bone_data_ob, prefix="LocalBoneData:"))
+        #        self.local_bone_names = [ bone['name'] for bone in local_bone_data ]
+        
+        if not self.cached_values:
+            self.cached_values = { item.name: item.value for item in items }
+        #vgroups = [ getattr(data, 'matched_vgroups')[item.index][0]   for item in items ]
+        helper_funcs = bpy.types.UI_UL_list
+
+        # Default return values.
+        flt_flags = []
+        flt_neworder = []
+
+        # Pre-compute of vgroups data, CPU-intensive. :/
+        #vgroups_empty = self.filter_items_empty_vgroups(context, vgroups)
+
+        # Filtering by name
+        if self.filter_name:
+            flt_flags = helper_funcs.filter_items_by_name(self.filter_name, self.bitflag_filter_item, items, "name",
+                                                          reverse=self.use_filter_name_reverse)
+        if not flt_flags:
+            flt_flags = [self.bitflag_filter_item] * len(items)
+        
+        #for idx, vg in enumerate(items):
+        #    # Filter by deform.
+        #    if self.use_filter_deform:
+        #        flt_flags[idx] |= self.VGROUP_DEFORM
+        #        if self.use_filter_deform:
+        #            if self.armature and self.armature.get(vg.name):
+        #                if not self.use_filter_deform_reverse:
+        #                    flt_flags[idx] &= ~self.VGROUP_DEFORM
+        #            elif bone_data_ob and (vg.name in self.local_bone_names):
+        #                if not self.use_filter_deform_reverse:
+        #                    flt_flags[idx] &= ~self.VGROUP_DEFORM
+        #            elif self.use_filter_deform_reverse or (not self.armature and not self.local_bone_names):
+        #                flt_flags[idx] &= ~self.VGROUP_DEFORM
+        #    else:
+        #        flt_flags[idx] &= ~self.VGROUP_DEFORM
+        #
+        #    # Filter by emptiness.
+        #    #if vgroups_empty[vg.index][0]:
+        #    #    flt_flags[idx] |= self.VGROUP_EMPTY
+        #    #    if self.use_filter_empty and self.use_filter_empty_reverse:
+        #    #        flt_flags[idx] &= ~self.bitflag_filter_item
+        #    #elif self.use_filter_empty and not self.use_filter_empty_reverse:
+        #    #    flt_flags[idx] &= ~self.bitflag_filter_item
+        
+        # Reorder by name or average weight.
+        if self.use_order_name:
+            flt_neworder = helper_funcs.sort_items_by_name(items, "name")
+        #elif self.use_order_importance:
+        #    _sort = [(idx, vgroups_empty[vg.index][1]) for idx, vg in enumerate(vgroups)]
+        #    flt_neworder = helper_funcs.sort_items_helper(_sort, lambda e: e[1], True)
+
+        return flt_flags, flt_neworder
+
+
+
+@compat.BlRegister()
+class CNV_SelectorItem(bpy.types.PropertyGroup):
+    bl_label       = "CNV_SelectorItem"
+    bl_region_type = 'WINDOW'
+    bl_space_type  = 'PROPERTIES'
+
+    name:      bpy.props.StringProperty (name="Name"    , default="Unknown")
+    value:     bpy.props.BoolProperty   (name="Value"   , default=True     )
+    index:     bpy.props.IntProperty    (name="Index"   , default=-1       )
+    preferred: bpy.props.BoolProperty   (name="Prefered", default=True     )
+    icon:      bpy.props.StringProperty (name="Icon"    , default='NONE'   )
+
+    filter0:   bpy.props.BoolProperty   (name="Filter 0", default=False    )
+    filter1:   bpy.props.BoolProperty   (name="Filter 1", default=False    )
+    filter2:   bpy.props.BoolProperty   (name="Filter 2", default=False    )
+    filter3:   bpy.props.BoolProperty   (name="Filter 3", default=False    )
+
+
+
+
+
+# luvoid : for loop helper returns values with matching keys
+def values_of_matched_keys(dict1, dict2):
+    value_list = []
+    items1 = dict1.items()
+    items2 = dict2.items()
+    if len(items1) <= len(items2): 
+        items1.reverse()
+        for k1, v1 in items1:
+            for i in range(len(items2)-1, 0-1, -1):
+                k2, v2 = items2[i]
+                if k1 == k2:
+                    value_list.append((v1,v2))
+                    del items2[i]
+    else:
+        items2.reverse()
+        for k2, v2 in items2:
+            for i in range(len(items1)-1, 0-1, -1):
+                k1, v1 = items1[i]
+                if k1 == k2:
+                    value_list.append((v1,v2))
+                    del items1[i]
+    
+    value_list.reverse()
+    return value_list
+
+
+# luvoid : helper to easily get source and target objects
+def get_target_and_source_ob(context, copyTarget=False, copySource=False):
+    target_ob = None
+    source_ob = None
+    target_original_ob = None
+    source_original_ob = None
+
+    target_original_ob = context.object
+    if copyTarget:
+        target_ob = target_original_ob.copy()
+        target_ob.data = target_original_ob.data.copy()
+    else:
+        target_ob = target_original_ob
+
+    for ob in context.selected_objects:
+        if ob != target_ob:
+            source_original_ob = ob
+            break
+    
+    if copySource:
+        source_ob = source_original_ob.copy()
+        source_ob.data = source_original_ob.data.copy()
+    else:
+        source_ob = source_original_ob
+    
+    if copyTarget:
+        if copySource:
+            return target_ob, source_ob, target_original_ob, source_original_ob
+        else:
+            return target_ob, source_ob, target_original_ob
+    elif copySource:
+        return  target_ob, source_ob, source_original_ob
+    else:
+        return  target_ob, source_ob

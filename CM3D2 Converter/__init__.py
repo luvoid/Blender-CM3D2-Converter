@@ -4,7 +4,7 @@
 bl_info = {
     "name": "CM3D2 Converter",
     "author": "@saidenka_cm3d2, @trzrz, @luvoid",
-    "version": ("luv", 2020, 11, "8c"),
+    "version": ("luv", 2021, 2, 14),
     "blender": (2, 80, 0),
     "location": "ファイル > インポート/エクスポート > CM3D2 Model (.model)",
     "description": "カスタムメイド3D2/カスタムオーダーメイド3D2専用ファイルのインポート/エクスポートを行います",
@@ -56,6 +56,7 @@ if "bpy" in locals():
     imp.reload(misc_VIEW3D_MT_pose_apply)
     imp.reload(misc_VIEW3D_PT_tools_weightpaint)
     imp.reload(misc_VIEW3D_PT_tools_mesh_shapekey)
+    imp.reload(misc_DOPESHEET_MT_editor_menus)
 
 else:
     from . import compat
@@ -96,6 +97,7 @@ else:
     from . import misc_VIEW3D_MT_pose_apply
     from . import misc_VIEW3D_PT_tools_weightpaint
     from . import misc_VIEW3D_PT_tools_mesh_shapekey
+    from . import misc_DOPESHEET_MT_editor_menus
 
 import bpy, os.path, bpy.utils.previews
 
@@ -154,7 +156,7 @@ class AddonPreferences(bpy.types.AddonPreferences):
     new_mate_rimcolor = bpy.props.FloatVectorProperty(name="_RimColor", default=(0.5, 0.5, 0.5, 1), min=0, max=1, soft_min=0, soft_max=1, step=10, precision=2, subtype='COLOR', size=4)
     new_mate_outlinecolor = bpy.props.FloatVectorProperty(name="_OutlineColor", default=(0, 0, 0, 1), min=0, max=1, soft_min=0, soft_max=1, step=10, precision=2, subtype='COLOR', size=4)
 
-    new_mate_shininess = bpy.props.FloatProperty(name="_Shininess", default=0, min=-100, max=100, soft_min=-100, soft_max=100, step=1, precision=2)
+    new_mate_shininess  = bpy.props.FloatProperty(name="_Shininess", default=0, min=-100, max=100, soft_min=-100, soft_max=100, step=1, precision=2)
     new_mate_outlinewidth = bpy.props.FloatProperty(name="_OutlineWidth", default=0.0015, min=-100, max=100, soft_min=-100, soft_max=100, step=1, precision=2)
     new_mate_rimpower = bpy.props.FloatProperty(name="_RimPower", default=25, min=-100, max=100, soft_min=-100, soft_max=100, step=1, precision=2)
     new_mate_rimshift = bpy.props.FloatProperty(name="_RimShift", default=0, min=-100, max=100, soft_min=-100, soft_max=100, step=1, precision=2)
@@ -165,6 +167,23 @@ class AddonPreferences(bpy.types.AddonPreferences):
     new_mate_ztest = bpy.props.FloatProperty(name="_ZTest", default=4, min=0, max=8, soft_min=0, soft_max=8, step=1)
     new_mate_ztest2 = bpy.props.FloatProperty(name="_ZTest2", default=1, min=0, max=1, soft_min=0, soft_max=1, step=1)
     new_mate_ztest2alpha = bpy.props.FloatProperty(name="_ZTest2Alpha", default=0.8, min=0, max=1, soft_min=0, soft_max=1, step=1, precision=2)
+
+    bone_display_type = bpy.props.EnumProperty(
+        items=[
+            ('OCTAHEDRAL', "Octahedral", "Display bones as octahedral shape (default)."                            ),
+            ('STICK'     , "Stick"     , "Display bones as simple 2D lines with dots."                             ),
+            ('BBONE'     , "B-Bone"    , "Display bones as boxes, showing subdivision and B-Splines."              ),
+            ('ENVELOPE'  , "Envelope"  , "Display bones as extruded spheres, showing deformation influence volume."),
+            ('WIRE'      , "Wire"      , "Display bones as thin wires, showing subdivision and B-Splines."         ),
+        ],
+        name="Display Type",
+        default='STICK',
+    )
+    show_bone_names         = bpy.props.BoolProperty(name="Show Bone Names"       , default=False, description="Display bone names"                     )
+    show_bone_axes          = bpy.props.BoolProperty(name="Show Bone Axes"        , default=False, description="Display bone axes"                      )
+    show_bone_custom_shapes = bpy.props.BoolProperty(name="Show Bone Shapes"      , default=True , description="Display bones with their custom shapes" )
+    show_bone_group_colors  = bpy.props.BoolProperty(name="Show Bone Group Colors", default=True , description="Display bone group colors"              )
+    show_bone_in_front      = bpy.props.BoolProperty(name="Show Bones in Front"   , default=True , description="Make the object draw in front of others")
 
     def draw(self, context):
         if compat.IS_LEGACY:
@@ -226,6 +245,17 @@ class AddonPreferences(bpy.types.AddonPreferences):
         row.prop(self, 'new_mate_rimshift', icon='ARROW_LEFTRIGHT')
         row.prop(self, 'new_mate_hirate')
         row.prop(self, 'new_mate_hipow')
+
+        box = self.layout.box()
+        box.label(text="Default Armature Settings", icon='ARMATURE_DATA')
+        box.use_property_split = True
+        box.prop(self, "bone_display_type", text="Display As")
+        flow = box.grid_flow(row_major=False, columns=0, even_columns=False, even_rows=False, align=True)
+        col = flow.column(); col.prop(self, "show_bone_names",         text="Names"       )
+        col = flow.column(); col.prop(self, "show_bone_axes",          text="Axes"        )
+        col = flow.column(); col.prop(self, "show_bone_custom_shapes", text="Shapes"      )
+        col = flow.column(); col.prop(self, "show_bone_group_colors",  text="Group Colors")
+        col = flow.column(); col.prop(self, "show_bone_in_front",      text="In Front"    )
 
         box = self.layout.box()
         box.label(text="各操作の初期パラメータ", icon='MATERIAL')
@@ -313,6 +343,12 @@ def register():
     bpy.types.TEXT_HT_header.append(misc_TEXT_HT_header.menu_func)
     bpy.types.VIEW3D_MT_pose_apply.append(misc_VIEW3D_MT_pose_apply.menu_func)
 
+    setattr(bpy.types.Object, 'cm3d2_bone_morph',  bpy.props.PointerProperty(type=misc_DATA_PT_context_arm.CNV_PG_cm3d2_bone_morph ))
+    setattr(bpy.types.Object, 'cm3d2_wide_slider', bpy.props.PointerProperty(type=misc_DATA_PT_context_arm.CNV_PG_cm3d2_wide_slider))
+
+    bpy.types.DOPESHEET_MT_editor_menus.append(misc_DOPESHEET_MT_editor_menus.menu_func)
+    bpy.types.GRAPH_MT_editor_menus.append(misc_DOPESHEET_MT_editor_menus.menu_func)
+
     system = compat.get_system(bpy.context)
     if hasattr(system, 'use_international_fonts') and not system.use_international_fonts:
         system.use_international_fonts = True
@@ -392,6 +428,14 @@ def unregister():
     bpy.types.OBJECT_PT_transform.remove(misc_OBJECT_PT_transform.menu_func)
     bpy.types.TEXT_HT_header.remove(misc_TEXT_HT_header.menu_func)
     bpy.types.VIEW3D_MT_pose_apply.remove(misc_VIEW3D_MT_pose_apply.menu_func)
+
+    if hasattr(bpy.types.Object, 'cm3d2_bone_morph'):
+        delattr(bpy.types.Object, 'cm3d2_bone_morph')
+    if hasattr(bpy.types.Object, 'cm3d2_wide_slider'):
+        delattr(bpy.types.Object, 'cm3d2_wide_slider')
+
+    bpy.types.DOPESHEET_MT_editor_menus.remove(misc_DOPESHEET_MT_editor_menus.menu_func)
+    bpy.types.GRAPH_MT_editor_menus.remove(misc_DOPESHEET_MT_editor_menus.menu_func)
 
     for pcoll in common.preview_collections.values():
         bpy.utils.previews.remove(pcoll)

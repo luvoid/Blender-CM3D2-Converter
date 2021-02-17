@@ -39,7 +39,7 @@ def menu_func(self, context):
             name = "Material:" + str(i)
             if name in text_keys:
                 sub_row = row.row(align=True)
-                sub_row.scale_x = 0.5
+                sub_row.scale_x = 0.75
                 sub_row.operator('text.show_text', text=str(i)).name = name
             else:
                 pass_count += 1
