@@ -239,13 +239,13 @@ class CNV_OT_align_to_base_bone(bpy.types.Operator):
             self.from_armature(ob, arm_ob.data, base_bone_name)
 
         if self.is_preserve_mesh:
-            bm = bmesh.new(use_operators=False)
-            bm.from_mesh(ob.data)
-            bm.transform(compat.mul(ob.matrix_basis.inverted(), old_basis))
-            bm.to_mesh(ob.data)
+            new_basis = ob.matrix_basis.copy()
+            ob.matrix_basis = compat.mul(new_basis.inverted(), old_basis)
+            bpy.ops.object.transform_apply(location=True, rotation=True, scale=False)
+            ob.matrix_basis = new_basis
 
 
         return {'FINISHED'}
 
-        
+
 
