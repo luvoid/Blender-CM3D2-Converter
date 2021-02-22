@@ -77,6 +77,18 @@ def write_str(file, raw_str):
             break
     file.write(raw_str.encode('utf-8'))
 
+def pack_str(buffer, raw_str):
+    b_str = format(len(raw_str.encode('utf-8')), 'b')
+    for i in range(9):
+        if 7 < len(b_str):
+            buffer = buffer + struct.pack('<B', int("1" + b_str[-7:], 2))
+            b_str = b_str[:-7]
+        else:
+            buffer = buffer + struct.pack('<B', int(b_str, 2))
+            break
+    buffer = buffer + raw_str.encode('utf-8')
+    return buffer
+
 
 # CM3D2専用ファイル用の文字列読み込み
 def read_str(file, total_b=""):

@@ -1641,6 +1641,8 @@ class DATA_PT_cm3d2_sliders(bpy.types.Panel):
         op = row.operator("object.cleanup_scale_bones"   , text="Cleanup Scale Bones", icon=compat.icon('X'              ))
 
 
+
+
 @compat.BlRegister()
 class DATA_PT_cm3d2_body_sliders(bpy.types.Panel):
     bl_space_type  = 'PROPERTIES'
@@ -1657,6 +1659,7 @@ class DATA_PT_cm3d2_body_sliders(bpy.types.Panel):
 
     def draw(self, context):
         morph = context.object.cm3d2_bone_morph
+        self.layout.operator('object.save_cm3d2_body_sliders_to_menu', icon=compat.icon('COPYDOWN'))
 
         self.layout.use_property_split = True
 
@@ -1841,5 +1844,85 @@ class CNV_OT_cleanup_scale_bones(bpy.types.Operator):
                     old_vgroup = vgroups.get(old_name)
                     if old_vgroup:
                         old_vgroup.name = new_name
+
+        return {'FINISHED'}
+
+
+@compat.BlRegister()
+class CNV_OT_save_cm3d2_body_sliders_to_menu(bpy.types.Operator):
+    bl_idname      = 'object.save_cm3d2_body_sliders_to_menu'
+    bl_label       = "Save CM3D2 Body Sliders to Menu"
+    bl_description = "Remove scale bones from the active armature object"
+    bl_options     = {'REGISTER', 'UNDO'}
+
+    is_overwrite : bpy.props.BoolProperty(name="Overwrite Existing", default=True)
+
+    @classmethod
+    def poll(cls, context):
+        ob = context.object
+        if ob:
+            arm = ob.data
+        else:
+            arm = None
+        has_arm  = arm and isinstance(arm, bpy.types.Armature)
+        return has_arm
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+    def draw(self, context):
+        self.layout.prop(self, 'is_overwrite')
+        if self.is_overwrite:
+            self.layout.label(text="Any existing data will be overwritten", icon=compat.icon('ERROR'))
+
+    def execute(self, context):
+        ob = context.object
+        menu_file_data = ob.cm3d2_menu_file_data
+        morph = ob.cm3d2_bone_morph
+
+        def add_menu_prop_command(prop_name):
+            menu_file_data.parse_list(
+                ["prop",
+                    prop_name,
+                    str(int( getattr(morph, prop_name) ))
+                ]
+            )
+
+        if self.is_overwrite:
+            menu_file_data.clear()
+
+            menu_file_data.version     = 1000
+            menu_file_data.path        = os.path.relpath(bpy.data.filepath, start=bpy.path.abspath("//.."))
+            menu_file_data.name        = ob.name + "　Body"
+            menu_file_data.category    = "set_body"
+            menu_file_data.description = "Generated in blender using body sliders"
+                                                                                            
+            menu_file_data.parse_list(["メニューフォルダ", "system"                                 ])                               
+            menu_file_data.parse_list(["category", "set_body"                               ])
+            menu_file_data.parse_list(["priority", "100"                                    ])
+            menu_file_data.parse_list(["icons"   , "_i_set_body_1_.tex"                     ])
+            menu_file_data.parse_list(["属性追加"    , "クリックしても選択状態にしない"                        ])                      
+            menu_file_data.parse_list(["name"    , menu_file_data.name                      ])
+            menu_file_data.parse_list(["setumei" , "Generated in blender using body sliders"])
+
+        add_menu_prop_command('HeadX'     )
+        add_menu_prop_command('HeadY'     )
+        add_menu_prop_command('DouPer'    )
+        add_menu_prop_command('sintyou'   )
+        add_menu_prop_command('BreastSize')
+        add_menu_prop_command('MuneTare'  )
+        add_menu_prop_command('MuneUpDown')
+        add_menu_prop_command('MuneYori'  )
+        add_menu_prop_command('west'      )
+        add_menu_prop_command('Hara'      )
+        add_menu_prop_command('kata'      )
+        add_menu_prop_command('ArmL'      )
+        add_menu_prop_command('UdeScl'    )
+        add_menu_prop_command('KubiScl'   )
+        add_menu_prop_command('koshi'     )
+        add_menu_prop_command('RegFat'    )
+        add_menu_prop_command('RegMeet'   )
+
+        self.report(type={'INFO'}, message="Successfully saved properties to menu file data in Properties > Object Tab > CM3D2 Menu File")
 
         return {'FINISHED'}
