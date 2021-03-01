@@ -1877,7 +1877,7 @@ class CNV_OT_save_cm3d2_body_sliders_to_menu(bpy.types.Operator):
 
     def execute(self, context):
         ob = context.object
-        menu_file_data = ob.cm3d2_menu_file_data
+        menu_file_data = ob.cm3d2_menu
         morph = ob.cm3d2_bone_morph
 
         def add_menu_prop_command(prop_name):

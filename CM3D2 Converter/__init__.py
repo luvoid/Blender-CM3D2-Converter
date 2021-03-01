@@ -4,7 +4,7 @@
 bl_info = {
     "name": "CM3D2 Converter",
     "author": "@saidenka_cm3d2, @trzrz, @luvoid",
-    "version": ("luv", 2021, 2, 21),
+    "version": ("luv", 2021, 2, 28),
     "blender": (2, 80, 0),
     "location" : "File > Import/Export > CM3D2 Model (.model)",
     "description" : "A plugin dedicated to the editing, importing, and exporting of CM3D2 .model Files.",
@@ -348,9 +348,9 @@ def register():
     bpy.types.TEXT_HT_header.append(misc_TEXT_HT_header.menu_func)
     bpy.types.VIEW3D_MT_pose_apply.append(misc_VIEW3D_MT_pose_apply.menu_func)
 
-    setattr(bpy.types.Object, 'cm3d2_bone_morph'    , bpy.props.PointerProperty(type=misc_DATA_PT_context_arm.CNV_PG_cm3d2_bone_morph ))
-    setattr(bpy.types.Object, 'cm3d2_wide_slider'   , bpy.props.PointerProperty(type=misc_DATA_PT_context_arm.CNV_PG_cm3d2_wide_slider))
-    setattr(bpy.types.Object, 'cm3d2_menu_file_data', bpy.props.PointerProperty(type=menu_file.CNV_PG_CM3D2MenuFileData               ))
+    setattr(bpy.types.Object, 'cm3d2_bone_morph' , bpy.props.PointerProperty(type=misc_DATA_PT_context_arm.CNV_PG_cm3d2_bone_morph ))
+    setattr(bpy.types.Object, 'cm3d2_wide_slider', bpy.props.PointerProperty(type=misc_DATA_PT_context_arm.CNV_PG_cm3d2_wide_slider))
+    setattr(bpy.types.Object, 'cm3d2_menu'       , bpy.props.PointerProperty(type=menu_file.OBJECT_PG_CM3D2Menu                    ))
     
     bpy.types.DOPESHEET_MT_editor_menus.append(misc_DOPESHEET_MT_editor_menus.menu_func)
     bpy.types.GRAPH_MT_editor_menus.append(misc_DOPESHEET_MT_editor_menus.menu_func)
@@ -440,8 +440,8 @@ def unregister():
         delattr(bpy.types.Object, 'cm3d2_bone_morph')
     if hasattr(bpy.types.Object, 'cm3d2_wide_slider'):
         delattr(bpy.types.Object, 'cm3d2_wide_slider')
-    if hasattr(bpy.types.Object, 'cm3d2_menu_file_data'):
-        delattr(bpy.types.Object, 'cm3d2_menu_file_data')
+    if hasattr(bpy.types.Object, 'cm3d2_menu'):
+        delattr(bpy.types.Object, 'cm3d2_menu')
 
     bpy.types.DOPESHEET_MT_editor_menus.remove(misc_DOPESHEET_MT_editor_menus.menu_func)
     bpy.types.GRAPH_MT_editor_menus.remove(misc_DOPESHEET_MT_editor_menus.menu_func)
