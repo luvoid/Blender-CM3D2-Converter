@@ -4,7 +4,6 @@ import bpy
 import bmesh
 import mathutils
 import traceback
-import multiprocessing 
 from . import common
 from . import compat
 from . import model_export
@@ -431,8 +430,6 @@ class CNV_OT_quick_shape_key_transfer(shape_key_transfer_op, bpy.types.Operator)
     near_vert_indexs = []
     my_iter = None
 
-    pool = None
-
     @classmethod
     def poll(cls, context):
         obs = context.selected_objects
@@ -468,7 +465,7 @@ class CNV_OT_quick_shape_key_transfer(shape_key_transfer_op, bpy.types.Operator)
         context.window_manager.progress_begin( 0, len(source_me.shape_keys.key_blocks) * len(target_me.vertices) )
         context.window_manager.progress_update( 0 )
     
-    def old_loop(self, context):
+    def loop(self, context):
         source_shape_key_index, target_shape_key, binded_shape_key_data, source_shape_key_data, target_shape_key_data = next(self.my_iter, (-1, None, None, None, None))
         #print(source_shape_key_index, target_shape_key, binded_shape_key_data, source_shape_key_data, target_shape_key_data)
         if not target_shape_key:
@@ -510,65 +507,11 @@ class CNV_OT_quick_shape_key_transfer(shape_key_transfer_op, bpy.types.Operator)
             self.is_shapeds[target_shape_key.name] = is_changed
         self.my_iter.update() # only call this when done with current iteration.
     
-    def loop(self, context):
-        source_shape_key_index, target_shape_key, binded_shape_key_data, source_shape_key_data, target_shape_key_data = next(self.my_iter, (-1, None, None, None, None))
-        #print(source_shape_key_index, target_shape_key, binded_shape_key_data, source_shape_key_data, target_shape_key_data)
-        if not target_shape_key:
-            context.window_manager.progress_end()
-            return True
-
-        progress = source_shape_key_index * len(self.target_ob.data.vertices)
-
-        near_vert_indices = multiprocessing.Array('i', self.near_vert_indexs, lock=True)
-
-        #global __file__
-        #pre_file = __file__
-        #import sys
-        #sys.executable = bpy.app.binary_path_python
-        #addon_path = bpy.utils.user_resource('SCRIPTS', "addons")
-        #this_addon_path = bpy.path.abspath("//CM3D2 Converter", start=addon_path)
-        #this_script_path = bpy.path.abspath("//misc_MESH_MT_shape_key_specials.py", start=this_addon_path)
-        #__file__ = this_script_path
-
-        _v = lambda v, i: ( v[self.near_vert_indexs[i]].co[0], v[self.near_vert_indexs[i]].co[1], v[self.near_vert_indexs[i]].co[2] )
-        args = [ 
-            ( 
-                _v(binded_shape_key_data, i), 
-                _v(source_shape_key_data, i), 
-                _v(target_shape_key_data, i) 
-            ) 
-            for i in range( len(self.target_ob.data.vertices) ) 
-        ]
-        pool = multiprocessing.Pool(self.step_size)
-        results = pool.map(quick_shape_vertex, args)
-
-        #__file__ = pre_file
-        #del sys
-
-        if not self.is_shapeds.get(target_shape_key.name):
-            self.is_shapeds[target_shape_key.name] = (True in results)
-        self.my_iter.update() # only call this when done with current iteration.
-
     def cleanup(self, context):
         self.near_vert_indexs = []
         self.my_iter.free()
         self.my_iter = None
         shape_key_transfer_op.cleanup(self, context)
-
-def quick_shape_vertex(bound_vert, source_vert, target_vert):
-    delta_vert = (
-        source_vert[0] - bound_vert[0],
-        source_vert[1] - bound_vert[1],
-        source_vert[2] - bound_vert[2]
-    )
-    
-    if abs(delta_vert[0]) > 2e-126 and abs(delta_vert[1]) > 2e-126 and abs(delta_vert[2]) > 2e-126: # 2e-126 is the smallest float != 0
-        target_vert += delta_vert
-        return (
-            target_vert[0] + delta_vert[0],
-            target_vert[1] + delta_vert[1],
-            target_vert[2] + delta_vert[2]
-        )
 
 
 
