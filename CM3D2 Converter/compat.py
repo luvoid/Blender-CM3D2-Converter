@@ -598,78 +598,69 @@ def get_tex_image(context, node_name=None):
 
 
 
-BL29_TO_LEGACY_SUBTYPE = {
-    # Scalar subtypes       
-    #'PIXEL'           : 'PIXEL'           ,
-    #'UNSIGNED'        : 'UNSIGNED'        ,
-    #'PERCENTAGE'      : 'PERCENTAGE'      ,
-    #'FACTOR'          : 'FACTOR'          ,
-    #'ANGLE'           : 'ANGLE'           ,
-    #'TIME'            : 'TIME'            ,
-    #'DISTANCE'        : 'DISTANCE'        ,
-    'DISTANCE_CAMERA' : 'DISTANCE'        ,
-    'TEMPERATURE'     : None              ,
-
-    # Vector subtypes
-    #'COLOR'           : 'COLOR'           ,
-    #'TRANSLATION'     : 'TRANSLATION'     ,
-    #'DIRECTION'       : 'DIRECTION'       ,
-    #'VELOCITY'        : 'VELOCITY'        ,
-    #'ACCELERATION'    : 'ACCELERATION'    ,
-    #'MATRIX'          : 'MATRIX'          ,
-    #'EULER'           : 'EULER'           ,
-    #'QUATERNION'      : 'QUATERNION'      ,
-    #'AXISANGLE'       : 'AXISANGLE'       ,
-    #'XYZ'             : 'XYZ'             ,
-    #'COLOR_GAMMA'     : 'COLOR_GAMMA'     ,
-    #'LAYER'           : 'LAYER'           ,
-    'LAYER_MEMBER'    : 'LAYER'           ,
-    'XYZ_LENGTH'      : 'XYZ'             ,
-    'COORDINATES'     : 'XYZ'             ,
-    
-    # Other
-    'POWER'           : None              ,
-    'NONE'            : None              ,
-}
+# Property Subtypes
+# Blender 2.91 = [‘NONE’, ‘FILEPATH’ , ‘DIRPATH’ , ‘FILENAME’, ‘BYTESTRING’, ‘PASSWORD’, ‘PIXEL’, ‘UNSIGNED’, ‘PERCENTAGE’, ‘FACTOR’, ‘ANGLE’, ‘TIME’, ‘DISTANCE’, ‘DISTANCE_CAMERA’, ‘POWER’, ‘TEMPERATURE’, ‘COLOR’, ‘TRANSLATION’, ‘DIRECTION’, ‘VELOCITY’, ‘ACCELERATION’, ‘MATRIX’, ‘EULER’, ‘QUATERNION’, ‘AXISANGLE’, ‘XYZ’, ‘XYZ_LENGTH’, ‘COLOR_GAMMA’, ‘COORDS’     , ‘LAYER’, ‘LAYER_MEMBER’    ]
+# Blender 2.80 = [‘NONE’, ‘FILE_PATH’, ‘DIR_PATH’,                                       ‘PIXEL’, ‘UNSIGNED’, ‘PERCENTAGE’, ‘FACTOR’, ‘ANGLE’, ‘TIME’, ‘DISTANCE’,                                            ‘COLOR’, ‘TRANSLATION’, ‘DIRECTION’,                             ‘MATRIX’, ‘EULER’, ‘QUATERNION’,              ‘XYZ’,               ‘COLOR_GAMMA’, ‘COORDINATES’, ‘LAYER’, ‘LAYER_MEMBERSHIP’]
+# Blender 2.78 = [‘NONE’, ‘FILE_PATH’, ‘DIR_PATH’,                                       ‘PIXEL’, ‘UNSIGNED’, ‘PERCENTAGE’, ‘FACTOR’, ‘ANGLE’, ‘TIME’, ‘DISTANCE’,                                            ‘COLOR’, ‘TRANSLATION’, ‘DIRECTION’,                             ‘MATRIX’, ‘EULER’, ‘QUATERNION’,              ‘XYZ’,               ‘COLOR_GAMMA’, ‘COORDINATES’, ‘LAYER’, ‘LAYER_MEMBERSHIP’]
 
 BL29_TO_BL28_SUBTYPE = {
-    # Scalar subtypes    
-    #'PIXEL'           : 'PIXEL'           ,
-    #'UNSIGNED'        : 'UNSIGNED'        ,
-    #'PERCENTAGE'      : 'PERCENTAGE'      ,
-    #'FACTOR'          : 'FACTOR'          ,
-    #'ANGLE'           : 'ANGLE'           ,
-    #'TIME'            : 'TIME'            ,
-    #'DISTANCE'        : 'DISTANCE'        ,
-    'DISTANCE_CAMERA' : 'DISTANCE'        ,
-    'TEMPERATURE'     : None              ,
-
-    # Vector subtypes
-    #'COLOR'           : 'COLOR'           ,
-    #'TRANSLATION'     : 'TRANSLATION'     ,
-    #'DIRECTION'       : 'DIRECTION'       ,
-    #'VELOCITY'        : 'VELOCITY'        ,
-    #'ACCELERATION'    : 'ACCELERATION'    ,
-    #'MATRIX'          : 'MATRIX'          ,
-    #'EULER'           : 'EULER'           ,
-    #'QUATERNION'      : 'QUATERNION'      ,
-    #'AXISANGLE'       : 'AXISANGLE'       ,
-    #'XYZ'             : 'XYZ'             ,
-    #'COLOR_GAMMA'     : 'COLOR_GAMMA'     ,
-    #'LAYER'           : 'LAYER'           ,
-    #'LAYER_MEMBER'    : 'LAYER_MEMBER'    ,
-    'XYZ_LENGTH'      : 'XYZ'             ,
-    'COORDINATES'     : 'XYZ'             ,
-    
-    # Other
-    'POWER'           : None              ,
-    'NONE'            : None              ,
+    #'NONE'           : 'NONE'            ,
+    'FILEPATH'        : 'FILE_PATH'       ,
+    'DIRPATH'         : 'DIR_PATH'        ,
+    'FILENAME'        : None              ,
+    'BYTESTRING'      : None              ,
+    'PASSWORD'        : None              ,
+    #'PIXEL'          : 'PIXEL'           ,
+    #'UNSIGNED'       : 'UNSIGNED'        ,
+    #'PERCENTAGE'     : 'PERCENTAGE'      ,
+    #'FACTOR'         : 'FACTOR'          ,
+    #'ANGLE'          : 'ANGLE'           ,
+    #'TIME'           : 'TIME'            ,
+    #'DISTANCE'       : 'DISTANCE'        , 
+    'DISTANCE_CAMERA' : 'DISTANCE'        , 
+    'POWER'           : None              , 
+    'TEMPERATURE'     : None              , 
+    #'COLOR'          : 'COLOR'           , 
+    #'TRANSLATION'    : 'TRANSLATION'     , 
+    #'DIRECTION'      : 'DIRECTION'       , 
+    'VELOCITY'        : 'XYZ'             , 
+    'ACCELERATION'    : 'XYZ'             , 
+    #'MATRIX'         : 'MATRIX'          , 
+    #'EULER'          : 'EULER'           , 
+    #'QUATERNION'     : 'QUATERNION'      , 
+    'AXISANGLE'       : 'XYZ'             , 
+    #'XYZ'            : 'XYZ'             , 
+    'XYZ_LENGTH'      : 'XYZ'             , 
+    #'COLOR_GAMMA'    : 'COLOR_GAMMA'     , 
+    'COORDS'          : 'COORDINATES'     , 
+    #'LAYER'          : 'LAYER'           , 
+    'LAYER_MEMBER'    : 'LAYER_MEMBERSHIP', 
 }
 
 def subtype(key):
-    if IS_LEGACY:
-        return BL29_TO_LEGACY_SUBTYPE.get(key, key) or 'NONE'
-    elif bpy.app.version < (2, 91):
+    if bpy.app.version < (2, 91):
         return BL29_TO_BL28_SUBTYPE.get(key, key) or 'NONE'
     return key
 
+
+# Property Units
+# Blender 2.91 = [‘NONE’, ‘LENGTH’, ‘AREA’, ‘VOLUME’, ‘ROTATION’, ‘TIME’, ‘VELOCITY’, ‘ACCELERATION’, ‘MASS’, ‘CAMERA’, ‘POWER’, ‘TEMPERATURE’]
+# Blender 2.80 = [‘NONE’, ‘LENGTH’, ‘AREA’, ‘VOLUME’, ‘ROTATION’, ‘TIME’, ‘VELOCITY’, ‘ACCELERATION’, ‘MASS’, ‘CAMERA’, ‘POWER’]
+# Blender 2.78 = [‘NONE’, ‘LENGTH’, ‘AREA’, ‘VOLUME’, ‘ROTATION’, ‘TIME’, ‘VELOCITY’, ‘ACCELERATION’,         ‘CAMERA’]
+
+BL29_TO_LEGACY_UNIT = {
+    'MASS'        : None,
+    'POWER'       : None,
+    'TEMPERATURE' : None,
+}
+
+BL29_TO_BL28_UNIT = {
+    'TEMPERATURE' : None,
+}
+
+def unit(key):
+    if IS_LEGACY:
+        return BL29_TO_LEGACY_UNIT.get(key, key) or 'NONE'
+    elif bpy.app.version < (2, 91):
+        return BL29_TO_BL28_UNIT.get(key, key) or 'NONE'
+    return key

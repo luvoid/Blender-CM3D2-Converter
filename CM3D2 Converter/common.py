@@ -1068,31 +1068,31 @@ class CNV_UL_generic_selector(bpy.types.UIList):
     expanded_layout = False
 
     # Custom properties, saved with .blend file.
-    use_filter_name_reverse: bpy.props.BoolProperty(
+    use_filter_name_reverse = bpy.props.BoolProperty(
         name="Reverse Name",
         default=False,
         options=set(),
         description="Reverse name filtering",
     )
-    #use_filter_deform: bpy.props.BoolProperty(
+    #use_filter_deform = bpy.props.BoolProperty(
     #    name="Only Deform",
     #    default=True,
     #    options=set(),
     #    description="Only show deforming vertex groups",
     #)
-    #use_filter_deform_reverse: bpy.props.BoolProperty(
+    #use_filter_deform_reverse = bpy.props.BoolProperty(
     #    name="Other",
     #    default=False,
     #    options=set(),
     #    description="Only show non-deforming vertex groups",
     #)
-    #use_filter_empty: bpy.props.BoolProperty(
+    #use_filter_empty = bpy.props.BoolProperty(
     #    name="Filter Empty",
     #    default=False,
     #    options=set(),
     #    description="Whether to filter empty vertex groups",
     #)
-    #use_filter_empty_reverse: bpy.props.BoolProperty(
+    #use_filter_empty_reverse = bpy.props.BoolProperty(
     #    name="Reverse Empty",
     #    default=False,
     #    options=set(),
@@ -1105,18 +1105,18 @@ class CNV_UL_generic_selector(bpy.types.UIList):
             if (getattr(self, name1)):
                 setattr(self, name2, False)
         return _u
-    use_order_name: bpy.props.BoolProperty(
+    use_order_name = bpy.props.BoolProperty(
         name="Name", default=False, options=set(),
         description="Sort groups by their name (case-insensitive)",
         update=_gen_order_update("use_order_name", "use_order_importance"),
     )
-    use_filter_orderby_invert: bpy.props.BoolProperty(
+    use_filter_orderby_invert = bpy.props.BoolProperty(
         name="Order by Invert",
         default=False,
         options=set(),
         description="Invert the sort by order"
     )
-    #use_order_importance: bpy.props.BoolProperty(
+    #use_order_importance = bpy.props.BoolProperty(
     #    name="Importance",
     #    default=False,
     #    options=set(),
@@ -1286,16 +1286,16 @@ class CNV_SelectorItem(bpy.types.PropertyGroup):
     bl_region_type = 'WINDOW'
     bl_space_type  = 'PROPERTIES'
 
-    name:      bpy.props.StringProperty (name="Name"    , default="Unknown")
-    value:     bpy.props.BoolProperty   (name="Value"   , default=True     )
-    index:     bpy.props.IntProperty    (name="Index"   , default=-1       )
-    preferred: bpy.props.BoolProperty   (name="Prefered", default=True     )
-    icon:      bpy.props.StringProperty (name="Icon"    , default='NONE'   )
+    name      = bpy.props.StringProperty (name="Name"    , default="Unknown")
+    value     = bpy.props.BoolProperty   (name="Value"   , default=True     )
+    index     = bpy.props.IntProperty    (name="Index"   , default=-1       )
+    preferred = bpy.props.BoolProperty   (name="Prefered", default=True     )
+    icon      = bpy.props.StringProperty (name="Icon"    , default='NONE'   )
 
-    filter0:   bpy.props.BoolProperty   (name="Filter 0", default=False    )
-    filter1:   bpy.props.BoolProperty   (name="Filter 1", default=False    )
-    filter2:   bpy.props.BoolProperty   (name="Filter 2", default=False    )
-    filter3:   bpy.props.BoolProperty   (name="Filter 3", default=False    )
+    filter0   = bpy.props.BoolProperty   (name="Filter 0", default=False    )
+    filter1   = bpy.props.BoolProperty   (name="Filter 1", default=False    )
+    filter2   = bpy.props.BoolProperty   (name="Filter 2", default=False    )
+    filter3   = bpy.props.BoolProperty   (name="Filter 3", default=False    )
 
 
 

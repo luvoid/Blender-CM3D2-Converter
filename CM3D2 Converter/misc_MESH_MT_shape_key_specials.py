@@ -4,6 +4,7 @@ import bpy
 import bmesh
 import mathutils
 import traceback
+import multiprocessing 
 from . import common
 from . import compat
 from . import model_export
@@ -15,17 +16,30 @@ def menu_func(self, context):
     self.layout.separator()
     sub = self.layout.column()
     self.layout.label(text="CM3D2 Converter", icon_value=icon_id)
-    sub.separator()
-    sub.operator('object.change_base_shape_key', icon='SHAPEKEY_DATA')
-    sub.operator('object.multiply_shape_key', icon=compat.icon('CON_SIZELIKE'))
-    sub.operator('object.blur_shape_key', icon='MOD_SMOOTH')
-    sub.separator()
-    sub.operator('object.copy_shape_key_values', icon='COPYDOWN')
-    sub.separator()
-    sub.operator('object.quick_shape_key_transfer', icon=compat.icon('MOD_DATA_TRANSFER'))
-    sub.operator('object.precision_shape_key_transfer', icon='MOD_MESHDEFORM')
-    sub.operator('object.weighted_shape_key_transfer', icon='MOD_VERTEX_WEIGHT')
-    sub.separator()
+    if not compat.IS_LEGACY:
+        sub.separator()
+        sub.operator('object.change_base_shape_key', icon='SHAPEKEY_DATA')
+        sub.operator('object.multiply_shape_key', icon=compat.icon('CON_SIZELIKE'))
+        sub.operator('object.blur_shape_key', icon='MOD_SMOOTH')
+        sub.separator()
+        sub.operator('object.copy_shape_key_values', icon='COPYDOWN')
+        sub.separator()
+        sub.operator('object.quick_shape_key_transfer', icon=compat.icon('MOD_DATA_TRANSFER'))
+        sub.operator('object.precision_shape_key_transfer', icon='MOD_MESHDEFORM')
+        sub.operator('object.weighted_shape_key_transfer', icon='MOD_VERTEX_WEIGHT')
+        sub.separator()
+    else:
+        sub.separator()
+        sub.operator('object.change_base_shape_key', icon='SHAPEKEY_DATA')
+        sub.operator('object.multiply_shape_key', icon_value=icon_id)
+        sub.operator('object.blur_shape_key', icon_value=icon_id)
+        sub.separator()
+        sub.operator('object.copy_shape_key_values', icon_value=icon_id)
+        sub.separator()
+        sub.operator('object.quick_shape_key_transfer', icon_value=icon_id)
+        sub.operator('object.precision_shape_key_transfer', icon_value=icon_id)
+        sub.operator('object.weighted_shape_key_transfer', icon_value=icon_id)
+        sub.separator()
 
 
 
@@ -184,7 +198,7 @@ class shape_key_transfer_op:
         self.pre_selected = list(context.selected_objects)
         self.target_ob, self.source_ob, self.og_source_ob = common.get_target_and_source_ob(context, copySource=True)
 
-        self.og_source_ob.hide_set(True)
+        compat.set_hide(self.og_source_ob, True)
 
         self._start_time = time.time()
         self._timer = None
@@ -372,7 +386,7 @@ class shape_key_transfer_op:
             compat.set_active(context, self.target_ob)
 
         if self.og_source_ob:
-            self.og_source_ob.hide_set(False)
+            compat.set_hide(self.og_source_ob, False)
 
         source_me = self.source_ob and self.source_ob.data
         if source_me:
@@ -417,6 +431,8 @@ class CNV_OT_quick_shape_key_transfer(shape_key_transfer_op, bpy.types.Operator)
     near_vert_indexs = []
     my_iter = None
 
+    pool = None
+
     @classmethod
     def poll(cls, context):
         obs = context.selected_objects
@@ -452,7 +468,7 @@ class CNV_OT_quick_shape_key_transfer(shape_key_transfer_op, bpy.types.Operator)
         context.window_manager.progress_begin( 0, len(source_me.shape_keys.key_blocks) * len(target_me.vertices) )
         context.window_manager.progress_update( 0 )
     
-    def loop(self, context):
+    def old_loop(self, context):
         source_shape_key_index, target_shape_key, binded_shape_key_data, source_shape_key_data, target_shape_key_data = next(self.my_iter, (-1, None, None, None, None))
         #print(source_shape_key_index, target_shape_key, binded_shape_key_data, source_shape_key_data, target_shape_key_data)
         if not target_shape_key:
@@ -493,12 +509,66 @@ class CNV_OT_quick_shape_key_transfer(shape_key_transfer_op, bpy.types.Operator)
         if not self.is_shapeds.get(target_shape_key.name):
             self.is_shapeds[target_shape_key.name] = is_changed
         self.my_iter.update() # only call this when done with current iteration.
+    
+    def loop(self, context):
+        source_shape_key_index, target_shape_key, binded_shape_key_data, source_shape_key_data, target_shape_key_data = next(self.my_iter, (-1, None, None, None, None))
+        #print(source_shape_key_index, target_shape_key, binded_shape_key_data, source_shape_key_data, target_shape_key_data)
+        if not target_shape_key:
+            context.window_manager.progress_end()
+            return True
+
+        progress = source_shape_key_index * len(self.target_ob.data.vertices)
+
+        near_vert_indices = multiprocessing.Array('i', self.near_vert_indexs, lock=True)
+
+        #global __file__
+        #pre_file = __file__
+        #import sys
+        #sys.executable = bpy.app.binary_path_python
+        #addon_path = bpy.utils.user_resource('SCRIPTS', "addons")
+        #this_addon_path = bpy.path.abspath("//CM3D2 Converter", start=addon_path)
+        #this_script_path = bpy.path.abspath("//misc_MESH_MT_shape_key_specials.py", start=this_addon_path)
+        #__file__ = this_script_path
+
+        _v = lambda v, i: ( v[self.near_vert_indexs[i]].co[0], v[self.near_vert_indexs[i]].co[1], v[self.near_vert_indexs[i]].co[2] )
+        args = [ 
+            ( 
+                _v(binded_shape_key_data, i), 
+                _v(source_shape_key_data, i), 
+                _v(target_shape_key_data, i) 
+            ) 
+            for i in range( len(self.target_ob.data.vertices) ) 
+        ]
+        pool = multiprocessing.Pool(self.step_size)
+        results = pool.map(quick_shape_vertex, args)
+
+        #__file__ = pre_file
+        #del sys
+
+        if not self.is_shapeds.get(target_shape_key.name):
+            self.is_shapeds[target_shape_key.name] = (True in results)
+        self.my_iter.update() # only call this when done with current iteration.
 
     def cleanup(self, context):
         self.near_vert_indexs = []
         self.my_iter.free()
         self.my_iter = None
         shape_key_transfer_op.cleanup(self, context)
+
+def quick_shape_vertex(bound_vert, source_vert, target_vert):
+    delta_vert = (
+        source_vert[0] - bound_vert[0],
+        source_vert[1] - bound_vert[1],
+        source_vert[2] - bound_vert[2]
+    )
+    
+    if abs(delta_vert[0]) > 2e-126 and abs(delta_vert[1]) > 2e-126 and abs(delta_vert[2]) > 2e-126: # 2e-126 is the smallest float != 0
+        target_vert += delta_vert
+        return (
+            target_vert[0] + delta_vert[0],
+            target_vert[1] + delta_vert[1],
+            target_vert[2] + delta_vert[2]
+        )
 
 
 
@@ -852,31 +922,31 @@ class CNV_UL_vgroups_selector(bpy.types.UIList):
     expanded_layout = False
 
     # Custom properties, saved with .blend file.
-    use_filter_name_reverse: bpy.props.BoolProperty(
+    use_filter_name_reverse = bpy.props.BoolProperty(
         name="Reverse Name",
         default=False,
         options=set(),
         description="Reverse name filtering",
     )
-    use_filter_deform: bpy.props.BoolProperty(
+    use_filter_deform = bpy.props.BoolProperty(
         name="Only Deform",
         default=False,
         options=set(),
         description="Only show deforming vertex groups",
     )
-    use_filter_deform_reverse: bpy.props.BoolProperty(
+    use_filter_deform_reverse = bpy.props.BoolProperty(
         name="Other",
         default=False,
         options=set(),
         description="Only show non-deforming vertex groups",
     )
-    use_filter_empty: bpy.props.BoolProperty(
+    use_filter_empty = bpy.props.BoolProperty(
         name="Filter Empty",
         default=False,
         options=set(),
         description="Whether to filter empty vertex groups",
     )
-    use_filter_empty_reverse: bpy.props.BoolProperty(
+    use_filter_empty_reverse = bpy.props.BoolProperty(
         name="Reverse Empty",
         default=False,
         options=set(),
@@ -889,19 +959,19 @@ class CNV_UL_vgroups_selector(bpy.types.UIList):
             if (getattr(self, name1)):
                 setattr(self, name2, False)
         return _u
-    use_order_name: bpy.props.BoolProperty(
+    use_order_name = bpy.props.BoolProperty(
         name="Name", default=False, options=set(),
         description="Sort groups by their name (case-insensitive)",
         update=_gen_order_update("use_order_name", "use_order_importance"),
     )
-    use_order_importance: bpy.props.BoolProperty(
+    use_order_importance = bpy.props.BoolProperty(
         name="Importance",
         default=False,
         options=set(),
         description="Sort groups by their average weight in the mesh",
         update=_gen_order_update("use_order_importance", "use_order_name"),
     )
-    use_filter_orderby_invert: bpy.props.BoolProperty(
+    use_filter_orderby_invert = bpy.props.BoolProperty(
         name="Order by Invert",
         default=False,
         options=set(),
@@ -1094,10 +1164,10 @@ class CNV_UL_vgroups_selector(bpy.types.UIList):
 #    bl_region_type = 'WINDOW'
 #    bl_space_type = 'PROPERTIES'
 #
-#    name : bpy.props.StringProperty(name="Name", default="Unknown")
-#    value: bpy.props.BoolProperty(name="Value", default=True)
-#    index: bpy.props.IntProperty(name="Index", default=-1)
-#    preferred: bpy.props.BoolProperty(name="Prefered", default=True)
+#    name  = bpy.props.StringProperty(name="Name", default="Unknown")
+#    value = bpy.props.BoolProperty(name="Value", default=True)
+#    index = bpy.props.IntProperty(name="Index", default=-1)
+#    preferred = bpy.props.BoolProperty(name="Prefered", default=True)
 
 
 @compat.BlRegister()

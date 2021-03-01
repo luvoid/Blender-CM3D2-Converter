@@ -4,7 +4,6 @@ import mathutils
 import struct
 from . import common
 from . import compat
-from .model_export import CNV_OT_export_cm3d2_model
 
 
 

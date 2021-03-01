@@ -4,7 +4,7 @@
 bl_info = {
     "name": "CM3D2 Converter",
     "author": "@saidenka_cm3d2, @trzrz, @luvoid",
-    "version": ("luv", 2021, 2, 28),
+    "version": ("luv", 2021, 2, "28a"),
     "blender": (2, 80, 0),
     "location" : "File > Import/Export > CM3D2 Model (.model)",
     "description" : "A plugin dedicated to the editing, importing, and exporting of CM3D2 .model Files.",
@@ -105,6 +105,12 @@ else:
     from . import misc_DOPESHEET_MT_editor_menus
 
 import bpy, os.path, bpy.utils.previews
+
+
+# Backwards compatability
+if compat.IS_LEGACY:
+    bl_info["blender"] = (2, 78, 0)
+
 
 
 # アドオン設定
@@ -253,9 +259,13 @@ class AddonPreferences(bpy.types.AddonPreferences):
 
         box = self.layout.box()
         box.label(text="Default Armature Settings", icon='ARMATURE_DATA')
-        box.use_property_split = True
+        if not compat.IS_LEGACY:
+            box.use_property_split = True
         box.prop(self, "bone_display_type", text="Display As")
-        flow = box.grid_flow(row_major=False, columns=0, even_columns=False, even_rows=False, align=True)
+        if compat.IS_LEGACY:
+            flow = box.column_flow(align=True)
+        else:
+            flow = box.grid_flow(align=True)
         col = flow.column(); col.prop(self, "show_bone_names",         text="Names"       )
         col = flow.column(); col.prop(self, "show_bone_axes",          text="Axes"        )
         col = flow.column(); col.prop(self, "show_bone_custom_shapes", text="Shapes"      )

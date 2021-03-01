@@ -10,7 +10,7 @@ from collections import Counter
 from . import common
 from . import compat
 from . import cm3d2_data
-from .misc_OBJECT_PT_transform import CNV_OT_align_to_base_bone
+from .misc_OBJECT_PT_transform import CNV_OT_align_to_cm3d2_base_bone
 
 
 # メインオペレーター
