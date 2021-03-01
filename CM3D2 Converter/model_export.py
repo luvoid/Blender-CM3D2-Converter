@@ -52,7 +52,7 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
 
     is_arrange_name = bpy.props.BoolProperty(name="Delete Duplicate Name Numbers", default=True, description="This will delete the numbers that are added to duplicate names such as [.001]")
 
-    is_align_to_base_bone = bpy.props.BoolProperty(name="Align to Base Bone", default=False, description="Align the object to it's base bone")
+    is_align_to_base_bone = bpy.props.BoolProperty(name="Align to Base Bone", default=True, description="Align the object to it's base bone")
     is_convert_tris = bpy.props.BoolProperty(name="Triangulate", default=True, description="Will triangulate any none triangular faces.")
     is_normalize_weight = bpy.props.BoolProperty(name="Normalize Weights", default=True, description="Will normalize all Vertex Weights so that the sum of the weights on a single vertex is equal to 1.")
     is_clean_vertex_groups = bpy.props.BoolProperty(name="Clean Vertex Groups", default=True, description="Will remove Verticies from Vertex Groups where their weight is zero.")

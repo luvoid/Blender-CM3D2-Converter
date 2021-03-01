@@ -9,7 +9,6 @@ from . import compat
 # メニュー等に項目追加
 def menu_func(self, context):
     ob = context.object
-
     if not ob or ob.type != 'MESH':
         return
 

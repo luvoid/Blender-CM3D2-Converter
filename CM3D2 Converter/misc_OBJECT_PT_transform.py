@@ -103,8 +103,63 @@ class CNV_OT_align_to_cm3d2_base_bone(bpy.types.Operator):
         
         return base_bone_name
 
+    
+    @classmethod
+    def poll(cls, context):
+        ob = context.object
+        if not ob: 
+            return False
+        return cls.find_base_bone(ob) != None
+
+    def invoke(self, context, event):
+        ob = context.object
+
+        # model名とか
+        #ob_names = common.remove_serial_number(ob.name, self.is_arrange_name).split('.')
+        #self.model_name = ob_names[0]
+        #self.base_bone_name = ob_names[1] if len(ob_names) >= 2  else 'Auto'
+
+        # ボーン情報元のデフォルトオプションを取得
+        if "BoneData" in context.blend_data.texts:
+            self.bone_info_mode = 'TEXT'
+        if "BoneData:0" in ob:
+            self.bone_info_mode = 'OBJECT_PROPERTY'
+        arm_ob = ob.find_armature()
+        if (not arm_ob) and (ob.parent and ob.parent.type == 'ARMATURE'):
+            arm_ob = ob.parent
+        if arm_ob:
+            if "BoneData:0" in arm_ob.data:
+                self.bone_info_mode = 'ARMATURE_PROPERTY'
+
+        self.scale = common.preferences().scale
+        return context.window_manager.invoke_props_dialog(self)
+
+    def draw(self, context):
+        ob = context.object
+        arm_ob = ob.find_armature()
+        if (not arm_ob) and (ob.parent and ob.parent.type == 'ARMATURE'):
+            arm_ob = ob.parent
+
+        def _prop_enum_row(layout, data, prop, value, enabled=True):
+            row = layout.row(align=True)
+            name = row.enum_item_name(data, prop, value)
+            icon = row.enum_item_icon(data, prop, value)
+            row.prop_enum(data, prop, value, text=name)
+            row.enabled = enabled
+            return row
+        
+        self.layout.prop(self, 'scale')
+        self.layout.prop(self, 'is_preserve_mesh', icon=compat.icon('MESH_DATA'))
+
+        col = self.layout.column(align=True)
+        col.label(text="Bone Data Source", icon='BONE_DATA')
+        _prop_enum_row(col, self, 'bone_info_mode', 'ARMATURE'         , enabled=bool(arm_ob                                ))
+        _prop_enum_row(col, self, 'bone_info_mode', 'TEXT'             , enabled=bool("BoneData" in context.blend_data.texts))
+        _prop_enum_row(col, self, 'bone_info_mode', 'OBJECT_PROPERTY'  , enabled=bool("BoneData:0" in ob                    ))
+        _prop_enum_row(col, self, 'bone_info_mode', 'ARMATURE_PROPERTY', enabled=bool(arm_ob and "BoneData:0" in arm_ob.data))
+
     @staticmethod
-    def basis_from_bone_data(bone_data, base_bone_name, scale=5) -> mathutils.Matrix:
+    def from_bone_data(ob: bpy.types.Object, bone_data, base_bone_name, scale=5):
         for bone in bone_data:
             if bone['name'] == base_bone_name:
                 #co = bone['co'].copy()
@@ -141,70 +196,18 @@ class CNV_OT_align_to_cm3d2_base_bone(bpy.types.Operator):
 
                 mat = compat.convert_cm_to_bl_space(mat)
                 mat = compat.convert_cm_to_bl_local_space(mat)
-                return mat
+                ob.matrix_basis = mat
+                break
+
 
     @staticmethod
-    def basis_from_armature(arm: bpy.types.Armature, base_bone_name) -> mathutils.Matrix:
+    def from_armature(ob: bpy.types.Object, arm: bpy.types.Armature, base_bone_name):
         base_bone = arm.bones.get(base_bone_name)
         mat = base_bone.matrix_local.copy()
         mat = compat.convert_bl_to_cm_bone_rotation(mat)
         mat = compat.convert_cm_to_bl_local_space(mat)
-        return mat
+        ob.matrix_basis = mat
 
-    @classmethod
-    def poll(cls, context):
-        ob = context.object
-        if not ob: 
-            return False
-        return cls.find_base_bone(ob) != None
-
-    def invoke(self, context, event):
-        ob = context.object
-        arm_ob = ob.find_armature()
-        if (not arm_ob) and (ob.parent and ob.parent.type == 'ARMATURE'):
-            arm_ob = ob.parent
-
-        # model名とか
-        #ob_names = common.remove_serial_number(ob.name, self.is_arrange_name).split('.')
-        #self.model_name = ob_names[0]
-        #self.base_bone_name = ob_names[1] if len(ob_names) >= 2  else 'Auto'
-
-        # ボーン情報元のデフォルトオプションを取得
-        if "BoneData" in context.blend_data.texts:
-            self.bone_info_mode = 'TEXT'
-        if "BoneData:0" in ob:
-            self.bone_info_mode = 'OBJECT_PROPERTY'
-        if arm_ob:
-            self.bone_info_mode = 'ARMATURE'
-            if "BoneData:0" in arm_ob.data:
-                self.bone_info_mode = 'ARMATURE_PROPERTY'
-
-        self.scale = common.preferences().scale
-        return context.window_manager.invoke_props_dialog(self)
-
-    def draw(self, context):
-        ob = context.object
-        arm_ob = ob.find_armature()
-        if (not arm_ob) and (ob.parent and ob.parent.type == 'ARMATURE'):
-            arm_ob = ob.parent
-
-        def _prop_enum_row(layout, data, prop, value, enabled=True):
-            row = layout.row(align=True)
-            name = row.enum_item_name(data, prop, value)
-            icon = row.enum_item_icon(data, prop, value)
-            row.prop_enum(data, prop, value, text=name)
-            row.enabled = enabled
-            return row
-        
-        self.layout.prop(self, 'scale')
-        self.layout.prop(self, 'is_preserve_mesh', icon=compat.icon('MESH_DATA'))
-
-        col = self.layout.column(align=True)
-        col.label(text="Bone Data Source", icon='BONE_DATA')
-        _prop_enum_row(col, self, 'bone_info_mode', 'ARMATURE'         , enabled=bool(arm_ob                                ))
-        _prop_enum_row(col, self, 'bone_info_mode', 'TEXT'             , enabled=bool("BoneData" in context.blend_data.texts))
-        _prop_enum_row(col, self, 'bone_info_mode', 'OBJECT_PROPERTY'  , enabled=bool("BoneData:0" in ob                    ))
-        _prop_enum_row(col, self, 'bone_info_mode', 'ARMATURE_PROPERTY', enabled=bool(arm_ob and "BoneData:0" in arm_ob.data))
 
     def execute(self, context):
         ob = context.object
@@ -230,16 +233,15 @@ class CNV_OT_align_to_cm3d2_base_bone(bpy.types.Operator):
         
         old_basis = ob.matrix_basis.copy()
         if bone_data:
-            new_basis = self.basis_from_bone_data(bone_data, base_bone_name, self.scale)
+            self.from_bone_data(ob, bone_data, base_bone_name, self.scale)
         else:
-            new_basis = self.basis_from_armature(arm_ob.data, base_bone_name)
-        ob.matrix_basis = new_basis
+            self.from_armature(ob, arm_ob.data, base_bone_name)
 
         if self.is_preserve_mesh:
-            bm = bmesh.new(use_operators=False)
-            bm.from_mesh(ob.data)
-            bm.transform(compat.mul(ob.matrix_basis.inverted(), old_basis))
-            bm.to_mesh(ob.data)
+            new_basis = ob.matrix_basis.copy()
+            ob.matrix_basis = compat.mul(new_basis.inverted(), old_basis)
+            bpy.ops.object.transform_apply(location=True, rotation=True, scale=False)
+            ob.matrix_basis = new_basis
 
 
         return {'FINISHED'}
