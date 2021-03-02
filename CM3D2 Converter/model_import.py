@@ -515,7 +515,7 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator, bpy_extras.io_utils.ImportHe
             bpy.ops.object.shade_smooth()
             context.window_manager.progress_update(2.75)
             # オブジェクト変形
-            CNV_OT_align_to_base_bone.from_bone_data(ob=ob, bone_data=bone_data, base_bone_name=model_name2, scale=self.scale)
+            CNV_OT_align_to_cm3d2_base_bone.from_bone_data(ob=ob, bone_data=bone_data, base_bone_name=model_name2, scale=self.scale)
             context.window_manager.progress_update(3)
 
             # 頂点グループ作成
