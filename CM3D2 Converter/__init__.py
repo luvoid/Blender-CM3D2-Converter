@@ -4,7 +4,7 @@
 bl_info = {
     "name": "CM3D2 Converter",
     "author": "@saidenka_cm3d2, @trzrz, @luvoid",
-    "version": ("luv", 2021, 2, "28d"),
+    "version": ("luv", 2021, 2, "28e"),
     "blender": (2, 80, 0),
     "location" : "File > Import/Export > CM3D2 Model (.model)",
     "description" : "A plugin dedicated to the editing, importing, and exporting of CM3D2 .model Files.",
@@ -35,6 +35,7 @@ if "bpy" in locals():
     imp.reload(mate_export)
 
     imp.reload(menu_file)
+    imp.reload(menu_OBJECT_PT_cm3d2_menu)
 
     imp.reload(misc_DATA_PT_context_arm)
     imp.reload(misc_DATA_PT_modifiers)
@@ -79,6 +80,7 @@ else:
     from . import mate_export
 
     from . import menu_file
+    from . import menu_OBJECT_PT_cm3d2_menu
 
     from . import misc_DATA_PT_context_arm
     from . import misc_DATA_PT_modifiers
@@ -140,12 +142,17 @@ class AddonPreferences(bpy.types.AddonPreferences):
     mate_import_path = bpy.props.StringProperty(name=".mate Default Import Path", subtype='FILE_PATH', description="When importing a .mate file. The file selection prompt will begin here.")
     mate_export_path = bpy.props.StringProperty(name=".mate Default Export Path", subtype='FILE_PATH', description="When exporting a .mate file. The file selection prompt will begin here.")
 
+    menu_default_path = bpy.props.StringProperty(name=".menu Default Path"       , subtype='DIR_PATH' , description="If set. The file selection will open here.")
+    menu_import_path  = bpy.props.StringProperty(name=".menu Default Import Path", subtype='FILE_PATH', description="When importing a .menu file. The file selection prompt will begin here.")
+    menu_export_path  = bpy.props.StringProperty(name=".menu Default Export Path", subtype='FILE_PATH', description="When exporting a .menu file. The file selection prompt will begin here.")
+
     is_replace_cm3d2_tex = bpy.props.BoolProperty(name="Search for Tex File", default=True, description="Sets the default of the option to search for tex files")
     default_tex_path0 = bpy.props.StringProperty(name="Tex file search area", subtype='DIR_PATH', description="Search here for tex files")
     default_tex_path1 = bpy.props.StringProperty(name="Tex file search area", subtype='DIR_PATH', description="Search here for tex files")
     default_tex_path2 = bpy.props.StringProperty(name="Tex file search area", subtype='DIR_PATH', description="Search here for tex files")
     default_tex_path3 = bpy.props.StringProperty(name="Tex file search area", subtype='DIR_PATH', description="Search here for tex files")
 
+    
     custom_normal_blend = bpy.props.FloatProperty(name="Custom Normal Blend", default=0.5, min=0, max=1, soft_min=0, soft_max=1, step=3, precision=0)
     skip_shapekey = bpy.props.BoolProperty(name="Skip Unchanged Shape Keys", default=True, description="Shapekeys that are the same as the basis shapekey will not be imported.")
     is_apply_modifiers = bpy.props.BoolProperty(name="Apply Modifiers", default=False)
@@ -205,7 +212,7 @@ class AddonPreferences(bpy.types.AddonPreferences):
         self.layout.prop(self, 'backup_ext', icon='FILE_BACKUP')
 
         box = self.layout.box()
-        box.label(text=".Model File", icon='MESH_ICOSPHERE')
+        box.label(text=".model File", icon='MESH_ICOSPHERE')
         row = box.row()
         row.prop(self, 'scale', icon=compat.icon('ARROW_LEFTRIGHT'))
         row.prop(self, 'is_convert_bone_weight_names', icon='BLENDER')
@@ -217,13 +224,17 @@ class AddonPreferences(bpy.types.AddonPreferences):
         box.prop(self, 'anm_default_path', icon=brws_icon, text="Initial folder when selecting files")
 
         box = self.layout.box()
-        box.label(text="tex file", icon='FILE_IMAGE')
+        box.label(text=".tex File", icon='FILE_IMAGE')
         box.prop(self, 'tex_default_path', icon=brws_icon, text="Initial folder when selecting files")
 
         box = self.layout.box()
-        box.label(text="mate file", icon='MATERIAL')
+        box.label(text=".mate File", icon='MATERIAL')
         box.prop(self, 'mate_unread_same_value', icon='DISCLOSURE_TRI_DOWN')
         box.prop(self, 'mate_default_path', icon=brws_icon, text="Initial folder when selecting files")
+
+        box = self.layout.box()
+        box.label(text=".menu File", icon='COPY_ID')
+        box.prop(self, 'menu_default_path', icon=brws_icon, text="Initial folder when selecting files")
 
         box = self.layout.box()
         box.label(text="Search for Tex File", icon='BORDERMOVE')
@@ -331,8 +342,7 @@ def register():
         # TODO 修正＆動作確認後にコメント解除  (ベイク)
         # レンダーエンジンがCycles指定時のみになる
         # bpy.types.CYCLES_RENDER_PT_bake.append(misc_RENDER_PT_bake.menu_func)
-        # TODO 配置先変更 (アイコン作成)
-        # bpy.types.PARTICLE_PT_render.append(misc_RENDER_PT_render.menu_func)
+        bpy.types.RENDER_PT_context.append(misc_RENDER_PT_render.menu_func)
         bpy.types.VIEW3D_PT_tools_weightpaint_options.append(misc_VIEW3D_PT_tools_weightpaint.menu_func)
 
         # context menu
@@ -420,7 +430,7 @@ def unregister():
 
         # bpy.types.MATERIAL_MT_context_menu.remove(misc_MATERIAL_PT_context_material.menu_func)
         # bpy.types.CYCLES_RENDER_PT_bake.remove(misc_RENDER_PT_bake.menu_func)
-        # bpy.types.PARTICLE_PT_render.remove(misc_RENDER_PT_render.menu_func)
+        bpy.types.RENDER_PT_context.remove(misc_RENDER_PT_render.menu_func)
 
         bpy.types.VIEW3D_PT_tools_weightpaint_options.remove(misc_VIEW3D_PT_tools_weightpaint.menu_func)
         # menu
