@@ -6,10 +6,10 @@ import bpy.app.translations
 from bpy.app.translations import contexts
 
 # max level of verbose messages to print. -1 = Nothing.
-verbosity = 2
+verbosity = 0
 
-is_verify_contexts  = True
-is_check_duplicates = True
+is_verify_contexts  = False
+is_check_duplicates = False
 
 '''
 contexts = {
