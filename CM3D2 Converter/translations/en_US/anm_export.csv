@@ -1,7 +1,7 @@
 "Context","Original","Translation","Comments"
 # encoding UTF-8
 # CNV_OT_export_cm3d2_anm
-"*","CM3D2モーション (.anm)","CM3D2 Motion (.anm)"
+"Operator","CM3D2モーション (.anm)","CM3D2 Motion (.anm)"
 "*","カスタムメイド3D2のanmファイルを保存します","Allows you to export a pose to a .anm file"
 "*","倍率","Scale"
 "*","エクスポート時のメッシュ等の拡大率です","Scale of the .anm at the time of export"
