@@ -36,13 +36,13 @@ class CNV_UL_modifier_selector(common.CNV_UL_generic_selector):
     #force_values = False
     #did_force_values = False
 
-    force_values: bpy.props.BoolProperty(
+    force_values = bpy.props.BoolProperty(
         name="force_values",
         default=False,
         options=set(),
     )
 
-    did_force_values: bpy.props.BoolProperty(
+    did_force_values = bpy.props.BoolProperty(
         name="force_values",
         default=False,
         options=set(),
@@ -60,21 +60,21 @@ class CNV_UL_modifier_selector(common.CNV_UL_generic_selector):
             if (getattr(self, name1)):
                 setattr(self, name2, False)
         return _u
-    use_filter_viewport_visible: bpy.props.BoolProperty(
+    use_filter_viewport_visible = bpy.props.BoolProperty(
         name="Viewport",
         default=False,
         options=set(),
         description="Only enable modifiers visible in viewport",
         update=_gen_visible_update("use_filter_viewport_visible", "use_filter_renderer_visible"),
     )
-    use_filter_renderer_visible: bpy.props.BoolProperty(
+    use_filter_renderer_visible = bpy.props.BoolProperty(
         name="Renderer",
         default=False,
         options=set(),
         description="Only enable modifiers visible in renderer",
         update=_gen_visible_update("use_filter_renderer_visible", "use_filter_viewport_visible"),
     )
-    use_filter_reversed_visible: bpy.props.BoolProperty(
+    use_filter_reversed_visible = bpy.props.BoolProperty(
         name="Reverse Visible Filter",
         default=False,
         options=set(),
@@ -83,7 +83,7 @@ class CNV_UL_modifier_selector(common.CNV_UL_generic_selector):
     )
 
 
-    use_filter_name_reverse: bpy.props.BoolProperty(
+    use_filter_name_reverse = bpy.props.BoolProperty(
         name="Reverse Name",
         default=False,
         options=set(),
@@ -95,12 +95,12 @@ class CNV_UL_modifier_selector(common.CNV_UL_generic_selector):
             if (getattr(self, name1)):
                 setattr(self, name2, False)
         return _u
-    use_order_name: bpy.props.BoolProperty(
+    use_order_name = bpy.props.BoolProperty(
         name="Name", default=False, options=set(),
         description="Sort groups by their name (case-insensitive)",
         update=_gen_order_update("use_order_name", "use_order_importance"),
     )
-    use_filter_orderby_invert: bpy.props.BoolProperty(
+    use_filter_orderby_invert = bpy.props.BoolProperty(
         name="Order by Invert",
         default=False,
         options=set(),
@@ -165,16 +165,16 @@ class CNV_OT_forced_modifier_apply(bpy.types.Operator):
     bl_description = "シェイプキーのあるメッシュのモディファイアでも強制的に適用します"
     bl_options = {'REGISTER', 'UNDO'}
     
-    is_preserve_shape_key_values: bpy.props.BoolProperty(name="Preserve Shape Key Values", default=True , description="Ensure shape key values are not changed")
+    is_preserve_shape_key_values = bpy.props.BoolProperty(name="Preserve Shape Key Values", default=True , description="Ensure shape key values are not changed")
 
     #is_applies = bpy.props.BoolVectorProperty(name="適用するモディファイア", size=32, options={'SKIP_SAVE'})
-    is_applies: bpy.props.CollectionProperty(type=common.CNV_SelectorItem)
-    active_modifier: bpy.props.IntProperty(name="Active Modifier")
+    is_applies = bpy.props.CollectionProperty(type=common.CNV_SelectorItem)
+    active_modifier = bpy.props.IntProperty(name="Active Modifier")
 
-    apply_viewport_visible: bpy.props.BoolProperty(name="Apply Viewport-Visible Modifiers", default=False)
-    apply_renderer_visible: bpy.props.BoolProperty(name="Apply Renderer-Visible Modifiers", default=False)
+    apply_viewport_visible = bpy.props.BoolProperty(name="Apply Viewport-Visible Modifiers", default=False)
+    apply_renderer_visible = bpy.props.BoolProperty(name="Apply Renderer-Visible Modifiers", default=False)
 
-    initial_progress: bpy.props.FloatProperty(name="Progress", default=-1, options={'HIDDEN', 'SKIP_SAVE'})
+    initial_progress = bpy.props.FloatProperty(name="Progress", default=-1, options={'HIDDEN', 'SKIP_SAVE'})
     
     
     @classmethod

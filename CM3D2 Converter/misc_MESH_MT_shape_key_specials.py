@@ -15,17 +15,30 @@ def menu_func(self, context):
     self.layout.separator()
     sub = self.layout.column()
     self.layout.label(text="CM3D2 Converter", icon_value=icon_id)
-    sub.separator()
-    sub.operator('object.change_base_shape_key', icon='SHAPEKEY_DATA')
-    sub.operator('object.multiply_shape_key', icon=compat.icon('CON_SIZELIKE'))
-    sub.operator('object.blur_shape_key', icon='MOD_SMOOTH')
-    sub.separator()
-    sub.operator('object.copy_shape_key_values', icon='COPYDOWN')
-    sub.separator()
-    sub.operator('object.quick_shape_key_transfer', icon=compat.icon('MOD_DATA_TRANSFER'))
-    sub.operator('object.precision_shape_key_transfer', icon='MOD_MESHDEFORM')
-    sub.operator('object.weighted_shape_key_transfer', icon='MOD_VERTEX_WEIGHT')
-    sub.separator()
+    if not compat.IS_LEGACY:
+        sub.separator()
+        sub.operator('object.change_base_shape_key', icon='SHAPEKEY_DATA')
+        sub.operator('object.multiply_shape_key', icon=compat.icon('CON_SIZELIKE'))
+        sub.operator('object.blur_shape_key', icon='MOD_SMOOTH')
+        sub.separator()
+        sub.operator('object.copy_shape_key_values', icon='COPYDOWN')
+        sub.separator()
+        sub.operator('object.quick_shape_key_transfer', icon=compat.icon('MOD_DATA_TRANSFER'))
+        sub.operator('object.precision_shape_key_transfer', icon='MOD_MESHDEFORM')
+        sub.operator('object.weighted_shape_key_transfer', icon='MOD_VERTEX_WEIGHT')
+        sub.separator()
+    else:
+        sub.separator()
+        sub.operator('object.change_base_shape_key', icon='SHAPEKEY_DATA')
+        sub.operator('object.multiply_shape_key', icon_value=icon_id)
+        sub.operator('object.blur_shape_key', icon_value=icon_id)
+        sub.separator()
+        sub.operator('object.copy_shape_key_values', icon_value=icon_id)
+        sub.separator()
+        sub.operator('object.quick_shape_key_transfer', icon_value=icon_id)
+        sub.operator('object.precision_shape_key_transfer', icon_value=icon_id)
+        sub.operator('object.weighted_shape_key_transfer', icon_value=icon_id)
+        sub.separator()
 
 
 
@@ -184,7 +197,7 @@ class shape_key_transfer_op:
         self.pre_selected = list(context.selected_objects)
         self.target_ob, self.source_ob, self.og_source_ob = common.get_target_and_source_ob(context, copySource=True)
 
-        self.og_source_ob.hide_set(True)
+        compat.set_hide(self.og_source_ob, True)
 
         self._start_time = time.time()
         self._timer = None
@@ -372,7 +385,7 @@ class shape_key_transfer_op:
             compat.set_active(context, self.target_ob)
 
         if self.og_source_ob:
-            self.og_source_ob.hide_set(False)
+            compat.set_hide(self.og_source_ob, False)
 
         source_me = self.source_ob and self.source_ob.data
         if source_me:
@@ -493,7 +506,7 @@ class CNV_OT_quick_shape_key_transfer(shape_key_transfer_op, bpy.types.Operator)
         if not self.is_shapeds.get(target_shape_key.name):
             self.is_shapeds[target_shape_key.name] = is_changed
         self.my_iter.update() # only call this when done with current iteration.
-
+    
     def cleanup(self, context):
         self.near_vert_indexs = []
         self.my_iter.free()
@@ -852,31 +865,31 @@ class CNV_UL_vgroups_selector(bpy.types.UIList):
     expanded_layout = False
 
     # Custom properties, saved with .blend file.
-    use_filter_name_reverse: bpy.props.BoolProperty(
+    use_filter_name_reverse = bpy.props.BoolProperty(
         name="Reverse Name",
         default=False,
         options=set(),
         description="Reverse name filtering",
     )
-    use_filter_deform: bpy.props.BoolProperty(
+    use_filter_deform = bpy.props.BoolProperty(
         name="Only Deform",
         default=False,
         options=set(),
         description="Only show deforming vertex groups",
     )
-    use_filter_deform_reverse: bpy.props.BoolProperty(
+    use_filter_deform_reverse = bpy.props.BoolProperty(
         name="Other",
         default=False,
         options=set(),
         description="Only show non-deforming vertex groups",
     )
-    use_filter_empty: bpy.props.BoolProperty(
+    use_filter_empty = bpy.props.BoolProperty(
         name="Filter Empty",
         default=False,
         options=set(),
         description="Whether to filter empty vertex groups",
     )
-    use_filter_empty_reverse: bpy.props.BoolProperty(
+    use_filter_empty_reverse = bpy.props.BoolProperty(
         name="Reverse Empty",
         default=False,
         options=set(),
@@ -889,19 +902,19 @@ class CNV_UL_vgroups_selector(bpy.types.UIList):
             if (getattr(self, name1)):
                 setattr(self, name2, False)
         return _u
-    use_order_name: bpy.props.BoolProperty(
+    use_order_name = bpy.props.BoolProperty(
         name="Name", default=False, options=set(),
         description="Sort groups by their name (case-insensitive)",
         update=_gen_order_update("use_order_name", "use_order_importance"),
     )
-    use_order_importance: bpy.props.BoolProperty(
+    use_order_importance = bpy.props.BoolProperty(
         name="Importance",
         default=False,
         options=set(),
         description="Sort groups by their average weight in the mesh",
         update=_gen_order_update("use_order_importance", "use_order_name"),
     )
-    use_filter_orderby_invert: bpy.props.BoolProperty(
+    use_filter_orderby_invert = bpy.props.BoolProperty(
         name="Order by Invert",
         default=False,
         options=set(),
@@ -1094,10 +1107,10 @@ class CNV_UL_vgroups_selector(bpy.types.UIList):
 #    bl_region_type = 'WINDOW'
 #    bl_space_type = 'PROPERTIES'
 #
-#    name : bpy.props.StringProperty(name="Name", default="Unknown")
-#    value: bpy.props.BoolProperty(name="Value", default=True)
-#    index: bpy.props.IntProperty(name="Index", default=-1)
-#    preferred: bpy.props.BoolProperty(name="Prefered", default=True)
+#    name  = bpy.props.StringProperty(name="Name", default="Unknown")
+#    value = bpy.props.BoolProperty(name="Value", default=True)
+#    index = bpy.props.IntProperty(name="Index", default=-1)
+#    preferred = bpy.props.BoolProperty(name="Prefered", default=True)
 
 
 @compat.BlRegister()

@@ -52,7 +52,7 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
 
     is_arrange_name = bpy.props.BoolProperty(name="データ名の連番を削除", default=True, description="「○○.001」のような連番が付属したデータ名からこれらを削除します")
 
-    is_align_to_base_bone = bpy.props.BoolProperty(name="Align to Base Bone", default=False, description="Align the object to it's base bone")
+    is_align_to_base_bone = bpy.props.BoolProperty(name="Align to Base Bone", default=True, description="Align the object to it's base bone")
     is_convert_tris = bpy.props.BoolProperty(name="四角面を三角面に", default=True, description="四角ポリゴンを三角ポリゴンに変換してから出力します、元のメッシュには影響ありません")
     is_normalize_weight = bpy.props.BoolProperty(name="ウェイトの合計を1.0に", default=True, description="4つのウェイトの合計値が1.0になるように正規化します")
     is_convert_bone_weight_names = bpy.props.BoolProperty(name="頂点グループ名をCM3D2用に変換", default=True, description="全ての頂点グループ名をCM3D2で使える名前にしてからエクスポートします")
@@ -295,7 +295,7 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
             me.update()
 
         if self.is_align_to_base_bone:
-            bpy.ops.object.align_to_base_bone(scale=1.0/self.scale, is_preserve_mesh=True, bone_info_mode=self.bone_info_mode)
+            bpy.ops.object.align_to_cm3d2_base_bone(scale=1.0/self.scale, is_preserve_mesh=True, bone_info_mode=self.bone_info_mode)
             me.update()
 
         # データの成否チェック

@@ -8,7 +8,7 @@ from . import compat
 
 # メニュー等に項目追加
 def menu_func(self, context):
-    ob = context.active_object
+    ob = context.object
     if not ob or ob.type != 'MESH':
         return
 
@@ -188,8 +188,4 @@ class CNV_OT_remove_object_bone_data_property(bpy.types.Operator):
                 break
         self.report(type={'INFO'}, message="ボーン情報を削除しました")
         return {'FINISHED'}
-
-
-
-
 

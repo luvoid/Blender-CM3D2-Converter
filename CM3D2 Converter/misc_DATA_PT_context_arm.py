@@ -354,8 +354,8 @@ class CNV_OT_add_cm3d2_twist_bones(bpy.types.Operator):
 
     scale = bpy.props.FloatProperty(name="Scale", default=5, min=0.1, max=100, soft_min=0.1, soft_max=100, step=100, precision=1, description="The amount by which the mesh is scaled when imported. Recommended that you use the same when at the time of export.")
 
-    #is_fix_thigh       : bpy.props.BoolProperty(name="Fix Thigh"       , default=False, description="Fix twist bone values for the thighs in motor-cycle pose")
-    #is_drive_shape_keys: bpy.props.BoolProperty(name="Drive Shape Keys", default=True, description="Connect sliders to mesh children's shape keys"           )
+    #is_fix_thigh        = bpy.props.BoolProperty(name="Fix Thigh"       , default=False, description="Fix twist bone values for the thighs in motor-cycle pose")
+    #is_drive_shape_keys = bpy.props.BoolProperty(name="Drive Shape Keys", default=True, description="Connect sliders to mesh children's shape keys"           )
     
     fDegPer  = 1.1
     fDegPer1 = 0.2 
@@ -466,7 +466,11 @@ class CNV_OT_add_cm3d2_twist_bones(bpy.types.Operator):
             const.map_from = map
             const.map_to   = map
         for key, val in kwargs.items():
-            setattr(const, key, val)
+            try:
+                setattr(const, key, val)
+            except Exception as e:
+                # TODO : Properly handle drivers in legacy version
+                self.report(type={'ERROR'}, message=e.args[0])
 
         return const
 
@@ -766,25 +770,25 @@ class CNV_PG_cm3d2_bone_morph(bpy.types.PropertyGroup):
         else:
             self.__calcMeasurements(context)
 
-    HeadX     : bpy.props.FloatProperty(name="HeadX"     , description="Size of face (left to right)", default=  50, min=   0, max= 100, step=100, precision=0)
-    HeadY     : bpy.props.FloatProperty(name="HeadY"     , description="Size of face (up and down)"  , default=  50, min=   0, max= 100, step=100, precision=0, update=__calcMeasurements)
-    DouPer    : bpy.props.FloatProperty(name="DouPer"    , description="Leg length"                  , default=  50, min=-100, max= 500, step=100, precision=0, update=__calcMeasurements)
-    sintyou   : bpy.props.FloatProperty(name="sintyou"   , description="Height"                      , default=  50, min=-300, max= 100, step=100, precision=0, update=__calcMeasurements)
-    BreastSize: bpy.props.FloatProperty(name="BreastSize", description="Breast size"                 , default=  50, min= -30, max= 195, step=100, precision=0, update=__calcMune        )
-    MuneTare  : bpy.props.FloatProperty(name="MuneTare"  , description="Breast sagging level"        , default=  50, min=   0, max= 195, step=100, precision=0, update=__calcMuneTare    )
-    MuneUpDown: bpy.props.FloatProperty(name="MuneUpDown", description="Position of the nipple"      , default=  10, min= -50, max= 300, step=100, precision=0)
-    MuneYori  : bpy.props.FloatProperty(name="MuneYori"  , description="Direction of breast"         , default=  40, min= -50, max= 200, step=100, precision=0)
-    west      : bpy.props.FloatProperty(name="west"      , description="Waist"                       , default=  50, min= -30, max= 100, step=100, precision=0, update=__calcMeasurements)
-    Hara      : bpy.props.FloatProperty(name="Hara"      , description="Belly"                       , default=  20, min=   0, max= 200, step=100, precision=0, update=__calcMeasurements)
-    kata      : bpy.props.FloatProperty(name="kata"      , description="Shoulder width"              , default=  50, min=-400, max= 100, step=100, precision=0, update=__calcMeasurements)
-    ArmL      : bpy.props.FloatProperty(name="ArmL"      , description="Size of arms"                , default=  20, min=   0, max= 100, step=100, precision=0, update=__calcMeasurements)
-    UdeScl    : bpy.props.FloatProperty(name="UdeScl"    , description="Length of arms"              , default=  50, min=   0, max= 100, step=100, precision=0, update=__calcMeasurements)
-    KubiScl   : bpy.props.FloatProperty(name="KubiScl"   , description="Length of neck"              , default=  50, min=   0, max= 200, step=100, precision=0, update=__calcMeasurements)
-    koshi     : bpy.props.FloatProperty(name="koshi"     , description="Hip"                         , default=  50, min=-160, max= 200, step=100, precision=0, update=__calcMeasurements)
-    RegFat    : bpy.props.FloatProperty(name="RegFat"    , description="Leg thickness"               , default=  40, min=   0, max= 100, step=100, precision=0, update=__calcMeasurements)
-    RegMeet   : bpy.props.FloatProperty(name="RegMeet"   , description="Leg definition"              , default=  40, min=   0, max= 100, step=100, precision=0, update=__calcMeasurements)
-    MuneL     : bpy.props.FloatProperty(name="MuneL"     , description="munel shapekey value"        , default=  50, min=   0)
-    MuneS     : bpy.props.FloatProperty(name="MuneS"     , description="munes shapekey value"        , default=   0, min=   0)
+    HeadX      = bpy.props.FloatProperty(name="HeadX"     , description="Size of face (left to right)", default=  50, min=   0, max= 100, step=100, precision=0)
+    HeadY      = bpy.props.FloatProperty(name="HeadY"     , description="Size of face (up and down)"  , default=  50, min=   0, max= 100, step=100, precision=0, update=__calcMeasurements)
+    DouPer     = bpy.props.FloatProperty(name="DouPer"    , description="Leg length"                  , default=  50, min=-100, max= 500, step=100, precision=0, update=__calcMeasurements)
+    sintyou    = bpy.props.FloatProperty(name="sintyou"   , description="Height"                      , default=  50, min=-300, max= 100, step=100, precision=0, update=__calcMeasurements)
+    BreastSize = bpy.props.FloatProperty(name="BreastSize", description="Breast size"                 , default=  50, min= -30, max= 195, step=100, precision=0, update=__calcMune        )
+    MuneTare   = bpy.props.FloatProperty(name="MuneTare"  , description="Breast sagging level"        , default=  50, min=   0, max= 195, step=100, precision=0, update=__calcMuneTare    )
+    MuneUpDown = bpy.props.FloatProperty(name="MuneUpDown", description="Position of the nipple"      , default=  10, min= -50, max= 300, step=100, precision=0)
+    MuneYori   = bpy.props.FloatProperty(name="MuneYori"  , description="Direction of breast"         , default=  40, min= -50, max= 200, step=100, precision=0)
+    west       = bpy.props.FloatProperty(name="west"      , description="Waist"                       , default=  50, min= -30, max= 100, step=100, precision=0, update=__calcMeasurements)
+    Hara       = bpy.props.FloatProperty(name="Hara"      , description="Belly"                       , default=  20, min=   0, max= 200, step=100, precision=0, update=__calcMeasurements)
+    kata       = bpy.props.FloatProperty(name="kata"      , description="Shoulder width"              , default=  50, min=-400, max= 100, step=100, precision=0, update=__calcMeasurements)
+    ArmL       = bpy.props.FloatProperty(name="ArmL"      , description="Size of arms"                , default=  20, min=   0, max= 100, step=100, precision=0, update=__calcMeasurements)
+    UdeScl     = bpy.props.FloatProperty(name="UdeScl"    , description="Length of arms"              , default=  50, min=   0, max= 100, step=100, precision=0, update=__calcMeasurements)
+    KubiScl    = bpy.props.FloatProperty(name="KubiScl"   , description="Length of neck"              , default=  50, min=   0, max= 200, step=100, precision=0, update=__calcMeasurements)
+    koshi      = bpy.props.FloatProperty(name="koshi"     , description="Hip"                         , default=  50, min=-160, max= 200, step=100, precision=0, update=__calcMeasurements)
+    RegFat     = bpy.props.FloatProperty(name="RegFat"    , description="Leg thickness"               , default=  40, min=   0, max= 100, step=100, precision=0, update=__calcMeasurements)
+    RegMeet    = bpy.props.FloatProperty(name="RegMeet"   , description="Leg definition"              , default=  40, min=   0, max= 100, step=100, precision=0, update=__calcMeasurements)
+    MuneL      = bpy.props.FloatProperty(name="MuneL"     , description="munel shapekey value"        , default=  50, min=   0)
+    MuneS      = bpy.props.FloatProperty(name="MuneS"     , description="munes shapekey value"        , default=   0, min=   0)
 
     def __measurementSetter(self, value):
         self.__calcMeasurements(bpy.context)
@@ -797,19 +801,19 @@ class CNV_PG_cm3d2_bone_morph(bpy.types.PropertyGroup):
             return getattr(self, attr)
         return __getter
 
-    private_height : bpy.props.FloatProperty (name="private_height", options={'HIDDEN'})
-    private_weight : bpy.props.FloatProperty (name="private_weight", options={'HIDDEN'})
-    private_bust   : bpy.props.FloatProperty (name="private_bust"  , options={'HIDDEN'})
-    private_waist  : bpy.props.FloatProperty (name="private_waist" , options={'HIDDEN'})
-    private_hip    : bpy.props.FloatProperty (name="private_hip"   , options={'HIDDEN'})
-    private_cup    : bpy.props.StringProperty(name="private_cup"   , options={'HIDDEN'})
+    private_height  = bpy.props.FloatProperty (name="private_height", options={'HIDDEN'})
+    private_weight  = bpy.props.FloatProperty (name="private_weight", options={'HIDDEN'})
+    private_bust    = bpy.props.FloatProperty (name="private_bust"  , options={'HIDDEN'})
+    private_waist   = bpy.props.FloatProperty (name="private_waist" , options={'HIDDEN'})
+    private_hip     = bpy.props.FloatProperty (name="private_hip"   , options={'HIDDEN'})
+    private_cup     = bpy.props.StringProperty(name="private_cup"   , options={'HIDDEN'})
                                                      
-    height  : bpy.props.FloatProperty (name="height", precision=3, unit='LENGTH', set=__measurementSetter, get=__newGetter('private_height', recalc=True))
-    weight  : bpy.props.FloatProperty (name="weight", precision=3, unit='MASS'  , set=__measurementSetter, get=__newGetter('private_weight'))
-    bust    : bpy.props.FloatProperty (name="bust"  , precision=3, unit='LENGTH', set=__measurementSetter, get=__newGetter('private_bust'  ))
-    waist   : bpy.props.FloatProperty (name="waist" , precision=3, unit='LENGTH', set=__measurementSetter, get=__newGetter('private_waist' ))
-    hip     : bpy.props.FloatProperty (name="hip"   , precision=3, unit='LENGTH', set=__measurementSetter, get=__newGetter('private_hip'   ))
-    cup     : bpy.props.StringProperty(name="cup"   ,                             set=__measurementSetter, get=__newGetter('private_cup'   ))
+    height   = bpy.props.FloatProperty (name="height", precision=3, unit=compat.unit('LENGTH'), set=__measurementSetter, get=__newGetter('private_height', recalc=True))
+    weight   = bpy.props.FloatProperty (name="weight", precision=3, unit=compat.unit('MASS'  ), set=__measurementSetter, get=__newGetter('private_weight'))
+    bust     = bpy.props.FloatProperty (name="bust"  , precision=3, unit=compat.unit('LENGTH'), set=__measurementSetter, get=__newGetter('private_bust'  ))
+    waist    = bpy.props.FloatProperty (name="waist" , precision=3, unit=compat.unit('LENGTH'), set=__measurementSetter, get=__newGetter('private_waist' ))
+    hip      = bpy.props.FloatProperty (name="hip"   , precision=3, unit=compat.unit('LENGTH'), set=__measurementSetter, get=__newGetter('private_hip'   ))
+    cup      = bpy.props.StringProperty(name="cup"   ,                                          set=__measurementSetter, get=__newGetter('private_cup'   ))
                                                      
     def GetArmature(self, override=None):
         override = override or bpy.context.copy()
@@ -944,7 +948,7 @@ class CNV_PG_cm3d2_bone_morph(bpy.types.PropertyGroup):
             
             driver_target = parent_length_var.targets[0]
             driver_target.id_type = 'ARMATURE'
-            driver_target.id = bone.parent.bone.id_data
+            driver_target.id = bone.parent.bone.id_data if not compat.IS_LEGACY else bone.parent.bone.id_data.data
             driver_target.data_path = bone.parent.bone.path_from_id("length")
 
             head_var = driver.variables.new()
@@ -1109,47 +1113,47 @@ class CNV_PG_cm3d2_wide_slider(bpy.types.PropertyGroup):
 
     scale = bpy.props.FloatProperty(name="Scale", default=5, min=0.1, max=100, soft_min=0.1, soft_max=100, step=100, precision=1, description="The amount by which the mesh is scaled when imported. Recommended that you use the same when at the time of export.")
 
-    empty : bpy.props.EnumProperty(items=[('EMPTY','-',"This property never has a value")], name="Empty", description="This property never has a value")
+    empty  = bpy.props.EnumProperty(items=[('EMPTY','-',"This property never has a value")], name="Empty", description="This property never has a value")
     
-    enable_all: bpy.props.BoolProperty(name="Enable All", description="Enable all sliders, even ones without a GUI in-game", default=False)
+    enable_all = bpy.props.BoolProperty(name="Enable All", description="Enable all sliders, even ones without a GUI in-game", default=False)
 
-    HIPPOS    : bpy.props.FloatVectorProperty(name="HIPPOS"    , description="Hips Position"         , default=(0,0,0), min=-100, max= 200, precision=2, subtype=compat.subtype('XYZ'        ), unit='NONE')
-    THIPOS    : bpy.props.FloatVectorProperty(name="THIPOS"    , description="Legs Position"         , default=(0,0,0), min=-100, max= 200, precision=2, subtype=compat.subtype('XYZ'        ), unit='NONE')
-    MTWPOS    : bpy.props.FloatVectorProperty(name="MTWPOS"    , description="Thigh Position"        , default=(0,0,0), min=-1.0, max= 1.0, precision=2, subtype=compat.subtype('XYZ'        ), unit='NONE')
-    MMNPOS    : bpy.props.FloatVectorProperty(name="MMNPOS"    , description="Rear Thigh Position"   , default=(0,0,0), min=-1.0, max= 1.0, precision=2, subtype=compat.subtype('XYZ'        ), unit='NONE')
-    THI2POS   : bpy.props.FloatVectorProperty(name="THI2POS"   , description="Knee Position"         , default=(0,0,0), min=-100, max= 200, precision=2, subtype=compat.subtype('XYZ'        ), unit='NONE')
-    SKTPOS    : bpy.props.FloatVectorProperty(name="SKTPOS"    , description="Skirt Position"        , default=(0,0,0), min=-1.0, max= 1.0, precision=2, subtype=compat.subtype('XYZ'        ), unit='NONE')
-    SPIPOS    : bpy.props.FloatVectorProperty(name="SPIPOS"    , description="Lower Abdomen Position", default=(0,0,0), min=-1.0, max= 1.0, precision=2, subtype=compat.subtype('XYZ'        ), unit='NONE')
-    S0APOS    : bpy.props.FloatVectorProperty(name="S0APOS"    , description="Upper Abdomen Position", default=(0,0,0), min=-1.0, max= 1.0, precision=2, subtype=compat.subtype('XYZ'        ), unit='NONE')
-    S1POS     : bpy.props.FloatVectorProperty(name="S1POS"     , description="Lower Chest Position"  , default=(0,0,0), min=-1.0, max= 1.0, precision=2, subtype=compat.subtype('XYZ'        ), unit='NONE')
-    S1APOS    : bpy.props.FloatVectorProperty(name="S1APOS"    , description="Upper Chest Position"  , default=(0,0,0), min=-1.0, max= 1.0, precision=2, subtype=compat.subtype('XYZ'        ), unit='NONE')
-    MUNEPOS   : bpy.props.FloatVectorProperty(name="MUNEPOS"   , description="Breasts Position"      , default=(0,0,0), min=-1.0, max= 1.0, precision=2, subtype=compat.subtype('XYZ'        ), unit='NONE')
-    MUNESUBPOS: bpy.props.FloatVectorProperty(name="MUNESUBPOS", description="Breasts Sub-Position"  , default=(0,0,0), min=-1.0, max= 1.0, precision=2, subtype=compat.subtype('XYZ'        ), unit='NONE')
-    NECKPOS   : bpy.props.FloatVectorProperty(name="NECKPOS"   , description="Neck Position"         , default=(0,0,0), min=-1.0, max= 1.0, precision=2, subtype=compat.subtype('XYZ'        ), unit='NONE')
-    CLVPOS    : bpy.props.FloatVectorProperty(name="CLVPOS"    , description="Clavicle Position"     , default=(0,0,0), min=-1.0, max= 1.0, precision=2, subtype=compat.subtype('XYZ'        ), unit='NONE')
+    HIPPOS     = bpy.props.FloatVectorProperty(name="HIPPOS"    , description="Hips Position"         , default=(0,0,0), min=-100, max= 200, precision=2, subtype=compat.subtype('XYZ'        ), unit='NONE')
+    THIPOS     = bpy.props.FloatVectorProperty(name="THIPOS"    , description="Legs Position"         , default=(0,0,0), min=-100, max= 200, precision=2, subtype=compat.subtype('XYZ'        ), unit='NONE')
+    MTWPOS     = bpy.props.FloatVectorProperty(name="MTWPOS"    , description="Thigh Position"        , default=(0,0,0), min=-1.0, max= 1.0, precision=2, subtype=compat.subtype('XYZ'        ), unit='NONE')
+    MMNPOS     = bpy.props.FloatVectorProperty(name="MMNPOS"    , description="Rear Thigh Position"   , default=(0,0,0), min=-1.0, max= 1.0, precision=2, subtype=compat.subtype('XYZ'        ), unit='NONE')
+    THI2POS    = bpy.props.FloatVectorProperty(name="THI2POS"   , description="Knee Position"         , default=(0,0,0), min=-100, max= 200, precision=2, subtype=compat.subtype('XYZ'        ), unit='NONE')
+    SKTPOS     = bpy.props.FloatVectorProperty(name="SKTPOS"    , description="Skirt Position"        , default=(0,0,0), min=-1.0, max= 1.0, precision=2, subtype=compat.subtype('XYZ'        ), unit='NONE')
+    SPIPOS     = bpy.props.FloatVectorProperty(name="SPIPOS"    , description="Lower Abdomen Position", default=(0,0,0), min=-1.0, max= 1.0, precision=2, subtype=compat.subtype('XYZ'        ), unit='NONE')
+    S0APOS     = bpy.props.FloatVectorProperty(name="S0APOS"    , description="Upper Abdomen Position", default=(0,0,0), min=-1.0, max= 1.0, precision=2, subtype=compat.subtype('XYZ'        ), unit='NONE')
+    S1POS      = bpy.props.FloatVectorProperty(name="S1POS"     , description="Lower Chest Position"  , default=(0,0,0), min=-1.0, max= 1.0, precision=2, subtype=compat.subtype('XYZ'        ), unit='NONE')
+    S1APOS     = bpy.props.FloatVectorProperty(name="S1APOS"    , description="Upper Chest Position"  , default=(0,0,0), min=-1.0, max= 1.0, precision=2, subtype=compat.subtype('XYZ'        ), unit='NONE')
+    MUNEPOS    = bpy.props.FloatVectorProperty(name="MUNEPOS"   , description="Breasts Position"      , default=(0,0,0), min=-1.0, max= 1.0, precision=2, subtype=compat.subtype('XYZ'        ), unit='NONE')
+    MUNESUBPOS = bpy.props.FloatVectorProperty(name="MUNESUBPOS", description="Breasts Sub-Position"  , default=(0,0,0), min=-1.0, max= 1.0, precision=2, subtype=compat.subtype('XYZ'        ), unit='NONE')
+    NECKPOS    = bpy.props.FloatVectorProperty(name="NECKPOS"   , description="Neck Position"         , default=(0,0,0), min=-1.0, max= 1.0, precision=2, subtype=compat.subtype('XYZ'        ), unit='NONE')
+    CLVPOS     = bpy.props.FloatVectorProperty(name="CLVPOS"    , description="Clavicle Position"     , default=(0,0,0), min=-1.0, max= 1.0, precision=2, subtype=compat.subtype('XYZ'        ), unit='NONE')
                                                                                                 
-    PELSCL    : bpy.props.FloatVectorProperty(name="PELSCL"    , description="Pelvis Scale"          , default=(1,1,1), min= 0.1, max= 2.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
-    HIPSCL    : bpy.props.FloatVectorProperty(name="HIPSCL"    , description="Hips Scale"            , default=(1,1,1), min= 0.1, max= 2.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
-    THISCL    : bpy.props.FloatVectorProperty(name="THISCL"    , description="Legs Scale"            , default=(1,1,1), min= 0.1, max= 2.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
-    MTWSCL    : bpy.props.FloatVectorProperty(name="MTWSCL"    , description="Thigh Scale"           , default=(1,1,1), min= 0.1, max= 2.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
-    MMNSCL    : bpy.props.FloatVectorProperty(name="MMNSCL"    , description="Rear Thigh Scale"      , default=(1,1,1), min= 0.1, max= 2.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
-    THISCL2   : bpy.props.FloatVectorProperty(name="THISCL2"   , description="Knee Scale"            , default=(1,1,1), min= 0.1, max= 2.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
-    CALFSCL   : bpy.props.FloatVectorProperty(name="CALFSCL"   , description="Calf Scale"            , default=(1,1,1), min= 0.1, max= 2.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
-    FOOTSCL   : bpy.props.FloatVectorProperty(name="FOOTSCL"   , description="Foot Scale"            , default=(1,1,1), min= 0.1, max= 2.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
-    SKTSCL    : bpy.props.FloatVectorProperty(name="SKTSCL"    , description="Skirt Scale"           , default=(1,1,1), min= 0.1, max= 3.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
-    SPISCL    : bpy.props.FloatVectorProperty(name="SPISCL"    , description="Lower Abdomen Scale"   , default=(1,1,1), min= 0.1, max= 3.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
-    S0ASCL    : bpy.props.FloatVectorProperty(name="S0ASCL"    , description="Upper Abdomen Scale"   , default=(1,1,1), min= 0.1, max= 3.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
-    S1_SCL    : bpy.props.FloatVectorProperty(name="S1_SCL"    , description="Lower Chest Scale"     , default=(1,1,1), min= 0.1, max= 3.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
-    S1ASCL    : bpy.props.FloatVectorProperty(name="S1ASCL"    , description="Upper Chest Scale"     , default=(1,1,1), min= 0.1, max= 3.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
-    S1ABASESCL: bpy.props.FloatVectorProperty(name="S1ABASESCL", description="Upper Torso Scale"     , default=(1,1,1), min= 0.1, max= 3.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
-    MUNESCL   : bpy.props.FloatVectorProperty(name="MUNESCL"   , description="Breasts Scale"         , default=(1,1,1), min= 0.1, max= 3.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
-    MUNESUBSCL: bpy.props.FloatVectorProperty(name="MUNESUBSCL", description="Breasts Sub-Scale"     , default=(1,1,1), min= 0.1, max= 3.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
-    NECKSCL   : bpy.props.FloatVectorProperty(name="NECKSCL"   , description="Neck Scale"            , default=(1,1,1), min= 0.1, max= 3.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
-    CLVSCL    : bpy.props.FloatVectorProperty(name="CLVSCL"    , description="Clavicle Scale"        , default=(1,1,1), min= 0.1, max= 3.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
-    KATASCL   : bpy.props.FloatVectorProperty(name="KATASCL"   , description="Shoulders Scale"       , default=(1,1,1), min= 0.1, max= 3.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
-    UPARMSCL  : bpy.props.FloatVectorProperty(name="UPARMSCL"  , description="Upper Arm Scale"       , default=(1,1,1), min= 0.1, max= 3.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
-    FARMSCL   : bpy.props.FloatVectorProperty(name="FARMSCL"   , description="Forearm Scale"         , default=(1,1,1), min= 0.1, max= 3.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
-    HANDSCL   : bpy.props.FloatVectorProperty(name="HANDSCL"   , description="Hand Scale"            , default=(1,1,1), min= 0.1, max= 3.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
+    PELSCL     = bpy.props.FloatVectorProperty(name="PELSCL"    , description="Pelvis Scale"          , default=(1,1,1), min= 0.1, max= 2.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
+    HIPSCL     = bpy.props.FloatVectorProperty(name="HIPSCL"    , description="Hips Scale"            , default=(1,1,1), min= 0.1, max= 2.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
+    THISCL     = bpy.props.FloatVectorProperty(name="THISCL"    , description="Legs Scale"            , default=(1,1,1), min= 0.1, max= 2.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
+    MTWSCL     = bpy.props.FloatVectorProperty(name="MTWSCL"    , description="Thigh Scale"           , default=(1,1,1), min= 0.1, max= 2.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
+    MMNSCL     = bpy.props.FloatVectorProperty(name="MMNSCL"    , description="Rear Thigh Scale"      , default=(1,1,1), min= 0.1, max= 2.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
+    THISCL2    = bpy.props.FloatVectorProperty(name="THISCL2"   , description="Knee Scale"            , default=(1,1,1), min= 0.1, max= 2.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
+    CALFSCL    = bpy.props.FloatVectorProperty(name="CALFSCL"   , description="Calf Scale"            , default=(1,1,1), min= 0.1, max= 2.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
+    FOOTSCL    = bpy.props.FloatVectorProperty(name="FOOTSCL"   , description="Foot Scale"            , default=(1,1,1), min= 0.1, max= 2.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
+    SKTSCL     = bpy.props.FloatVectorProperty(name="SKTSCL"    , description="Skirt Scale"           , default=(1,1,1), min= 0.1, max= 3.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
+    SPISCL     = bpy.props.FloatVectorProperty(name="SPISCL"    , description="Lower Abdomen Scale"   , default=(1,1,1), min= 0.1, max= 3.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
+    S0ASCL     = bpy.props.FloatVectorProperty(name="S0ASCL"    , description="Upper Abdomen Scale"   , default=(1,1,1), min= 0.1, max= 3.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
+    S1_SCL     = bpy.props.FloatVectorProperty(name="S1_SCL"    , description="Lower Chest Scale"     , default=(1,1,1), min= 0.1, max= 3.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
+    S1ASCL     = bpy.props.FloatVectorProperty(name="S1ASCL"    , description="Upper Chest Scale"     , default=(1,1,1), min= 0.1, max= 3.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
+    S1ABASESCL = bpy.props.FloatVectorProperty(name="S1ABASESCL", description="Upper Torso Scale"     , default=(1,1,1), min= 0.1, max= 3.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
+    MUNESCL    = bpy.props.FloatVectorProperty(name="MUNESCL"   , description="Breasts Scale"         , default=(1,1,1), min= 0.1, max= 3.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
+    MUNESUBSCL = bpy.props.FloatVectorProperty(name="MUNESUBSCL", description="Breasts Sub-Scale"     , default=(1,1,1), min= 0.1, max= 3.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
+    NECKSCL    = bpy.props.FloatVectorProperty(name="NECKSCL"   , description="Neck Scale"            , default=(1,1,1), min= 0.1, max= 3.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
+    CLVSCL     = bpy.props.FloatVectorProperty(name="CLVSCL"    , description="Clavicle Scale"        , default=(1,1,1), min= 0.1, max= 3.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
+    KATASCL    = bpy.props.FloatVectorProperty(name="KATASCL"   , description="Shoulders Scale"       , default=(1,1,1), min= 0.1, max= 3.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
+    UPARMSCL   = bpy.props.FloatVectorProperty(name="UPARMSCL"  , description="Upper Arm Scale"       , default=(1,1,1), min= 0.1, max= 3.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
+    FARMSCL    = bpy.props.FloatVectorProperty(name="FARMSCL"   , description="Forearm Scale"         , default=(1,1,1), min= 0.1, max= 3.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
+    HANDSCL    = bpy.props.FloatVectorProperty(name="HANDSCL"   , description="Hand Scale"            , default=(1,1,1), min= 0.1, max= 3.0, precision=2, subtype=compat.subtype('XYZ_LENGTH' ), unit='NONE')
                                                                                                                                         
                                                                                                                                         
     def GetArmature(self, override=None):
@@ -1341,8 +1345,8 @@ class CNV_OT_add_cm3d2_body_sliders(bpy.types.Operator):
 
     scale = bpy.props.FloatProperty(name="Scale", default=5, min=0.1, max=100, soft_min=0.1, soft_max=100, step=100, precision=1, description="The amount by which the mesh is scaled when imported. Recommended that you use the same when at the time of export.")
 
-    is_fix_thigh       : bpy.props.BoolProperty(name="Fix Thigh"       , default=False, description="Fix twist bone values for the thighs in motor-cycle pose")
-    is_drive_shape_keys: bpy.props.BoolProperty(name="Drive Shape Keys", default=True, description="Connect sliders to mesh children's shape keys"           )
+    is_fix_thigh        = bpy.props.BoolProperty(name="Fix Thigh"       , default=False, description="Fix twist bone values for the thighs in motor-cycle pose")
+    is_drive_shape_keys = bpy.props.BoolProperty(name="Drive Shape Keys", default=True, description="Connect sliders to mesh children's shape keys"           )
     
     @classmethod
     def poll(cls, context):
@@ -1622,9 +1626,12 @@ class DATA_PT_cm3d2_sliders(bpy.types.Panel):
 
         morph = ob.cm3d2_bone_morph
         self.layout.alignment = 'RIGHT'
-        flow = self.layout.grid_flow(row_major=True, columns=2, even_columns=False, even_rows=False, align=True)
-        flow.use_property_split    = True
-        flow.use_property_decorate = False
+        if compat.IS_LEGACY:
+            flow = self.layout.column_flow(align=True)
+        else:
+            flow = self.layout.grid_flow(row_major=True, columns=2, align=True)
+            flow.use_property_split    = True
+            flow.use_property_decorate = False
         flow.prop(morph, 'height', text="Height", emboss=False)
         flow.prop(morph, 'weight', text="Weight", emboss=False)
         flow.prop(morph, 'bust'  , text="Bust"  , emboss=False)
@@ -1639,6 +1646,8 @@ class DATA_PT_cm3d2_sliders(bpy.types.Panel):
         row = self.layout.row()
         #row.enabled = bpy.ops.object.cleanup_scale_bones.poll(context.copy())
         op = row.operator("object.cleanup_scale_bones"   , text="Cleanup Scale Bones", icon=compat.icon('X'              ))
+
+
 
 
 @compat.BlRegister()
@@ -1657,10 +1666,13 @@ class DATA_PT_cm3d2_body_sliders(bpy.types.Panel):
 
     def draw(self, context):
         morph = context.object.cm3d2_bone_morph
+        self.layout.operator('object.save_cm3d2_body_sliders_to_menu', icon=compat.icon('COPYDOWN'))
 
-        self.layout.use_property_split = True
-
-        flow = self.layout.column_flow()
+        if compat.IS_LEGACY:
+            flow = self.layout.column_flow(columns=1)
+        else:
+            self.layout.use_property_split = True
+            flow = self.layout.column_flow()
         flow.scale_x = 0.5
         col = flow.column(align=True); col.prop(morph, 'HeadX'     , text="Face Width"  , slider=True)
         pass;                          col.prop(morph, 'HeadY'     , text="Face Height" , slider=True)
@@ -1698,13 +1710,18 @@ class DATA_PT_cm3d2_wide_sliders(bpy.types.Panel):
     def draw(self, context):
         sliders = context.object.cm3d2_wide_slider
         
-        self.layout.use_property_split = True
+        if not compat.IS_LEGACY:
+            self.layout.use_property_split = True
 
         row = self.layout.row()
-        row.use_property_decorate = False
+        if not compat.IS_LEGACY:
+            row.use_property_decorate = False
         row.prop(sliders, "enable_all", text="Enable All Sliders")
 
-        flow = self.layout.grid_flow(row_major=True, columns=0, even_columns=False, even_rows=False, align=False)
+        if compat.IS_LEGACY:
+            flow = self.layout.column_flow(columns=2)
+        else:
+            flow = self.layout.grid_flow(row_major=True)
         flow.scale_x = 0.5
 
         def _transform_prop(name, pos_prop=None, scl_prop=None, pos_enabled=(True, True, True), scl_enabled=(True, True, True)):
@@ -1724,21 +1741,29 @@ class DATA_PT_cm3d2_wide_sliders(bpy.types.Panel):
             global used_name
             used_name = False
             def _vec_prop(type_name, prop_id, enabled_axes, axis_names):
+                global used_name
                 #vec = tab.row(align=True)
                 #vec.label(text=type_name)
                 #col = vec.column(align=True)
-                
                 for i in range(0, 3):
                     is_enabled  = enabled_axes[i] or sliders.enable_all
                     is_disabled = enabled_axes[i] == None
+
+                    if i == 0 and compat.IS_LEGACY:
+                        if not used_name:
+                            col.label(text=name)
+                            used_name = True
+                            
 
                     row = col.row(align=True)
                     row.enabled = not is_disabled and is_enabled
                     
                     axis_name = axis_names[i]
                     if i == 0:
-                        axis_name = type_name + " " + axis_name
-                        global used_name
+                        if compat.IS_LEGACY:
+                            axis_name = axis_name + " " + type_name
+                        else:
+                            axis_name = type_name + " " + axis_name
                         if not used_name:
                             axis_name = name + " " + axis_name
                             used_name = True
@@ -1793,7 +1818,7 @@ class CNV_OT_cleanup_scale_bones(bpy.types.Operator):
 
     scale = bpy.props.FloatProperty(name="Scale", default=5, min=0.1, max=100, soft_min=0.1, soft_max=100, step=100, precision=1, description="The amount by which the mesh is scaled when imported. Recommended that you use the same when at the time of export.")
 
-    is_keep_bones_with_children: bpy.props.BoolProperty(name="Keep bones with children", default=True, description="Will not remove scale bones that have children (for custom scale bones)")
+    is_keep_bones_with_children = bpy.props.BoolProperty(name="Keep bones with children", default=True, description="Will not remove scale bones that have children (for custom scale bones)")
     
     @classmethod
     def poll(cls, context):
@@ -1841,5 +1866,85 @@ class CNV_OT_cleanup_scale_bones(bpy.types.Operator):
                     old_vgroup = vgroups.get(old_name)
                     if old_vgroup:
                         old_vgroup.name = new_name
+
+        return {'FINISHED'}
+
+
+@compat.BlRegister()
+class CNV_OT_save_cm3d2_body_sliders_to_menu(bpy.types.Operator):
+    bl_idname      = 'object.save_cm3d2_body_sliders_to_menu'
+    bl_label       = "Save CM3D2 Body Sliders to Menu"
+    bl_description = "Remove scale bones from the active armature object"
+    bl_options     = {'REGISTER', 'UNDO'}
+
+    is_overwrite = bpy.props.BoolProperty(name="Overwrite Existing", default=True)
+
+    @classmethod
+    def poll(cls, context):
+        ob = context.object
+        if ob:
+            arm = ob.data
+        else:
+            arm = None
+        has_arm  = arm and isinstance(arm, bpy.types.Armature)
+        return has_arm
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+    def draw(self, context):
+        self.layout.prop(self, 'is_overwrite')
+        if self.is_overwrite:
+            self.layout.label(text="Any existing data will be overwritten", icon=compat.icon('ERROR'))
+
+    def execute(self, context):
+        ob = context.object
+        menu_file_data = ob.cm3d2_menu
+        morph = ob.cm3d2_bone_morph
+
+        def add_menu_prop_command(prop_name):
+            menu_file_data.parse_list(
+                ["prop",
+                    prop_name,
+                    str(int( getattr(morph, prop_name) ))
+                ]
+            )
+
+        if self.is_overwrite:
+            menu_file_data.clear()
+
+            menu_file_data.version     = 1000
+            menu_file_data.path        = os.path.relpath(bpy.data.filepath, start=bpy.path.abspath("//.."))
+            menu_file_data.name        = ob.name + "　Body"
+            menu_file_data.category    = "set_body"
+            menu_file_data.description = "Generated in blender using body sliders"
+                                                                                            
+            menu_file_data.parse_list(["メニューフォルダ", "system"                                 ])                               
+            menu_file_data.parse_list(["category", "set_body"                               ])
+            menu_file_data.parse_list(["priority", "100"                                    ])
+            menu_file_data.parse_list(["icons"   , "_i_set_body_1_.tex"                     ])
+            menu_file_data.parse_list(["属性追加"    , "クリックしても選択状態にしない"                        ])                      
+            menu_file_data.parse_list(["name"    , menu_file_data.name                      ])
+            menu_file_data.parse_list(["setumei" , "Generated in blender using body sliders"])
+
+        add_menu_prop_command('HeadX'     )
+        add_menu_prop_command('HeadY'     )
+        add_menu_prop_command('DouPer'    )
+        add_menu_prop_command('sintyou'   )
+        add_menu_prop_command('BreastSize')
+        add_menu_prop_command('MuneTare'  )
+        add_menu_prop_command('MuneUpDown')
+        add_menu_prop_command('MuneYori'  )
+        add_menu_prop_command('west'      )
+        add_menu_prop_command('Hara'      )
+        add_menu_prop_command('kata'      )
+        add_menu_prop_command('ArmL'      )
+        add_menu_prop_command('UdeScl'    )
+        add_menu_prop_command('KubiScl'   )
+        add_menu_prop_command('koshi'     )
+        add_menu_prop_command('RegFat'    )
+        add_menu_prop_command('RegMeet'   )
+
+        self.report(type={'INFO'}, message="Successfully saved properties to menu file data in Properties > Object Tab > CM3D2 Menu File")
 
         return {'FINISHED'}

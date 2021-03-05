@@ -4,7 +4,7 @@
 bl_info = {
     "name": "CM3D2 Converter",
     "author": "@saidenka_cm3d2, @trzrz, @luvoid",
-    "version": ("luv", 2021, 2, 14),
+    "version": ("luv", 2021, 2, "28e"),
     "blender": (2, 80, 0),
     "location": "ファイル > インポート/エクスポート > CM3D2 Model (.model)",
     "description": "カスタムメイド3D2/カスタムオーダーメイド3D2専用ファイルのインポート/エクスポートを行います",
@@ -33,6 +33,9 @@ if "bpy" in locals():
 
     imp.reload(mate_import)
     imp.reload(mate_export)
+
+    imp.reload(menu_file)
+    imp.reload(menu_OBJECT_PT_cm3d2_menu)
 
     imp.reload(misc_DATA_PT_context_arm)
     imp.reload(misc_DATA_PT_modifiers)
@@ -77,6 +80,9 @@ else:
     from . import mate_import
     from . import mate_export
 
+    from . import menu_file
+    from . import menu_OBJECT_PT_cm3d2_menu
+
     from . import misc_DATA_PT_context_arm
     from . import misc_DATA_PT_modifiers
     from . import misc_DATA_PT_vertex_groups
@@ -106,6 +112,12 @@ else:
 import bpy, os.path, bpy.utils.previews
 
 
+# Backwards compatability
+if compat.IS_LEGACY:
+    bl_info["blender"] = (2, 78, 0)
+
+
+
 # アドオン設定
 @compat.BlRegister()
 class AddonPreferences(bpy.types.AddonPreferences):
@@ -132,7 +144,11 @@ class AddonPreferences(bpy.types.AddonPreferences):
     mate_unread_same_value = bpy.props.BoolProperty(name="同じ設定値が2つ以上ある場合削除", default=True, description="_ShadowColor など")
     mate_import_path = bpy.props.StringProperty(name="mateインポート時のデフォルトパス", subtype='FILE_PATH', description="mateインポート時に最初はここが表示されます、インポート毎に保存されます")
     mate_export_path = bpy.props.StringProperty(name="mateエクスポート時のデフォルトパス", subtype='FILE_PATH', description="mateエクスポート時に最初はここが表示されます、エクスポート毎に保存されます")
-
+    
+    menu_default_path = bpy.props.StringProperty(name=".menu Default Path"       , subtype='DIR_PATH' , description="If set. The file selection will open here.")
+    menu_import_path  = bpy.props.StringProperty(name=".menu Default Import Path", subtype='FILE_PATH', description="When importing a .menu file. The file selection prompt will begin here.")
+    menu_export_path  = bpy.props.StringProperty(name=".menu Default Export Path", subtype='FILE_PATH', description="When exporting a .menu file. The file selection prompt will begin here.")
+    
     is_replace_cm3d2_tex = bpy.props.BoolProperty(name="基本的にtexファイルを探す", default=True, description="texファイルを探すかどうかのオプションのデフォルト値を設定します")
     default_tex_path0 = bpy.props.StringProperty(name="texファイル置き場", subtype='DIR_PATH', description="texファイルを探す時はここから探します")
     default_tex_path1 = bpy.props.StringProperty(name="texファイル置き場", subtype='DIR_PATH', description="texファイルを探す時はここから探します")
@@ -198,7 +214,7 @@ class AddonPreferences(bpy.types.AddonPreferences):
         self.layout.prop(self, 'backup_ext', icon='FILE_BACKUP')
 
         box = self.layout.box()
-        box.label(text="modelファイル", icon='MESH_ICOSPHERE')
+        box.label(text=".modelファイル", icon='MESH_ICOSPHERE')
         row = box.row()
         row.prop(self, 'scale', icon=compat.icon('ARROW_LEFTRIGHT'))
         row.prop(self, 'is_convert_bone_weight_names', icon='BLENDER')
@@ -210,13 +226,17 @@ class AddonPreferences(bpy.types.AddonPreferences):
         box.prop(self, 'anm_default_path', icon=brws_icon, text="ファイル選択時の初期フォルダ")
 
         box = self.layout.box()
-        box.label(text="texファイル", icon='FILE_IMAGE')
+        box.label(text=".texファイル", icon='FILE_IMAGE')
         box.prop(self, 'tex_default_path', icon=brws_icon, text="ファイル選択時の初期フォルダ")
 
         box = self.layout.box()
-        box.label(text="mateファイル", icon='MATERIAL')
+        box.label(text=".mateファイル", icon='MATERIAL')
         box.prop(self, 'mate_unread_same_value', icon='DISCLOSURE_TRI_DOWN')
         box.prop(self, 'mate_default_path', icon=brws_icon, text="ファイル選択時の初期フォルダ")
+
+        box = self.layout.box()
+        box.label(text=".menu File", icon='COPY_ID')
+        box.prop(self, 'menu_default_path', icon=brws_icon, text="Initial folder when selecting files")
 
         box = self.layout.box()
         box.label(text="texファイル検索", icon='BORDERMOVE')
@@ -252,9 +272,13 @@ class AddonPreferences(bpy.types.AddonPreferences):
 
         box = self.layout.box()
         box.label(text="Default Armature Settings", icon='ARMATURE_DATA')
-        box.use_property_split = True
+        if not compat.IS_LEGACY:
+            box.use_property_split = True
         box.prop(self, "bone_display_type", text="Display As")
-        flow = box.grid_flow(row_major=False, columns=0, even_columns=False, even_rows=False, align=True)
+        if compat.IS_LEGACY:
+            flow = box.column_flow(align=True)
+        else:
+            flow = box.grid_flow(align=True)
         col = flow.column(); col.prop(self, "show_bone_names",         text="Names"       )
         col = flow.column(); col.prop(self, "show_bone_axes",          text="Axes"        )
         col = flow.column(); col.prop(self, "show_bone_custom_shapes", text="Shapes"      )
@@ -320,8 +344,7 @@ def register():
         # TODO 修正＆動作確認後にコメント解除  (ベイク)
         # レンダーエンジンがCycles指定時のみになる
         # bpy.types.CYCLES_RENDER_PT_bake.append(misc_RENDER_PT_bake.menu_func)
-        # TODO 配置先変更 (アイコン作成)
-        # bpy.types.PARTICLE_PT_render.append(misc_RENDER_PT_render.menu_func)
+        bpy.types.RENDER_PT_context.append(misc_RENDER_PT_render.menu_func)
         bpy.types.VIEW3D_PT_tools_weightpaint_options.append(misc_VIEW3D_PT_tools_weightpaint.menu_func)
 
         # context menu
@@ -347,9 +370,10 @@ def register():
     bpy.types.TEXT_HT_header.append(misc_TEXT_HT_header.menu_func)
     bpy.types.VIEW3D_MT_pose_apply.append(misc_VIEW3D_MT_pose_apply.menu_func)
 
-    setattr(bpy.types.Object, 'cm3d2_bone_morph',  bpy.props.PointerProperty(type=misc_DATA_PT_context_arm.CNV_PG_cm3d2_bone_morph ))
+    setattr(bpy.types.Object, 'cm3d2_bone_morph' , bpy.props.PointerProperty(type=misc_DATA_PT_context_arm.CNV_PG_cm3d2_bone_morph ))
     setattr(bpy.types.Object, 'cm3d2_wide_slider', bpy.props.PointerProperty(type=misc_DATA_PT_context_arm.CNV_PG_cm3d2_wide_slider))
-
+    setattr(bpy.types.Object, 'cm3d2_menu'       , bpy.props.PointerProperty(type=menu_file.OBJECT_PG_CM3D2Menu                    ))
+    
     bpy.types.DOPESHEET_MT_editor_menus.append(misc_DOPESHEET_MT_editor_menus.menu_func)
     bpy.types.GRAPH_MT_editor_menus.append(misc_DOPESHEET_MT_editor_menus.menu_func)
 
@@ -411,7 +435,7 @@ def unregister():
 
         # bpy.types.MATERIAL_MT_context_menu.remove(misc_MATERIAL_PT_context_material.menu_func)
         # bpy.types.CYCLES_RENDER_PT_bake.remove(misc_RENDER_PT_bake.menu_func)
-        # bpy.types.PARTICLE_PT_render.remove(misc_RENDER_PT_render.menu_func)
+        bpy.types.RENDER_PT_context.remove(misc_RENDER_PT_render.menu_func)
 
         bpy.types.VIEW3D_PT_tools_weightpaint_options.remove(misc_VIEW3D_PT_tools_weightpaint.menu_func)
         # menu
@@ -441,6 +465,8 @@ def unregister():
         delattr(bpy.types.Object, 'cm3d2_bone_morph')
     if hasattr(bpy.types.Object, 'cm3d2_wide_slider'):
         delattr(bpy.types.Object, 'cm3d2_wide_slider')
+    if hasattr(bpy.types.Object, 'cm3d2_menu'):
+        delattr(bpy.types.Object, 'cm3d2_menu')
 
     bpy.types.DOPESHEET_MT_editor_menus.remove(misc_DOPESHEET_MT_editor_menus.menu_func)
     bpy.types.GRAPH_MT_editor_menus.remove(misc_DOPESHEET_MT_editor_menus.menu_func)

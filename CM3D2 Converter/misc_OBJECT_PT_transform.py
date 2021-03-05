@@ -9,8 +9,8 @@ from .model_export import CNV_OT_export_cm3d2_model
 
 # メニュー等に項目追加
 def menu_func(self, context):
-    self.layout.operator('object.sync_object_transform', icon_value=common.kiss_icon())
-    self.layout.operator('object.align_to_base_bone'   , icon_value=common.kiss_icon())
+    self.layout.operator('object.sync_object_transform'   , icon_value=common.kiss_icon())
+    self.layout.operator('object.align_to_cm3d2_base_bone', icon_value=common.kiss_icon())
 
 
 @compat.BlRegister()
@@ -67,14 +67,14 @@ class CNV_OT_sync_object_transform(bpy.types.Operator):
 
 
 @compat.BlRegister()
-class CNV_OT_align_to_base_bone(bpy.types.Operator):
-    bl_idname = 'object.align_to_base_bone'
+class CNV_OT_align_to_cm3d2_base_bone(bpy.types.Operator):
+    bl_idname = 'object.align_to_cm3d2_base_bone'
     bl_label = "Align to Base Bone"
     bl_description = "Align the object to it's armature's base bone"
     bl_options = {'REGISTER', 'UNDO'}
 
-    scale           : bpy.props.FloatProperty(name="Scale"        , default=   5, min=0.1, max=100, soft_min=0.1, soft_max=100, step=100, precision=1, description="The amount by which the mesh is scaled when imported. Recommended that you use the same when at the time of export.")
-    is_preserve_mesh: bpy.props.BoolProperty (name="Preserve Mesh", default=True, description="Align object transform, then fix mesh transform so it remains in place.")
+    scale            = bpy.props.FloatProperty(name="Scale"        , default=   5, min=0.1, max=100, soft_min=0.1, soft_max=100, step=100, precision=1, description="The amount by which the mesh is scaled when imported. Recommended that you use the same when at the time of export.")
+    is_preserve_mesh = bpy.props.BoolProperty (name="Preserve Mesh", default=True, description="Align object transform, then fix mesh transform so it remains in place.")
 
     items = [
         ('ARMATURE'         , "Armature"     , "", 'OUTLINER_OB_ARMATURE', 1),
@@ -103,14 +103,13 @@ class CNV_OT_align_to_base_bone(bpy.types.Operator):
         
         return base_bone_name
 
-
+    
     @classmethod
     def poll(cls, context):
         ob = context.object
         if not ob: 
             return False
         return cls.find_base_bone(ob) != None
-
 
     def invoke(self, context, event):
         ob = context.object
@@ -129,7 +128,7 @@ class CNV_OT_align_to_base_bone(bpy.types.Operator):
         if (not arm_ob) and (ob.parent and ob.parent.type == 'ARMATURE'):
             arm_ob = ob.parent
         if arm_ob:
-            if arm_ob.type == 'ARMATURE':
+            if "BoneData:0" in arm_ob.data:
                 self.bone_info_mode = 'ARMATURE_PROPERTY'
 
         self.scale = common.preferences().scale
@@ -239,10 +238,10 @@ class CNV_OT_align_to_base_bone(bpy.types.Operator):
             self.from_armature(ob, arm_ob.data, base_bone_name)
 
         if self.is_preserve_mesh:
-            bm = bmesh.new(use_operators=False)
-            bm.from_mesh(ob.data)
-            bm.transform(compat.mul(ob.matrix_basis.inverted(), old_basis))
-            bm.to_mesh(ob.data)
+            new_basis = ob.matrix_basis.copy()
+            ob.matrix_basis = compat.mul(new_basis.inverted(), old_basis)
+            bpy.ops.object.transform_apply(location=True, rotation=True, scale=False)
+            ob.matrix_basis = new_basis
 
 
         return {'FINISHED'}
