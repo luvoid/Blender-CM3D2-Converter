@@ -58,6 +58,8 @@ if "bpy" in locals():
     imp.reload(misc_VIEW3D_PT_tools_mesh_shapekey)
     imp.reload(misc_DOPESHEET_MT_editor_menus)
 
+    imp.reload(app_translations)
+
 else:
     from . import compat
     from . import common
@@ -98,6 +100,8 @@ else:
     from . import misc_VIEW3D_PT_tools_weightpaint
     from . import misc_VIEW3D_PT_tools_mesh_shapekey
     from . import misc_DOPESHEET_MT_editor_menus
+
+    from . import app_translations
 
 import bpy, os.path, bpy.utils.previews
 
@@ -354,19 +358,23 @@ def register():
         system.use_international_fonts = True
     if not system.use_translate_interface:
         system.use_translate_interface = True
-    try:
-        import locale
-        if system.language == 'DEFAULT' and locale.getdefaultlocale()[0] != 'ja_JP':
-            system.language = 'en_US'
-    except:
-        pass
-
-    try:
-        import locale
-        if locale.getdefaultlocale()[0] != 'ja_JP':
-            unregister()
-    except:
-        pass
+    
+    bpy.app.translations.register(__name__, app_translations.translations_dict)
+    
+    # A region lock? In an international plugin? Nah, we can't have that.
+    #try:
+    #    import locale
+    #    if system.language == 'DEFAULT' and locale.getdefaultlocale()[0] != 'ja_JP':
+    #        system.language = 'en_US'
+    #except:
+    #    pass
+    #
+    #try:
+    #    import locale
+    #    if locale.getdefaultlocale()[0] != 'ja_JP':
+    #        unregister()
+    #except:
+    #    pass
 
 
 # プラグインをアンインストールしたときの処理
