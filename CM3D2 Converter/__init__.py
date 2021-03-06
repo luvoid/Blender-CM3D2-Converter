@@ -4,7 +4,7 @@
 bl_info = {
     "name": "CM3D2 Converter",
     "author": "@saidenka_cm3d2, @trzrz, @luvoid",
-    "version": ("luv", 2021, 2, "28e"),
+    "version": ("luv", 2021, 3, 6),
     "blender": (2, 80, 0),
     "location": "ファイル > インポート/エクスポート > CM3D2 Model (.model)",
     "description": "カスタムメイド3D2/カスタムオーダーメイド3D2専用ファイルのインポート/エクスポートを行います",
@@ -383,22 +383,40 @@ def register():
     if not system.use_translate_interface:
         system.use_translate_interface = True
     
+    # Set common.TRUE_LOCALE
+    if bpy.app.translations.locale:
+        common.TRUE_LOCALE = bpy.app.translations.locale
+    else: # if built without internationalization support
+        try:
+            import locale
+            if system.language == 'DEFAULT':
+                common.TRUE_LOCALE = locale.getdefaultlocale()[0]
+        except Exception as e:
+            print("Unable to determine locale.", e)
+
     bpy.app.translations.register(__name__, app_translations.translations_dict)
+
+    # Set common.LOCALE
+    if common.TRUE_LOCALE:
+        # First check for exact locale tag match
+        if common.TRUE_LOCALE in app_translations.translations_dict.keys():
+            common.LOCALE = common.TRUE_LOCALE
+        
+        # Otherwise match based on language, country, or variant.
+        else:
+            for locale_tag in app_translations.translations_dict.keys():
+                language, country, variant, *_ = bpy.app.translations.locale_explode(locale_tag)
+                if language in common.TRUE_LOCALE: # best possible match
+                    common.LOCALE = locale_tag
+                    break
+                elif country in common.TRUE_LOCALE: # replace locale, but keep looking
+                    common.LOCALE = locale_tag
+                elif variant in common.TRUE_LOCALE: # worst match, only use if None
+                    common.LOCALE = common.LOCALE or locale_tag
     
-    # A region lock? In an international plugin? Nah, we can't have that.
-    #try:
-    #    import locale
-    #    if system.language == 'DEFAULT' and locale.getdefaultlocale()[0] != 'ja_JP':
-    #        system.language = 'en_US'
-    #except:
-    #    pass
-    #
-    #try:
-    #    import locale
-    #    if locale.getdefaultlocale()[0] != 'ja_JP':
-    #        unregister()
-    #except:
-    #    pass
+    # Change wiki_url based on locale (only works in legacy version)
+    if common.LOCALE != 'ja_JP':   
+        bl_info['wiki_url'] = common.URL_REPOS + f"blob/bl_28/translations/{common.LOCALE}/README.md"
 
 
 # プラグインをアンインストールしたときの処理
