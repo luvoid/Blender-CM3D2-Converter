@@ -21,8 +21,6 @@ URL_ATOM = URL_REPOS + "commits/" + BRANCH + ".atom"
 URL_MODULE = URL_REPOS + "archive/" + BRANCH + ".zip"
 KISS_ICON = None
 PREFS = None
-TRUE_LOCALE = None # Set by __init__.register()
-LOCALE      = None # The closest locale to TRUE_LOCALE available for translation 
 preview_collections = {}
 texpath_dict = {}
 

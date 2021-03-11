@@ -61,7 +61,7 @@ if "bpy" in locals():
     imp.reload(misc_VIEW3D_PT_tools_mesh_shapekey)
     imp.reload(misc_DOPESHEET_MT_editor_menus)
 
-    imp.reload(app_translations)
+    imp.reload(translations)
 
 else:
     from . import compat
@@ -107,7 +107,7 @@ else:
     from . import misc_VIEW3D_PT_tools_mesh_shapekey
     from . import misc_DOPESHEET_MT_editor_menus
 
-    from . import app_translations
+    from . import translations
 
 import bpy, os.path, bpy.utils.previews
 
@@ -377,46 +377,12 @@ def register():
     bpy.types.DOPESHEET_MT_editor_menus.append(misc_DOPESHEET_MT_editor_menus.menu_func)
     bpy.types.GRAPH_MT_editor_menus.append(misc_DOPESHEET_MT_editor_menus.menu_func)
 
-    system = compat.get_system(bpy.context)
-    if hasattr(system, 'use_international_fonts') and not system.use_international_fonts:
-        system.use_international_fonts = True
-    if not system.use_translate_interface:
-        system.use_translate_interface = True
-    
-    # Set common.TRUE_LOCALE
-    if bpy.app.translations.locale:
-        common.TRUE_LOCALE = bpy.app.translations.locale
-    else: # if built without internationalization support
-        try:
-            import locale
-            if system.language == 'DEFAULT':
-                common.TRUE_LOCALE = locale.getdefaultlocale()[0]
-        except Exception as e:
-            print("Unable to determine locale.", e)
-
-    bpy.app.translations.register(__name__, app_translations.translations_dict)
-
-    # Set common.LOCALE
-    if common.TRUE_LOCALE:
-        # First check for exact locale tag match
-        if common.TRUE_LOCALE in app_translations.translations_dict.keys():
-            common.LOCALE = common.TRUE_LOCALE
-        
-        # Otherwise match based on language, country, or variant.
-        else:
-            for locale_tag in app_translations.translations_dict.keys():
-                language, country, variant, *_ = bpy.app.translations.locale_explode(locale_tag)
-                if language in common.TRUE_LOCALE: # best possible match
-                    common.LOCALE = locale_tag
-                    break
-                elif country in common.TRUE_LOCALE: # replace locale, but keep looking
-                    common.LOCALE = locale_tag
-                elif variant in common.TRUE_LOCALE: # worst match, only use if None
-                    common.LOCALE = common.LOCALE or locale_tag
+    translations.register(__name__)
     
     # Change wiki_url based on locale (only works in legacy version)
-    if common.LOCALE != 'ja_JP':   
-        bl_info['wiki_url'] = common.URL_REPOS + f"blob/bl_28/translations/{common.LOCALE}/README.md"
+    locale = translations.get_locale()
+    if locale != 'ja_JP':   
+        bl_info['wiki_url'] = common.URL_REPOS + f"blob/bl_28/translations/{locale}/README.md"
 
 
 # プラグインをアンインストールしたときの処理
@@ -495,7 +461,7 @@ def unregister():
 
     compat.BlRegister.unregister()
 
-    bpy.app.translations.unregister(__name__)
+    translations.unregister(__name__)
 
 # メイン関数
 if __name__ == "__main__":

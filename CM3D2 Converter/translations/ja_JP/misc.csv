@@ -310,7 +310,7 @@
 #seconds2
 # misc_OBJECT_PT_context_object
 # misc_OBJECT_PT_transform
-"*","Align to Base Bone","Align to Base Bone"
+"Operator","Align to Base Bone","BaseBoneに合わせる"
 "*","Align the object to it's armature's base bone","Align the object to it's armature's base bone"
 "*","Scale","Scale"
 "*","The amount by which the mesh is scaled when imported. Recommended that you use the same when at the time of export.","The amount by which the mesh is scaled when imported. Recommended that you use the same when at the time of export."
