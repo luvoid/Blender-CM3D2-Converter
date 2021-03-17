@@ -2,6 +2,9 @@ import os
 import sys
 import csv
 import bpy
+import re
+import unicodedata
+import bl_i18n_utils
 from .. import compat
 
 # get_true_locale() -> Returns the locale
@@ -10,16 +13,18 @@ from .. import compat
 DICT = dict() # The translations dictionary
 # {locale: {msg_key: msg_translation, ...}, ...}                                                                                                                                                      
 # locale is either a lang iso code (fr), a lang+country code (pt_BR), a lang+variant code (sr@latin), or a full code (uz_UZ@cyrilic).                                                                 
-# msg_key is a tupple of (context, org_message)  
+# msg_key is a tupple of (context, org_message)
 
 # max level of verbose messages to print. -1 = Nothing.
 verbosity = 1
+dump_messages = True
 
 is_verify_contexts  = False
 is_check_duplicates = False
 
 handled_locales   = set()
 translations_folder = os.path.dirname(__file__)
+comments_dict = dict()
 
 i18n_contexts = { identifer: getattr(bpy.app.translations.contexts, identifer) for identifer in bpy.app.translations.contexts_C_to_py.values() }
 '''
@@ -153,9 +158,223 @@ def get_locale() -> str:
     return get_best_locale_match(get_true_locale())
 
 
+src_path_pattern = re.compile(r":?\d+$")
+py_path_pattern  = re.compile(
+    r"(?:bpy\.types)?"
+    r"(?:\.|\:|\[[\'\"])" # find a dot, colon, or bracket-reference
+    r"([^\.]+?)"          # capture identifier of module/class/attribute
+    r"(?:[\'\"]\])?"      # consume any closing brackets or quotes
+    r"(?=\.|\:|$)"        # look-ahead for a . or : or the end of the string
+)
+class_hash_dict = dict()
+def get_message_source_file(src):
+    if not src.startswith('bpy.'):
+        file_name = os.path.basename(src)
+        file_name = src_path_pattern.sub("", file_name)
+        return file_name
+    else:
+        cls_name = py_path_pattern.match(src)[1]
+        if not class_hash_dict:
+            for cls in compat.BlRegister.classes:
+                class_hash_dict[cls.__name__.lower()] = cls
+        
+        cls = class_hash_dict.get(cls_name.lower()) # apparently blender changes the case of our classnames sometimes
+        if not cls:
+
+            return cls_name
+
+        module_name, file_name = os.path.splitext(cls.__module__)
+        if not file_name:
+            return "__init__.py"
+        elif file_name == "translations":
+            return "translations/__init__.py"
+        else:
+            return file_name[1:] + ".py"
+    
+def message_to_csv_line(msg, add_sources=False):
+    line = f'"{msg.msgctxt}","{msg.do_escape(msg.msgid)}","{msg.do_escape(msg.msgstr)}"'
+    
+    add_comment = add_sources or msg.is_commented
+    if add_comment:
+        line = f'{line},"#'
+    if add_sources:
+        line = f'{line} FROM <{" & ".join(get_message_source_file(src) for src in msg.sources)}>'
+    if msg.is_commented:
+        line = f'{line} {msg.do_escape(msg.comment_lines[-1])}'
+    if add_comment:
+        line = f'{line}"'
+
+    return line
+
+def messages_to_csv(msgs, reports, lang=get_locale(), only_missing=True):
+    lang_dict = DICT.get(lang)
+    text_data = "Context,Original,Translation,Comments\n" \
+                "# encoding UTF-8"
+    last_src = None
+    shared = []
+
+    messages = sorted(
+        ( (key, msg, get_message_source_file(msg.sources[0])) for key, msg in msgs.items() ),
+        key = lambda x : x[2]
+    )
+    for key, msg, src in messages:
+        msg.normalize()
+        key_check = (msg.msgctxt, msg.msgid)
+        if key_check != key:
+            print(f"A message with a mismatching key was found: {key} != {key_check}")
+        if lang_dict and lang_dict.get(key):
+            if only_missing:
+                continue
+            msg.msgstr = msg.msgstr or lang_dict[key]
+            comment = comments_dict[lang].get(key)
+            if comment:
+                msg.comment_lines.append(comment)
+                msg.is_commented = True
+
+        sources = msg.sources
+        if 'KM_HIERARCHY' in sources[0]:
+            continue
+        if len(sources) > 1:
+            new_src = get_message_source_file(sources[0])
+            if any(get_message_source_file(sub_src) != new_src for sub_src in sources):
+                shared.append(msg)
+                continue
+        
+        #src = get_message_source_file(msg.sources[0])
+        if src != last_src:
+            last_src = src
+            text_data = f"{text_data}\n# {src}"
+        text_data = f"{text_data}\n{message_to_csv_line(msg)}"
+
+    if len(shared) > 0:
+        text_data = f"{text_data}\n# shared"
+        for msg in shared:
+            text_data = f"{text_data}\n{message_to_csv_line(msg, add_sources=True)}"
+
+    return text_data
+
+def reports_to_csv(reports):
+    text_data = "### Generated Reports ###"
+    for key, value in reports.items():
+        text_data = f"{text_data}\n## {key} ##"
+        if hasattr(value, '__iter__') and not isinstance(value, (str, bytes)):
+            for value_item in value:
+                text_data = f"{text_data}\n{str(value_item)}"
+        else:
+            text_data = f"{text_data}\n{str(value)}"
+    
+    return text_data
+
+# bpy.ops.cm3d2_converter.dump_py_messages(do_checks=False, only_missing=True, language='en_US')
+@compat.BlRegister()
+class CNV_OT_dump_py_messages(bpy.types.Operator):
+    bl_idname      = 'cm3d2_converter.dump_py_messages'
+    bl_label       = "Dump Py Messages"
+    bl_description = "Dump the CM3D2 Converter's messages for CSV translation"
+    bl_options     = {'REGISTER', 'UNDO'}
+
+    do_checks    = bpy.props.BoolProperty(name="Do Checks"   , default=False)
+    do_reports   = bpy.props.BoolProperty(name="Do Reports"  , default=False)
+    only_missing = bpy.props.BoolProperty(name="Only Missing", default=False)
+    only_foreign = bpy.props.BoolProperty(name="Only Foreign", default=False)
+    
+    items = { 
+        (enum_str, enum_name, "", 'NONE', enum_int) \
+            for enum_int, enum_name, enum_str in bl_i18n_utils.settings.LANGUAGES
+    }
+    language = bpy.props.EnumProperty(items=items, name="Language", default=get_locale())
+    
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    @staticmethod
+    def is_japanese(string):
+        for ch in string:
+            name = unicodedata.name(ch)
+            if 'CJK UNIFIED' in name or 'HIRAGANA' in name or 'KATAKANA' in name:
+                return True
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+    def draw(self, context):
+        self.layout.prop(self, 'do_checks')
+        self.layout.prop(self, 'do_reports')
+        self.layout.prop(self, 'only_missing')
+        self.layout.prop(self, 'language')
+        row = self.layout.row()
+        row.prop(self, 'only_foreign')
+        row.enabled = self.language in ('en_US', 'ja_JP')
+
+    def execute(self, context):
+        from . import extract_messages
+
+        msgs = dict()
+        reports = extract_messages._gen_reports(
+            extract_messages._gen_check_ctxt(bl_i18n_utils.settings) if self.do_checks else None
+        )
+
+        extract_messages.dump_rna_messages(
+            msgs       = msgs,
+            reports    = reports,
+            settings   = bl_i18n_utils.settings,
+            verbose    = False,
+            class_list = compat.BlRegister.classes
+        )
+
+        extract_messages.dump_py_messages(
+            msgs        = msgs, 
+            reports     = reports,
+            addons      = [__import__("CM3D2 Converter")],
+            settings    = bl_i18n_utils.settings,
+            addons_only = True
+        )
+
+        # Clean un-wanted messages
+        for key in tuple(msgs.keys()):
+            msg = msgs.pop(key)
+            if '_OT_' in msg.msgid:
+                continue
+            if self.only_foreign:
+                is_ja = self.is_japanese(msg.msgid)
+                if is_ja and 'ja' in self.language:
+                    continue
+                if not is_ja and 'en' in self.language:
+                    continue
+            # else put it back
+            msgs[key] = msg
+
+        txt_data = messages_to_csv(msgs, reports, lang=self.language, only_missing=self.only_missing)
+        txt_name = "cm3d2_messages_csv"
+        if txt_name in context.blend_data.texts:
+            txt = context.blend_data.texts[txt_name]
+            txt.clear()
+        else:
+            txt = context.blend_data.texts.new(txt_name)
+        txt.write(txt_data)
+
+        if self.do_reports:
+            reports_txt_data = reports_to_csv(reports)
+            reports_txt_name = "cm3d2_message_reports"
+            if reports_txt_name in context.blend_data.texts:
+                reports_txt = context.blend_data.texts[reports_txt_name]
+                reports_txt.clear()
+            else:
+                reports_txt = context.blend_data.texts.new(reports_txt_name)
+            reports_txt.write(reports_txt_data)
+
+        self.report(type={'INFO'}, message="Strings have been dumped to {txt_name}. See text editor.".format(txt_name=txt_name))
+
+        return {'FINISHED'}
+
+
+
 pre_settings = None
 
 def register(__name__=__name__):
+    global DICT
+    global comments_dict
     global pre_settings
     system = compat.get_system(bpy.context)
     if hasattr(system, 'use_international_fonts'):
@@ -188,6 +407,7 @@ def register(__name__=__name__):
         if not lang_dict:
             lang_dict = dict()
             DICT[lang] = lang_dict
+            comments_dict[lang] = dict()
         
         orig_count = len(lang_dict)
         for csv_file_name in os.listdir(lang_folder):
@@ -221,6 +441,9 @@ def register(__name__=__name__):
                     value = row[2]
                     lang_dict[key] = value
                     entry_count += 1
+
+                    if len(row) > 3: # entry comment
+                        comments_dict[lang][key] = row[3]
 
                     print_verbose(3, f"{line:{4}} {key}: {value}")
 

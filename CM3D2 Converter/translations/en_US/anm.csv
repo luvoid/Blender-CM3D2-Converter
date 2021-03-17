@@ -1,5 +1,6 @@
 "Context","Original","Translation","Comments"
 # encoding UTF-8
+# anm_export.py
 # CNV_OT_export_cm3d2_anm
 "Operator","CM3D2モーション (.anm)","CM3D2 Motion (.anm)"
 "*","カスタムメイド3D2のanmファイルを保存します","Allows you to export a pose to a .anm file"
@@ -27,3 +28,7 @@
 "*","除外するボーン","Bones to Exclude"
 # execute()
 "*","ファイルを開くのに失敗しました、アクセス不可の可能性があります","Failed to open file, it may be inaccessible"
+# anm_import.py
+"*","読み込むアニメーション情報",""
+"*","これはカスタムメイド3D2のモーションファイルではありません",""
+"*","ファイルを開くのに失敗しました、アクセス不可かファイルが存在しません",""

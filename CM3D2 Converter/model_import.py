@@ -128,7 +128,7 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator, bpy_extras.io_utils.ImportHe
         try:
             reader = open(self.filepath, 'rb')
         except:
-            self.report(type={'ERROR'}, message="ファイルを開くのに失敗しました、アクセス不可かファイルが存在しません:%s" % self.filepath)
+            self.report(type={'ERROR'}, message="ファイルを開くのに失敗しました、アクセス不可かファイルが存在しません" + " "+ self.filepath)
             return {'CANCELLED'}
 
         self.texpath_dict = common.get_texpath_dict(reload=self.reload_tex_cache)

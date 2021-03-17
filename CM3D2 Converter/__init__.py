@@ -4,7 +4,7 @@
 bl_info = {
     "name": "CM3D2 Converter",
     "author": "@saidenka_cm3d2, @trzrz, @luvoid",
-    "version": ("luv", 2021, 3, 6),
+    "version": ("luv", 2021, 3, 17),
     "blender": (2, 80, 0),
     "location": "ファイル > インポート/エクスポート > CM3D2 Model (.model)",
     "description": "カスタムメイド3D2/カスタムオーダーメイド3D2専用ファイルのインポート/エクスポートを行います",
@@ -295,6 +295,8 @@ class AddonPreferences(bpy.types.AddonPreferences):
         row = self.layout.row()
         row.operator('script.update_cm3d2_converter', icon='FILE_REFRESH')
         row.menu('INFO_MT_help_CM3D2_Converter_RSS', icon='INFO')
+
+        self.layout.operator('cm3d2_converter.dump_py_messages')
 
 
 # プラグインをインストールしたときの処理
