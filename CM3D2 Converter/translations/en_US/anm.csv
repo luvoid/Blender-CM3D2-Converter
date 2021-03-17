@@ -1,0 +1,34 @@
+"Context","Original","Translation","Comments"
+# encoding UTF-8
+# anm_export.py
+# CNV_OT_export_cm3d2_anm
+"Operator","CM3D2モーション (.anm)","CM3D2 Motion (.anm)"
+"*","カスタムメイド3D2のanmファイルを保存します","Allows you to export a pose to a .anm file"
+"*","倍率","Scale"
+"*","エクスポート時のメッシュ等の拡大率です","Scale of the .anm at the time of export"
+"*","ファイルをバックアップ","Backup"
+"*","ファイルに上書きする場合にバックアップファイルを複製します","Will backup overwritten files"
+"*","ファイルバージョン","Version"
+"*","開始フレーム","Starting Frame"
+"*","最終フレーム","Last Frame"
+"*","キーフレーム数","Number of key frames"
+"*","再生速度","Playback Speed"
+"*","同じ変形のキーフレームを掃除","Clean Keyframes"
+"*","キーフレーム間の変形をスムーズに","Smooth Transitions"
+"*","アーマチュア","Armature"
+"*","アーマチュア内プロパティ","Armature Data"
+"*","ボーン親情報の参照先","Bone Parent From"
+"*","Remove Unkeyed Bones","Remove Unkeyed Bones"
+"*","親も子も存在しない","Remove Loose Bones"
+"*","名前がIK/Nubっぽい","Remove IK Bones"
+"*","名前が連番付き","Remove Duplicate Numbers"
+"*","名前に日本語が含まれる","Remove Japanese Characters from Bones"
+# draw()
+"*","ボーン親情報の参照先","Destination of bone parent information"
+"*","除外するボーン","Bones to Exclude"
+# execute()
+"*","ファイルを開くのに失敗しました、アクセス不可の可能性があります","Failed to open file, it may be inaccessible"
+# anm_import.py
+"*","読み込むアニメーション情報",""
+"*","これはカスタムメイド3D2のモーションファイルではありません",""
+"*","ファイルを開くのに失敗しました、アクセス不可かファイルが存在しません",""

@@ -1,0 +1,8 @@
+Context,Original,Translation,Comments
+# encoding UTF-8
+# misc_MATERIAL_PT_context_material.py
+"*","クリップボードからマテリアルを貼付けました",""
+"Operator","拡張子を省略",""
+"Operator","自動設定",""
+"Operator","テクスチャパスを生成",""
+"Operator","フラグセットアップ",""

@@ -4,7 +4,7 @@
 bl_info = {
     "name": "CM3D2 Converter",
     "author": "@saidenka_cm3d2, @trzrz, @luvoid",
-    "version": ("luv", 2021, 2, "28e"),
+    "version": ("luv", 2021, 3, 17),
     "blender": (2, 80, 0),
     "location" : "File > Import/Export > CM3D2 Model (.model)",
     "description" : "A plugin dedicated to the editing, importing, and exporting of CM3D2 .model Files.",
@@ -61,6 +61,7 @@ if "bpy" in locals():
     imp.reload(misc_VIEW3D_PT_tools_mesh_shapekey)
     imp.reload(misc_DOPESHEET_MT_editor_menus)
 
+    imp.reload(translations)
 
 else:
     from . import compat
@@ -105,6 +106,8 @@ else:
     from . import misc_VIEW3D_PT_tools_weightpaint
     from . import misc_VIEW3D_PT_tools_mesh_shapekey
     from . import misc_DOPESHEET_MT_editor_menus
+
+    from . import translations
 
 import bpy, os.path, bpy.utils.previews
 
@@ -294,6 +297,8 @@ class AddonPreferences(bpy.types.AddonPreferences):
         row.operator('script.update_cm3d2_converter', icon='FILE_REFRESH')
         row.menu('INFO_MT_help_CM3D2_Converter_RSS', icon='INFO')
 
+        self.layout.operator('cm3d2_converter.dump_py_messages')
+
 
 # プラグインをインストールしたときの処理
 def register():
@@ -375,25 +380,12 @@ def register():
     bpy.types.DOPESHEET_MT_editor_menus.append(misc_DOPESHEET_MT_editor_menus.menu_func)
     bpy.types.GRAPH_MT_editor_menus.append(misc_DOPESHEET_MT_editor_menus.menu_func)
 
-    system = compat.get_system(bpy.context)
-    if hasattr(system, 'use_international_fonts') and not system.use_international_fonts:
-        system.use_international_fonts = True
-    if not system.use_translate_interface:
-        system.use_translate_interface = True
-#Commented out the below region lock.
-#    try:
-#        import locale
-#        if system.language == 'DEFAULT' and locale.getdefaultlocale()[0] != 'ja_JP':
-#            system.language = 'en_US'
-#    except:
-#        pass
-#
-#    try:
-#        import locale
-#        if locale.getdefaultlocale()[0] != 'ja_JP':
-#            unregister()
-#    except:
-#        pass
+    translations.register(__name__)
+    
+    # Change wiki_url based on locale (only works in legacy version)
+    locale = translations.get_locale()
+    if locale != 'ja_JP':   
+        bl_info['wiki_url'] = common.URL_REPOS + f"blob/bl_28/translations/{locale}/README.md"
 
 
 # プラグインをアンインストールしたときの処理
@@ -472,7 +464,7 @@ def unregister():
 
     compat.BlRegister.unregister()
 
-    bpy.app.translations.unregister(__name__)
+    translations.unregister(__name__)
 
 # メイン関数
 if __name__ == "__main__":

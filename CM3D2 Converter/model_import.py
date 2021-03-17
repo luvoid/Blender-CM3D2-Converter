@@ -128,7 +128,7 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator, bpy_extras.io_utils.ImportHe
         try:
             reader = open(self.filepath, 'rb')
         except:
-            self.report(type={'ERROR'}, message="Failed to open file, inaccessible or file does not exist:%s" % self.filepath)
+            self.report(type={'ERROR'}, message="Failed to open file, inaccessible or file does not exist:" + " " + self.filepath)
             return {'CANCELLED'}
 
         self.texpath_dict = common.get_texpath_dict(reload=self.reload_tex_cache)
