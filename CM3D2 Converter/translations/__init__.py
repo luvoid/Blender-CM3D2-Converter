@@ -26,6 +26,18 @@ handled_locales   = set()
 translations_folder = os.path.dirname(__file__)
 comments_dict = dict()
 
+csv.register_dialect('cm3d2_converter',
+    delimiter        = ','            ,
+    doublequote      = False          ,
+    escapechar       = '\\'           ,
+    lineterminator   = '\n'           ,
+    quotechar        = '"'            ,
+    quoting          = csv.QUOTE_ALL  ,
+    skipinitialspace = False          ,
+    strict           = True         
+)
+
+
 i18n_contexts = { identifer: getattr(bpy.app.translations.contexts, identifer) for identifer in bpy.app.translations.contexts_C_to_py.values() }
 '''
 i18n_contexts = {
@@ -166,6 +178,7 @@ py_path_pattern  = re.compile(
     r"(?:[\'\"]\])?"      # consume any closing brackets or quotes
     r"(?=\.|\:|$)"        # look-ahead for a . or : or the end of the string
 )
+comment_pattern  = re.compile(r"#\s")
 class_hash_dict = dict()
 def get_message_source_file(src):
     if not src.startswith('bpy.'):
@@ -190,21 +203,38 @@ def get_message_source_file(src):
             return "translations/__init__.py"
         else:
             return file_name[1:] + ".py"
-    
-def message_to_csv_line(msg, add_sources=False):
-    line = f'"{msg.msgctxt}","{msg.do_escape(msg.msgid)}","{msg.do_escape(msg.msgstr)}"'
-    
-    add_comment = add_sources or msg.is_commented
-    if add_comment:
-        line = f'{line},"#'
-    if add_sources:
-        line = f'{line} FROM <{" & ".join(get_message_source_file(src) for src in msg.sources)}>'
-    if msg.is_commented:
-        line = f'{line} {msg.do_escape(msg.comment_lines[-1])}'
-    if add_comment:
-        line = f'{line}"'
 
-    return line
+def message_to_csv_line(msg, add_sources=False):
+    line = [msg.msgctxt, msg.msgid, msg.msgstr]
+    
+    sources = f'FROM <{" & ".join(get_message_source_file(src) for src in msg.sources)}>' if add_sources else ""
+    comment = comment_pattern.sub("", msg.comment_lines[-1]) if msg.is_commented else ""
+    if sources or comment:
+        if not sources or sources in comment:
+            line.append(f"# {comment}")
+        elif not comment:
+            line.append(f"# {sources}")
+        else:
+            line.append(f"# {sources} {comment}")
+
+    class filestring:
+        def __init__(self, string:str=""):
+            self.string = string
+
+        def write(self, text):
+            if type(text) == bytes:
+                text = text.decode('utf-8')
+            self.string += text
+
+        trans = str.maketrans({'\n':'', '\r':''})
+        def str(self):
+            return self.string.translate(self.trans)
+
+    string = filestring("")
+    csv_writer = csv.writer(string, dialect='cm3d2_converter')
+    csv_writer.writerow(line)
+
+    return string.str()
 
 def messages_to_csv(msgs, reports, lang=get_locale(), only_missing=True):
     lang_dict = DICT.get(lang)
@@ -419,33 +449,37 @@ def register(__name__=__name__):
             entry_count = 0
             dupe_count  = 0
             csv_file_path = os.path.join(lang_folder, csv_file_name)
-            with open(csv_file_path, 'rt', encoding='utf-8') as csv_file:
-                csv_reader = csv.reader(csv_file)
-                for line, row in enumerate(csv_reader):
-                    if line == 0: # ignore header
-                        continue
-                    if len(row) < 3:
-                        continue
-                    if row[0].lstrip()[0] == "#":
-                        # ignore comments
-                        continue
-                    if row[0] not in i18n_contexts.values():
-                        print_verbose(2, f"Unknown translation context \"{row[0]}\" on line {line}")
+            with open(csv_file_path, 'rt', encoding='utf-8', newline='') as csv_file:
+                csv_reader = csv.reader(csv_file, dialect='cm3d2_converter')
+                try:
+                    for line, row in enumerate(csv_reader):
+                        if line == 0: # ignore header
+                            continue
+                        if len(row) < 3:
+                            continue
+                        if row[0].lstrip()[0] == "#":
+                            # ignore comments
+                            continue
+                        if row[0] not in i18n_contexts.values():
+                            print_verbose(2, f"Unknown translation context \"{row[0]}\" on line {line}")
 
-                    key = (row[0], row[1])
-                    if check_duplicate(key, lang):
-                        print_verbose(2, f"Duplicate entry on line {line}")
-                        entry_count -= 1
-                        dupe_count  += 1
+                        key = (row[0], row[1])
+                        if check_duplicate(key, lang):
+                            print_verbose(2, f"Duplicate entry on line {line}")
+                            entry_count -= 1
+                            dupe_count  += 1
 
-                    value = row[2]
-                    lang_dict[key] = value
-                    entry_count += 1
+                        value = row[2]
+                        lang_dict[key] = value
+                        entry_count += 1
 
-                    if len(row) > 3: # entry comment
-                        comments_dict[lang][key] = row[3]
+                        if len(row) > 3: # entry comment
+                            comments_dict[lang][key] = row[3]
 
-                    print_verbose(3, f"{line:{4}} {key}: {value}")
+                        print_verbose(3, f"{line:{4}} {key}: {value}")
+                except Error as e:
+                    print(f"Error parsing {csv_file_name} in {lang_folder}:")
+                    print(e)
 
             print_verbose(1, f"-> Added {entry_count} translations from {csv_file_name}")
             if is_check_duplicates:
