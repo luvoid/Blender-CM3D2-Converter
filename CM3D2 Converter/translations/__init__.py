@@ -4,7 +4,7 @@ import csv
 import bpy
 import re
 import unicodedata
-import bl_i18n_utils
+from bl_i18n_utils import settings as bl_i18n_settings
 from .. import compat
 
 # get_true_locale() -> Returns the locale
@@ -310,7 +310,7 @@ class CNV_OT_dump_py_messages(bpy.types.Operator):
     
     items = { 
         (enum_str, enum_name, "", 'NONE', enum_int) \
-            for enum_int, enum_name, enum_str in bl_i18n_utils.settings.LANGUAGES
+            for enum_int, enum_name, enum_str in bl_i18n_settings.LANGUAGES
     }
     language = bpy.props.EnumProperty(items=items, name="Language", default=get_locale())
     
@@ -342,13 +342,13 @@ class CNV_OT_dump_py_messages(bpy.types.Operator):
 
         msgs = dict()
         reports = extract_messages._gen_reports(
-            extract_messages._gen_check_ctxt(bl_i18n_utils.settings) if self.do_checks else None
+            extract_messages._gen_check_ctxt(bl_i18n_settings) if self.do_checks else None
         )
 
         extract_messages.dump_rna_messages(
             msgs       = msgs,
             reports    = reports,
-            settings   = bl_i18n_utils.settings,
+            settings   = bl_i18n_settings,
             verbose    = False,
             class_list = compat.BlRegister.classes
         )
@@ -357,7 +357,7 @@ class CNV_OT_dump_py_messages(bpy.types.Operator):
             msgs        = msgs, 
             reports     = reports,
             addons      = [__import__("CM3D2 Converter")],
-            settings    = bl_i18n_utils.settings,
+            settings    = bl_i18n_settings,
             addons_only = True
         )
 
