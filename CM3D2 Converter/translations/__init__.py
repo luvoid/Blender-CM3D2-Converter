@@ -16,7 +16,7 @@ DICT = dict() # The translations dictionary
 # msg_key is a tupple of (context, org_message)
 
 # max level of verbose messages to print. -1 = Nothing.
-verbosity = 1
+verbosity = 0
 dump_messages = True
 
 is_verify_contexts  = False

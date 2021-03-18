@@ -133,7 +133,7 @@ class CNV_OT_update_cm3d2_converter(bpy.types.Operator):
     bl_description = "GitHubから最新版のCM3D2 Converterアドオンをダウンロードし上書き更新します"
     bl_options = {'REGISTER'}
 
-    is_restart = bpy.props.BoolProperty(name="更新後にBlenderを再起動", default=True)
+    is_restart = bpy.props.BoolProperty(name="更新後にBlenderを再起動", default=compat.IS_LEGACY)
     is_toggle_console = bpy.props.BoolProperty(name="再起動後にコンソールを閉じる", default=True)
 
     def invoke(self, context, event):
@@ -155,15 +155,26 @@ class CNV_OT_update_cm3d2_converter(bpy.types.Operator):
         zip_file.close()
 
         zip_file = zipfile.ZipFile(zip_path, 'r')
+        sub_dir = ""
         for path in zip_file.namelist():
-            if not os.path.basename(path):
+            if not sub_dir and os.path.split(os.path.split(path)[0])[1] == "CM3D2 Converter":
+                sub_dir = path
                 continue
-            sub_dir = os.path.split(os.path.split(path)[0])[1]
-            if sub_dir == "CM3D2 Converter":
-                file = open(os.path.join(addon_path, os.path.basename(path)), 'wb')
+            if not sub_dir or sub_dir not in path:
+                continue
+            relative_path = os.path.relpath(path, start=sub_dir)
+            real_path = os.path.join(addon_path, relative_path)
+            # If it is a file
+            if os.path.basename(path): # is a file
+                file = open(real_path, 'wb') # open() will automatically create it if it does not exist
                 file.write(zip_file.read(path))
                 file.close()
+            # If it is a missing directory
+            elif not os.path.exists(real_path):
+                os.mkdir(real_path)
+
         zip_file.close()
+        return {'CANCELLED'}
 
         if self.is_restart:
             filepath = bpy.data.filepath
@@ -178,7 +189,11 @@ class CNV_OT_update_cm3d2_converter(bpy.types.Operator):
             subprocess.Popen(command_line)
             bpy.ops.wm.quit_blender()
         else:
-            self.report(type={'INFO'}, message="Blender-CM3D2-Converterを更新しました、再起動して下さい")
+            if compat.IS_LEGACY:
+                self.report(type={'INFO'}, message="Blender-CM3D2-Converterを更新しました、再起動して下さい")
+            else:
+                bpy.ops.scripts.reload()
+                self.report(type={'INFO'}, message="Blender-CM3D2-Converter updated")
         return {'FINISHED'}
 
 
