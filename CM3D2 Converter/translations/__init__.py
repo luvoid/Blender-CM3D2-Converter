@@ -6,6 +6,7 @@ import re
 import unicodedata
 from bl_i18n_utils import settings as bl_i18n_settings
 from .. import compat
+from .pgettext_functions import *
 
 # get_true_locale() -> Returns the locale
 # get_locale()      -> Returns the closest locale available for translation 
@@ -189,9 +190,9 @@ def get_message_source_file(src):
         cls_name = py_path_pattern.match(src)[1]
         if not class_hash_dict:
             for cls in compat.BlRegister.classes:
-                class_hash_dict[cls.__name__.lower()] = cls
+                class_hash_dict[cls.bl_rna.identifier] = cls
         
-        cls = class_hash_dict.get(cls_name.lower()) # apparently blender changes the case of our classnames sometimes
+        cls = class_hash_dict.get(cls_name)
         if not cls:
 
             return cls_name
@@ -350,7 +351,7 @@ class CNV_OT_dump_py_messages(bpy.types.Operator):
             reports    = reports,
             settings   = bl_i18n_settings,
             verbose    = False,
-            class_list = compat.BlRegister.classes
+            class_list = [ meta.bl_rna.__class__ for meta in compat.BlRegister.classes ]
         )
 
         extract_messages.dump_py_messages(
