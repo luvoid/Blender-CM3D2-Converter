@@ -214,7 +214,7 @@ class AddonPreferences(bpy.types.AddonPreferences):
         self.layout.prop(self, 'backup_ext', icon='FILE_BACKUP')
 
         box = self.layout.box()
-        box.label(text=".modelファイル", icon='MESH_ICOSPHERE')
+        box.label(text="modelファイル", icon='MESH_ICOSPHERE')
         row = box.row()
         row.prop(self, 'scale', icon=compat.icon('ARROW_LEFTRIGHT'))
         row.prop(self, 'is_convert_bone_weight_names', icon='BLENDER')
@@ -226,11 +226,11 @@ class AddonPreferences(bpy.types.AddonPreferences):
         box.prop(self, 'anm_default_path', icon=brws_icon, text="ファイル選択時の初期フォルダ")
 
         box = self.layout.box()
-        box.label(text=".texファイル", icon='FILE_IMAGE')
+        box.label(text="texファイル", icon='FILE_IMAGE')
         box.prop(self, 'tex_default_path', icon=brws_icon, text="ファイル選択時の初期フォルダ")
 
         box = self.layout.box()
-        box.label(text=".mateファイル", icon='MATERIAL')
+        box.label(text="mateファイル", icon='MATERIAL')
         box.prop(self, 'mate_unread_same_value', icon='DISCLOSURE_TRI_DOWN')
         box.prop(self, 'mate_default_path', icon=brws_icon, text="ファイル選択時の初期フォルダ")
 
@@ -311,8 +311,10 @@ def register():
     if compat.IS_LEGACY:
         bpy.types.INFO_MT_file_import.append(model_import.menu_func)
         bpy.types.INFO_MT_file_import.append(anm_import.menu_func)
+        bpy.types.INFO_MT_file_export.append(menu_file.import_menu_func)
         bpy.types.INFO_MT_file_export.append(model_export.menu_func)
         bpy.types.INFO_MT_file_export.append(anm_export.menu_func)
+        bpy.types.INFO_MT_file_export.append(menu_file.export_menu_func)
 
         bpy.types.INFO_MT_add.append(misc_INFO_MT_add.menu_func)
         bpy.types.INFO_MT_curve_add.append(misc_INFO_MT_curve_add.menu_func)
@@ -334,6 +336,9 @@ def register():
         # anm
         bpy.types.TOPBAR_MT_file_import.append(anm_import.menu_func)
         bpy.types.TOPBAR_MT_file_export.append(anm_export.menu_func)
+        # .menu
+        bpy.types.TOPBAR_MT_file_import.append(menu_file.import_menu_func)
+        bpy.types.TOPBAR_MT_file_export.append(menu_file.export_menu_func)
 
         bpy.types.VIEW3D_MT_add.append(misc_INFO_MT_add.menu_func)
         bpy.types.VIEW3D_MT_curve_add.append(misc_INFO_MT_curve_add.menu_func)
