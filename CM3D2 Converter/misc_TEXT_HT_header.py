@@ -16,14 +16,14 @@ def menu_func(self, context):
         for line in txt.as_string().split('\n'):
             if line:
                 line_count += 1
-        row.operator('text.show_text', icon='ARMATURE_DATA', text="BoneData (%d)" % line_count).name = 'BoneData'
+        row.operator('text.show_text', icon='ARMATURE_DATA', text=f_iface("BoneData (%d)", line_count, msgctxt='Operator')).name = 'BoneData'
     if 'LocalBoneData' in text_keys:
         txt = bpy.data.texts['LocalBoneData']
         line_count = 0
         for line in txt.as_string().split('\n'):
             if line:
                 line_count += 1
-        row.operator('text.show_text', icon='BONE_DATA', text="LocalBoneData (%d)" % line_count).name = 'LocalBoneData'
+        row.operator('text.show_text', icon='BONE_DATA', text=f_iface("LocalBoneData (%d)", line_count, msgctxt='Operator')).name = 'LocalBoneData'
     if 'BoneData' in text_keys and 'LocalBoneData' in text_keys:
         if 'BoneData' in texts:
             if 'BaseBone' not in texts['BoneData']:

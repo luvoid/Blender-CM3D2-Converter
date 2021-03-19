@@ -69,7 +69,7 @@ class CNV_OT_import_cm3d2_tex(bpy.types.Operator):
             return {'FINISHED'}
 
         except:
-            self.report(type={'ERROR'}, message="ファイルを開くのに失敗しました、アクセス不可かファイルが存在しません"+ self.filepath)
+            self.report(type={'ERROR'}, message="ファイルを開くのに失敗しました、アクセス不可かファイルが存在しません" + " " + self.filepath)
             return {'CANCELLED'}
 
 

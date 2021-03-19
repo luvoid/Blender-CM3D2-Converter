@@ -8,6 +8,7 @@ import bmesh
 import mathutils
 from . import common
 from . import compat
+from .translations.pgettext_functions import *
 from . import misc_DOPESHEET_MT_editor_menus
 
 
@@ -328,7 +329,7 @@ class CNV_OT_export_cm3d2_anm(bpy.types.Operator):
             return quat
 
         for prop, prop_keyed_bones in keyed_bones.items():
-            #self.report(type={'INFO'}, message="{prop} {list}".format(prop=prop, list=prop_keyed_bones))
+            #self.report(type={'INFO'}, message=f_("{prop} {list}", prop=prop, list=prop_keyed_bones))
             for bone_name in prop_keyed_bones:
                 if bone_name not in anm_data_raw:
                     anm_data_raw[bone_name] = {}
@@ -344,7 +345,7 @@ class CNV_OT_export_cm3d2_anm(bpy.types.Operator):
                     if not fcurve:
                         fcurve = fcurves.new(rna_data_path, index=axis_index, action_group=pose_bone.name)
                         prop_fcurves[axis_index] = fcurve
-                        self.report(type={'WARNING'}, message="Creating missing FCurve for {path}[{index}]".format(path=rna_data_path, index=axis_index))
+                        self.report(type={'WARNING'}, message=f_("Creating missing FCurve for {path}[{index}]", path=rna_data_path, index=axis_index))
                     else:
                         override = context.copy()
                         override['active_editable_fcurve'] = fcurve
@@ -373,7 +374,7 @@ class CNV_OT_export_cm3d2_anm(bpy.types.Operator):
                                 value         = fcurve.evaluate(frame), 
                                 options       = {'NEEDED', 'FAST'}                        
                             )
-                            self.report(type={'WARNING'}, message="Creating missing keyframe @ frame {frame} for {path}[{index}]".format(path=rna_data_path, index=axis_index, frame=frame))
+                            self.report(type={'WARNING'}, message=f_("Creating missing keyframe @ frame {frame} for {path}[{index}]", path=rna_data_path, index=axis_index, frame=frame))
                 
                 for fcurve in prop_fcurves:
                     fcurve.update()

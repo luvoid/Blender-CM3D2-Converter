@@ -6,6 +6,7 @@ import bpy
 from . import common
 from . import compat
 from . import cm3d2_data
+from .translations.pgettext_functions import *
 
 
 @compat.BlRegister()
@@ -51,7 +52,7 @@ class CNV_OT_import_cm3d2_mate(bpy.types.Operator):
         try:
             file = open(self.filepath, 'rb')
         except:
-            self.report(type={'ERROR'}, message="ファイルを開くのに失敗しました、アクセス不可かファイルが存在しません。file=%s" % self.filepath)
+            self.report(type={'ERROR'}, message=f_("ファイルを開くのに失敗しました、アクセス不可かファイルが存在しません。file=%s", self.filepath))
             return {'CANCELLED'}
 
         try:

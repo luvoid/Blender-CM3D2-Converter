@@ -97,13 +97,13 @@ class INFO_MT_help_CM3D2_Converter_RSS(bpy.types.Menu):
                     icon = 'PREVIEW_RANGE'
 
                 if 60 * 60 * 24 <= diff_seconds.total_seconds():
-                    date_str = "%d日前" % int(diff_seconds.total_seconds() / 60 / 60 / 24)
+                    date_str = f_("%d日前", int(diff_seconds.total_seconds() / 60 / 60 / 24))
                 elif 60 * 60 <= diff_seconds.total_seconds():
-                    date_str = "%d時間前" % int(diff_seconds.total_seconds() / 60 / 60)
+                    date_str = f_("%d時間前", int(diff_seconds.total_seconds() / 60 / 60))
                 elif 60 <= diff_seconds.total_seconds():
-                    date_str = "%d分前" % int(diff_seconds.total_seconds() / 60)
+                    date_str = f_("%d分前", int(diff_seconds.total_seconds() / 60))
                 else:
-                    date_str = "%d秒前" % diff_seconds.total_seconds()
+                    date_str = f_("%d秒前", diff_seconds.total_seconds())
 
                 text = "(" + date_str + ") " + title
 

@@ -3,6 +3,7 @@ import bpy
 import struct
 from . import common
 from . import compat
+from .translations.pgettext_functions import *
 
 SHADER_NAMES_CM3D2 = [
     'CM3D2/Toony_Lighted',
@@ -475,7 +476,7 @@ class Material():
         if read_header:
             header = common.read_str(reader)
             if header != 'CM3D2_MATERIAL':
-                raise Exception("mateファイルではありません。ヘッダ:%s" % header)
+                raise Exception(f_("mateファイルではありません。ヘッダ:%s", header))
             self.version = struct.unpack('<i', reader.read(4))[0]
             self.name1 = common.read_str(reader)
         self.name2 = common.read_str(reader)
@@ -511,7 +512,7 @@ class Material():
             elif prop_type == 'end':
                 break
             else:
-                raise Exception("Materialプロパティに未知の設定値タイプ({prop})が見つかりました。".format(prop=prop_type))
+                raise Exception(f_("Materialプロパティに未知の設定値タイプ({prop})が見つかりました。", prop=prop_type))
 
     def write(self, writer, write_header=True):
         if write_header:

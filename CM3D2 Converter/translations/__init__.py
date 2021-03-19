@@ -394,7 +394,7 @@ class CNV_OT_dump_py_messages(bpy.types.Operator):
                 reports_txt = context.blend_data.texts.new(reports_txt_name)
             reports_txt.write(reports_txt_data)
 
-        self.report(type={'INFO'}, message="Strings have been dumped to {txt_name}. See text editor.".format(txt_name=txt_name))
+        self.report(type={'INFO'}, message=f_("Strings have been dumped to {txt_name}. See text editor.", txt_name=txt_name))
 
         return {'FINISHED'}
 

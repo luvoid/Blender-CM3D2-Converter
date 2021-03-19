@@ -346,7 +346,7 @@ class CNV_OT_precision_transfer_vertex_group(bpy.types.Operator):
             bpy.ops.object.mode_set(mode=pre_mode)
 
         diff_time = time.time() - start_time
-        self.report(type={'INFO'}, message="%.2f Seconds" % diff_time)
+        self.report(type={'INFO'}, message=f_("%.2f Seconds", diff_time))
         return {'FINISHED'}
 
 
