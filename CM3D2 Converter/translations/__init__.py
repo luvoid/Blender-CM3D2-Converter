@@ -4,8 +4,9 @@ import csv
 import bpy
 import re
 import unicodedata
-import bl_i18n_utils
+from bl_i18n_utils import settings as bl_i18n_settings
 from .. import compat
+from .pgettext_functions import *
 
 # get_true_locale() -> Returns the locale
 # get_locale()      -> Returns the closest locale available for translation 
@@ -16,7 +17,7 @@ DICT = dict() # The translations dictionary
 # msg_key is a tupple of (context, org_message)
 
 # max level of verbose messages to print. -1 = Nothing.
-verbosity = 1
+verbosity = 0
 dump_messages = True
 
 is_verify_contexts  = False
@@ -25,6 +26,18 @@ is_check_duplicates = False
 handled_locales   = set()
 translations_folder = os.path.dirname(__file__)
 comments_dict = dict()
+
+csv.register_dialect('cm3d2_converter',
+    delimiter        = ','            ,
+    doublequote      = False          ,
+    escapechar       = '\\'           ,
+    lineterminator   = '\n'           ,
+    quotechar        = '"'            ,
+    quoting          = csv.QUOTE_ALL  ,
+    skipinitialspace = False          ,
+    strict           = True         
+)
+
 
 i18n_contexts = { identifer: getattr(bpy.app.translations.contexts, identifer) for identifer in bpy.app.translations.contexts_C_to_py.values() }
 '''
@@ -166,6 +179,7 @@ py_path_pattern  = re.compile(
     r"(?:[\'\"]\])?"      # consume any closing brackets or quotes
     r"(?=\.|\:|$)"        # look-ahead for a . or : or the end of the string
 )
+comment_pattern  = re.compile(r"#\s")
 class_hash_dict = dict()
 def get_message_source_file(src):
     if not src.startswith('bpy.'):
@@ -176,9 +190,9 @@ def get_message_source_file(src):
         cls_name = py_path_pattern.match(src)[1]
         if not class_hash_dict:
             for cls in compat.BlRegister.classes:
-                class_hash_dict[cls.__name__.lower()] = cls
+                class_hash_dict[cls.bl_rna.identifier] = cls
         
-        cls = class_hash_dict.get(cls_name.lower()) # apparently blender changes the case of our classnames sometimes
+        cls = class_hash_dict.get(cls_name)
         if not cls:
 
             return cls_name
@@ -190,21 +204,38 @@ def get_message_source_file(src):
             return "translations/__init__.py"
         else:
             return file_name[1:] + ".py"
-    
-def message_to_csv_line(msg, add_sources=False):
-    line = f'"{msg.msgctxt}","{msg.do_escape(msg.msgid)}","{msg.do_escape(msg.msgstr)}"'
-    
-    add_comment = add_sources or msg.is_commented
-    if add_comment:
-        line = f'{line},"#'
-    if add_sources:
-        line = f'{line} FROM <{" & ".join(get_message_source_file(src) for src in msg.sources)}>'
-    if msg.is_commented:
-        line = f'{line} {msg.do_escape(msg.comment_lines[-1])}'
-    if add_comment:
-        line = f'{line}"'
 
-    return line
+def message_to_csv_line(msg, add_sources=False):
+    line = [msg.msgctxt, msg.msgid, msg.msgstr]
+    
+    sources = f'FROM <{" & ".join(get_message_source_file(src) for src in msg.sources)}>' if add_sources else ""
+    comment = comment_pattern.sub("", msg.comment_lines[-1]) if msg.is_commented else ""
+    if sources or comment:
+        if not sources or sources in comment:
+            line.append(f"# {comment}")
+        elif not comment:
+            line.append(f"# {sources}")
+        else:
+            line.append(f"# {sources} {comment}")
+
+    class filestring:
+        def __init__(self, string:str=""):
+            self.string = string
+
+        def write(self, text):
+            if type(text) == bytes:
+                text = text.decode('utf-8')
+            self.string += text
+
+        trans = str.maketrans({'\n':'', '\r':''})
+        def str(self):
+            return self.string.translate(self.trans)
+
+    string = filestring("")
+    csv_writer = csv.writer(string, dialect='cm3d2_converter')
+    csv_writer.writerow(line)
+
+    return string.str()
 
 def messages_to_csv(msgs, reports, lang=get_locale(), only_missing=True):
     lang_dict = DICT.get(lang)
@@ -280,7 +311,7 @@ class CNV_OT_dump_py_messages(bpy.types.Operator):
     
     items = { 
         (enum_str, enum_name, "", 'NONE', enum_int) \
-            for enum_int, enum_name, enum_str in bl_i18n_utils.settings.LANGUAGES
+            for enum_int, enum_name, enum_str in bl_i18n_settings.LANGUAGES
     }
     language = bpy.props.EnumProperty(items=items, name="Language", default=get_locale())
     
@@ -312,22 +343,22 @@ class CNV_OT_dump_py_messages(bpy.types.Operator):
 
         msgs = dict()
         reports = extract_messages._gen_reports(
-            extract_messages._gen_check_ctxt(bl_i18n_utils.settings) if self.do_checks else None
+            extract_messages._gen_check_ctxt(bl_i18n_settings) if self.do_checks else None
         )
 
         extract_messages.dump_rna_messages(
             msgs       = msgs,
             reports    = reports,
-            settings   = bl_i18n_utils.settings,
+            settings   = bl_i18n_settings,
             verbose    = False,
-            class_list = compat.BlRegister.classes
+            class_list = [ meta.bl_rna.__class__ for meta in compat.BlRegister.classes ]
         )
 
         extract_messages.dump_py_messages(
             msgs        = msgs, 
             reports     = reports,
             addons      = [__import__("CM3D2 Converter")],
-            settings    = bl_i18n_utils.settings,
+            settings    = bl_i18n_settings,
             addons_only = True
         )
 
@@ -364,7 +395,7 @@ class CNV_OT_dump_py_messages(bpy.types.Operator):
                 reports_txt = context.blend_data.texts.new(reports_txt_name)
             reports_txt.write(reports_txt_data)
 
-        self.report(type={'INFO'}, message="Strings have been dumped to {txt_name}. See text editor.".format(txt_name=txt_name))
+        self.report(type={'INFO'}, message=f_tip_("Strings have been dumped to {txt_name}. See text editor.", txt_name=txt_name))
 
         return {'FINISHED'}
 
@@ -419,33 +450,37 @@ def register(__name__=__name__):
             entry_count = 0
             dupe_count  = 0
             csv_file_path = os.path.join(lang_folder, csv_file_name)
-            with open(csv_file_path, 'rt', encoding='utf-8') as csv_file:
-                csv_reader = csv.reader(csv_file)
-                for line, row in enumerate(csv_reader):
-                    if line == 0: # ignore header
-                        continue
-                    if len(row) < 3:
-                        continue
-                    if row[0].lstrip()[0] == "#":
-                        # ignore comments
-                        continue
-                    if row[0] not in i18n_contexts.values():
-                        print_verbose(2, f"Unknown translation context \"{row[0]}\" on line {line}")
+            with open(csv_file_path, 'rt', encoding='utf-8', newline='') as csv_file:
+                csv_reader = csv.reader(csv_file, dialect='cm3d2_converter')
+                try:
+                    for line, row in enumerate(csv_reader):
+                        if line == 0: # ignore header
+                            continue
+                        if len(row) < 3:
+                            continue
+                        if row[0].lstrip()[0] == "#":
+                            # ignore comments
+                            continue
+                        if row[0] not in i18n_contexts.values():
+                            print_verbose(2, f"Unknown translation context \"{row[0]}\" on line {line}")
 
-                    key = (row[0], row[1])
-                    if check_duplicate(key, lang):
-                        print_verbose(2, f"Duplicate entry on line {line}")
-                        entry_count -= 1
-                        dupe_count  += 1
+                        key = (row[0], row[1])
+                        if check_duplicate(key, lang):
+                            print_verbose(2, f"Duplicate entry on line {line}")
+                            entry_count -= 1
+                            dupe_count  += 1
 
-                    value = row[2]
-                    lang_dict[key] = value
-                    entry_count += 1
+                        value = row[2]
+                        lang_dict[key] = value
+                        entry_count += 1
 
-                    if len(row) > 3: # entry comment
-                        comments_dict[lang][key] = row[3]
+                        if len(row) > 3: # entry comment
+                            comments_dict[lang][key] = row[3]
 
-                    print_verbose(3, f"{line:{4}} {key}: {value}")
+                        print_verbose(3, f"{line:{4}} {key}: {value}")
+                except Error as e:
+                    print(f"Error parsing {csv_file_name} in {lang_folder}:")
+                    print(e)
 
             print_verbose(1, f"-> Added {entry_count} translations from {csv_file_name}")
             if is_check_duplicates:

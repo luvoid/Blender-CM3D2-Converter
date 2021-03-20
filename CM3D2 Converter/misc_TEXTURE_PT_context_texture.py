@@ -397,14 +397,14 @@ class CNV_OT_replace_cm3d2_tex(bpy.types.Operator, common.NodeHandler):
         if node and node.type == 'TEX_IMAGE':
             img = node.image
             if img and common.replace_cm3d2_tex(img, reload_path=True):
-                self.report(type={'INFO'}, message="Loaded Texture File file=%s" % img.filepath)
+                self.report(type={'INFO'}, message=f_tip_("Loaded texture file. file={}"m img.filepath))
                 node.image_user.use_auto_refresh = True
                 return {'FINISHED'}
             else:
-                msg = "The texture file was not found. file=%s" % img.filepath if img else "The image is not set."
+                msg = f_tip_("Could not find texture file. file=%s", img.filepath) if img else f_tip_("The image is not set")
                 self.report(type={'ERROR'}, message=msg)
         else:
-            self.report(type={'ERROR'}, message="Skipped because the texture node was not found.")
+            self.report(type={'ERROR'}, message="Skipped because the texture node was not found")
         return {'CANCELLED'}
 
 
@@ -496,7 +496,7 @@ class CNV_OT_set_default_toon_textures(bpy.types.Operator, common.NodeHandler):
     def execute(self, context):
         node = self.get_node(context)
         if node is None:
-            self.report(type={'ERROR'}, message="Target Node Not found=%s" % self.node_name)
+            self.report(type={'ERROR'}, message=f_tip_("Target node '{}' not found", self.node_name))
             return {'CANCELLED'}
 
         texpathes = common.get_texpath_dict()
@@ -518,7 +518,7 @@ class CNV_OT_set_default_toon_textures(bpy.types.Operator, common.NodeHandler):
                 node.image.reload()
 
         node.image['cm3d2_path'] = common.get_tex_cm3d2path(node.image.filepath)
-        self.report(type={'INFO'}, message="(%s)The texture was reset.filepath=%s" % (self.node_name, node.image.filepath))
+        self.report(type={'INFO'}, message=f_tip_("The texture of node '{}' was reset. filepath={}", self.node_name, node.image.filepath))
         return {'FINISHED'}
 
 
@@ -541,7 +541,7 @@ class CNV_OT_reload_textures(bpy.types.Operator):
             image.reload()
             return {'FINISHED'}
 
-        self.report(type={'ERROR'}, message="Target image not found%s" % self.tex_name)
+        self.report(type={'ERROR'}, message=f_tip_("Target image '{}' not found", self.tex_name))
         return {'CANCELLED'}
 
 
@@ -807,7 +807,7 @@ class CNV_OT_quick_export_cm3d2_tex(bpy.types.Operator):
     def execute(self, context):
         img = compat.get_tex_image(context, self.node_name)
         if img is None or len(img.pixels) == 0:
-            self.report(type={'ERROR'}, message="Failed to get the image %s" % self.node_name)
+            self.report(type={'ERROR'}, message=f_tip_("Failed to get image of '{}'", self.node_name))
             return {'CANCELLED'}
 
         override = context.copy()

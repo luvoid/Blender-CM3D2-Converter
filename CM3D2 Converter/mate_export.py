@@ -57,7 +57,7 @@ class CNV_OT_export_cm3d2_mate(bpy.types.Operator):
         try:
             writer = common.open_temporary(self.filepath, 'wb', is_backup=self.is_backup)
         except:
-            self.report(type={'ERROR'}, message="Failed to backup file, possibly inaccessible.")
+            self.report(type={'ERROR'}, message=f_tip_("Failed to open the file. File does not exist or is inaccessible. file={}", self.filepath))
             return {'CANCELLED'}
 
         try:
@@ -152,7 +152,7 @@ class CNV_OT_export_cm3d2_mate_text(bpy.types.Operator):
         try:
             file = common.open_temporary(self.filepath, 'wb', is_backup=self.is_backup)
         except:
-            self.report(type={'ERROR'}, message="Failed to backup file, possibly inaccessible.")
+            self.report(type={'ERROR'}, message=f_tip_("Failed to open the file. File does not exist or is inaccessible. file={}", self.filepath))
             return {'CANCELLED'}
 
         try:

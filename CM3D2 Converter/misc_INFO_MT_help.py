@@ -36,7 +36,7 @@ class INFO_MT_help_CM3D2_Converter_RSS(bpy.types.Menu):
             titles = re.findall(r'\<title\>[　\s]*([^　\s][^\<]*[^　\s])[　\s]*\<\/title\>', html)[1:] # matches: <title> something </title>
             updates = re.findall(r'\<updated\>([^\<\>]*)\<\/updated\>', html)[1:]
             links = re.findall(r'<link [^\<\>]*href="([^"]+)"/>', html)[2:]
-            #version_datetime = datetime.datetime.strptime(str(common.bl_info["version"][0]) + "," + str(common.bl_info["version"][1]) + "," + str(common.bl_info["version"][2]) + "," + str(common.bl_info["version"][3]) + "," + str(common.bl_info["version"][4]) + "," + str(common.bl_info["version"][5]), '%Y,%m,%d,%H,%M,%S')
+            #version_datetime = datetime.datetime.strptime(str(common.bl_info["version"][0]) + "," + str(common.bl_info["version"][1]) + "," + str(common.bl_info["version"][2]) + "," + str(common.bl_info["version"][3]) + "," + str(common.bl_info["version"][4]) + "," + str(common.bl_info["version"][5]), '%Y,%m,{},%H,%M,{}')
             numbers_in_version = 0
             sub_version = None
             year = 2000
@@ -97,13 +97,13 @@ class INFO_MT_help_CM3D2_Converter_RSS(bpy.types.Menu):
                     icon = 'PREVIEW_RANGE'
 
                 if 60 * 60 * 24 <= diff_seconds.total_seconds():
-                    date_str = "%d Days" % int(diff_seconds.total_seconds() / 60 / 60 / 24)
+                    date_str = f_iface_("{} days", int(diff_seconds.total_seconds() / 60 / 60 / 24))
                 elif 60 * 60 <= diff_seconds.total_seconds():
-                    date_str = "%d Hours" % int(diff_seconds.total_seconds() / 60 / 60)
+                    date_str = f_iface_("{} hr", int(diff_seconds.total_seconds() / 60 / 60))
                 elif 60 <= diff_seconds.total_seconds():
-                    date_str = "%d Minutes" % int(diff_seconds.total_seconds() / 60)
+                    date_str = f_iface_("{} min", int(diff_seconds.total_seconds() / 60))
                 else:
-                    date_str = "%d Seconds" % diff_seconds.total_seconds()
+                    date_str = f_iface_("{} sec", diff_seconds.total_seconds())
 
                 text = "(" + date_str + ") " + title
 
@@ -133,7 +133,7 @@ class CNV_OT_update_cm3d2_converter(bpy.types.Operator):
     bl_description = "Will quickly download the latest CM3D2 Converter from the Github Page."
     bl_options = {'REGISTER'}
 
-    is_restart = bpy.props.BoolProperty(name="Restart Blender After Updating", default=True)
+    is_restart = bpy.props.BoolProperty(name="Restart Blender After Updating", default=compat.IS_LEGACY)
     is_toggle_console = bpy.props.BoolProperty(name="Close the Console after Restart", default=True)
 
     def invoke(self, context, event):
@@ -155,15 +155,26 @@ class CNV_OT_update_cm3d2_converter(bpy.types.Operator):
         zip_file.close()
 
         zip_file = zipfile.ZipFile(zip_path, 'r')
+        sub_dir = ""
         for path in zip_file.namelist():
-            if not os.path.basename(path):
+            if not sub_dir and os.path.split(os.path.split(path)[0])[1] == "CM3D2 Converter":
+                sub_dir = path
                 continue
-            sub_dir = os.path.split(os.path.split(path)[0])[1]
-            if sub_dir == "CM3D2 Converter":
-                file = open(os.path.join(addon_path, os.path.basename(path)), 'wb')
+            if not sub_dir or sub_dir not in path:
+                continue
+            relative_path = os.path.relpath(path, start=sub_dir)
+            real_path = os.path.join(addon_path, relative_path)
+            # If it is a file
+            if os.path.basename(path): # is a file
+                file = open(real_path, 'wb') # open() will automatically create it if it does not exist
                 file.write(zip_file.read(path))
                 file.close()
+            # If it is a missing directory
+            elif not os.path.exists(real_path):
+                os.mkdir(real_path)
+
         zip_file.close()
+        return {'CANCELLED'}
 
         if self.is_restart:
             filepath = bpy.data.filepath
@@ -178,7 +189,11 @@ class CNV_OT_update_cm3d2_converter(bpy.types.Operator):
             subprocess.Popen(command_line)
             bpy.ops.wm.quit_blender()
         else:
-            self.report(type={'INFO'}, message="Converter Updated. Please Reboot Blender.")
+            if compat.IS_LEGACY:
+                self.report(type={'INFO'}, message="Converter updated. Please restart Blender")
+            else:
+                bpy.ops.scripts.reload()
+                self.report(type={'INFO'}, message="Blender-CM3D2-Converter updated")
         return {'FINISHED'}
 
 

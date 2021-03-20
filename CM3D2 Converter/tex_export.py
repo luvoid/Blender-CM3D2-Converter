@@ -76,7 +76,7 @@ class CNV_OT_export_cm3d2_tex(bpy.types.Operator):
             self.report(type={'ERROR'}, message=str(e))
             return {'CANCELLED'}
         except Exception as e:
-            self.report(type={'ERROR'}, message="Output failed! %s" % str(e))
+            self.report(type={'ERROR'}, message=f_tip_("Failed to output .tex file. {}", str(e)))
             return {'CANCELLED'}
 
         return {'FINISHED'}

@@ -128,7 +128,7 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator, bpy_extras.io_utils.ImportHe
         try:
             reader = open(self.filepath, 'rb')
         except:
-            self.report(type={'ERROR'}, message="Failed to open file, inaccessible or file does not exist:" + " " + self.filepath)
+            self.report(type={'ERROR'}, message=f_tip_("Failed to open the file. File does not exist or is inaccessible. file={}", self.filepath))
             return {'CANCELLED'}
 
         self.texpath_dict = common.get_texpath_dict(reload=self.reload_tex_cache)
@@ -234,7 +234,7 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator, bpy_extras.io_utils.ImportHe
             material_data = []
             material_count = struct.unpack('<i', reader.read(4))[0]
             for i in range(material_count):
-                print("mate count: {num} of {count}".format(num=i, count=material_count))
+                print(f_("mate count: {num} of {count}", num=i, count=material_count))
                 data = cm3d2_data.MaterialHandler.read(reader, read_header=False)
                 data.version = model_ver
                 data.name1 = data.name.lower()
@@ -583,7 +583,7 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator, bpy_extras.io_utils.ImportHe
             override['object'] = ob
             prefs = common.preferences()
             for index, data in enumerate(material_data):
-                print("material count: {num} of {count}".format(num=index, count=material_count))
+                print(f_("material count: {num} of {count}", num=index, count=material_count))
                 if prefs.mate_unread_same_value and data.name in mates_set:
                     continue
                 mates_set.add(data.name)
@@ -780,7 +780,7 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator, bpy_extras.io_utils.ImportHe
         elif 1024 < filesize:
             filesize = filesize / 1024.0
             filesize_str = "KB"
-        self.report(type={'INFO'}, message="Model Was Imported Successfully (%d %s/ %.2f sec)" % (filesize, filesize_str, require_time))
+        self.report(type={'INFO'}, message=f_tip_("Model was imported successfully ({} {} / {:.2f} sec)", filesize, filesize_str, require_time))
 
         return {'FINISHED'}
 

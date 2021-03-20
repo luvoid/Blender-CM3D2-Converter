@@ -4,6 +4,7 @@ import bmesh
 import mathutils
 from . import common
 from . import compat
+from .translations.pgettext_functions import *
 from .model_export import CNV_OT_export_cm3d2_model
 
 
@@ -209,6 +210,21 @@ class CNV_OT_align_to_cm3d2_base_bone(bpy.types.Operator):
         ob.matrix_basis = mat
 
 
+    def bone_data_report_cancel(self):
+        source_name = self.bl_rna.properties['bone_info_mode']        \
+                      and source_name.enum_items[self.bone_info_mode] \
+                      and source_name.name                            \
+                      or self.bone_info_mode
+        self.report(
+            type    = {'ERROR'},
+            message = f_tip_(
+                "Could not find 'BaseBone' in {source_name} Please add it or change source", 
+                source_name = source_name
+            )
+        )
+        return {'CANCELLED'}
+
+
     def execute(self, context):
         ob = context.object
         arm_ob = ob.find_armature()
@@ -219,16 +235,20 @@ class CNV_OT_align_to_cm3d2_base_bone(bpy.types.Operator):
         bone_data = None
         if self.bone_info_mode == 'ARMATURE':
             #bone_data = CNV_OT_export_cm3d2_model.armature_bone_data_parser(context, arm_ob)
+            if not 'BaseBone' in arm_ob.data:
+                return bone_data_report_cancel()
             base_bone_name = arm_ob.data['BaseBone']
         if self.bone_info_mode == 'TEXT':
             bone_data_text = context.blend_data.texts["BoneData"]
-            if 'BaseBone' in bone_data_text:
-                base_bone_name = bone_data_text['BaseBone']
+            if not 'BaseBone' in bone_data_text:
+                return bone_data_report_cancel()
+            base_bone_name = bone_data_text['BaseBone']
             bone_data = CNV_OT_export_cm3d2_model.bone_data_parser(l.body for l in bone_data_text.lines)
         elif self.bone_info_mode in ['OBJECT_PROPERTY', 'ARMATURE_PROPERTY']:
             target = ob if self.bone_info_mode == 'OBJECT_PROPERTY' else arm_ob.data
-            if 'BaseBone' in target:
-                base_bone_name = target['BaseBone']
+            if not 'BaseBone' in target:
+                return bone_data_report_cancel()
+            base_bone_name = target['BaseBone']
             bone_data = CNV_OT_export_cm3d2_model.bone_data_parser(CNV_OT_export_cm3d2_model.indexed_data_generator(target, prefix="BoneData:"))
         
         old_basis = ob.matrix_basis.copy()

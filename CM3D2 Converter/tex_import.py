@@ -69,7 +69,7 @@ class CNV_OT_import_cm3d2_tex(bpy.types.Operator):
             return {'FINISHED'}
 
         except:
-            self.report(type={'ERROR'}, message="Failed to open file, inaccessible or file does not exist."+ self.filepath)
+            self.report(type={'ERROR'}, message=f_tip_("Failed to open the file. File does not exist or is inaccessible. file={}", self.filepath))
             return {'CANCELLED'}
 
 

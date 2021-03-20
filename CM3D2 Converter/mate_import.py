@@ -6,6 +6,7 @@ import bpy
 from . import common
 from . import compat
 from . import cm3d2_data
+from .translations.pgettext_functions import *
 
 
 @compat.BlRegister()
@@ -51,7 +52,7 @@ class CNV_OT_import_cm3d2_mate(bpy.types.Operator):
         try:
             file = open(self.filepath, 'rb')
         except:
-            self.report(type={'ERROR'}, message="Failed to open file, inaccessible or file does not exist: file=%s" % self.filepath)
+            self.report(type={'ERROR'}, message=f_tip_("Failed to open the file. File does not exist or is inaccessible. file={}", self.filepath))
             return {'CANCELLED'}
 
         try:
@@ -121,7 +122,7 @@ class CNV_OT_import_cm3d2_mate_text(bpy.types.Operator):
         try:
             file = open(self.filepath, 'rb')
         except:
-            self.report(type={'ERROR'}, message="Failed to open the file, File does not exist or is not accessible")
+            self.report(type={'ERROR'}, message=f_tip_("Failed to open the file. File does not exist or is inaccessible. file={}", self.filepath))
             return {'CANCELLED'}
 
         try:

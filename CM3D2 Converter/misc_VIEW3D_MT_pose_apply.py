@@ -187,10 +187,10 @@ class CNV_OT_apply_prime_field(bpy.types.Operator):
 
         col = self.layout.column()
         col.enabled = self.is_apply_armature_modifier
-        col.layout.prop(self , 'is_preserve_shape_key_values')
-        col.layout.prop(self , 'is_deform_preserve_volume'   )
+        col.prop(self , 'is_preserve_shape_key_values')
+        col.prop(self , 'is_deform_preserve_volume'   )
         if compat.IS_LEGACY:
-            col.layout.prop(prefs, 'custom_normal_blend', icon=compat.icon('SNAP_NORMAL'  ), slider=True)
+            col.prop(prefs, 'custom_normal_blend', icon=compat.icon('SNAP_NORMAL'  ), slider=True)
 
         self.layout.prop(self, 'is_bake_drivers')
         if self.was_t_stance:

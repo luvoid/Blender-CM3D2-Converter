@@ -3,6 +3,7 @@ import bpy
 import struct
 from . import common
 from . import compat
+from .translations.pgettext_functions import *
 
 SHADER_NAMES_CM3D2 = [
     'CM3D2/Toony_Lighted',
@@ -475,7 +476,7 @@ class Material():
         if read_header:
             header = common.read_str(reader)
             if header != 'CM3D2_MATERIAL':
-                raise Exception("The mate file header doesn't seem to be correct:%s" % header)
+                raise Exception(f_tip_("The .mate file has an invalid header: {}", header))
             self.version = struct.unpack('<i', reader.read(4))[0]
             self.name1 = common.read_str(reader)
 
@@ -512,7 +513,7 @@ class Material():
             elif prop_type == 'end':
                 break
             else:
-                raise Exception("Unknown setting value '{prop}' was found in the material!".format(prop=prop_type))
+                raise Exception(f_tip_("Unknown setting value '{prop}' was found in the material!", prop=prop_type))
 
     def write(self, writer, write_header=True):
         if write_header:
@@ -819,7 +820,7 @@ class MaterialHandler:
         return mat_data
 
     @classmethod
-    def apply_to(cls, context, mate, mat_data, replace_tex=True):
+    def apply_to(cls, override, mate, mat_data, replace_tex=True):
         mate['shader1'] = mat_data.shader1
         mate['shader2'] = mat_data.shader2
 
@@ -836,28 +837,28 @@ class MaterialHandler:
             prop_name = tex_item[0]
 
             if len(tex_item) < 2:
-                common.create_tex(context, mate, prop_name)
+                common.create_tex(override, mate, prop_name)
             else:
                 tex_name = tex_item[1]
                 tex_path = tex_item[2]
                 tex_map = tex_item[3] + tex_item[4]
-                common.create_tex(context, mate, prop_name, tex_name, tex_path, tex_path, tex_map, replace_tex)
+                common.create_tex(override, mate, prop_name, tex_name, tex_path, tex_path, tex_map, replace_tex)
 
         for col_item in mat_data.col_list:
             prop_name = col_item[0]
             col = col_item[1]
-            common.create_col(context, mate, prop_name, col)
+            common.create_col(override, mate, prop_name, col)
 
         for item in mat_data.f_list:
             prop_name = item[0]
             f = item[1]
-            common.create_float(context, mate, prop_name, f)
+            common.create_float(override, mate, prop_name, f)
 
         align_nodes(mate)
 
     @classmethod
-    def apply_to_old(cls, context, mate, mat_data, replace_tex=True, decorate=True, skip_same_prop=True):
-        ob = context.active_object
+    def apply_to_old(cls, override, mate, mat_data, replace_tex=True, decorate=True, skip_same_prop=True):
+        ob = override['active_object']
         me = ob.data
 
         mate['shader1'] = mat_data.shader1
@@ -874,7 +875,7 @@ class MaterialHandler:
                     continue
                 read_texes.add(prop_name)
 
-            slot = search_or_create_slot(context, mate, olds_slots, slot_index, prop_name, 'IMAGE')
+            slot = search_or_create_slot(override, mate, olds_slots, slot_index, prop_name, 'IMAGE')
             slot.use_rgb_to_intensity = False
             mate.use_textures[slot_index] = True
 
@@ -903,7 +904,7 @@ class MaterialHandler:
             prop_name = item[0]
             col = item[1]
 
-            slot = search_or_create_slot(context, mate, olds_slots, slot_index, prop_name, 'BLEND')
+            slot = search_or_create_slot(override, mate, olds_slots, slot_index, prop_name, 'BLEND')
 
             mate.use_textures[slot_index] = False
             slot.use_rgb_to_intensity = True
@@ -916,7 +917,7 @@ class MaterialHandler:
             prop_name = item[0]
             f = item[1]
 
-            slot = search_or_create_slot(context, mate, olds_slots, slot_index, prop_name, 'BLEND')
+            slot = search_or_create_slot(override, mate, olds_slots, slot_index, prop_name, 'BLEND')
 
             mate.use_textures[slot_index] = False
             slot.use_rgb_to_intensity = False
@@ -938,7 +939,7 @@ class MaterialHandler:
             common.decorate_material(mate, decorate, me, ob.active_material_index)
 
     @staticmethod
-    def search_or_create_slot(context, mate, olds_slots, slot_index, prop_name, tex_type):
+    def search_or_create_slot(override, mate, olds_slots, slot_index, prop_name, tex_type):
         tex = None
         slot_item = mate.texture_slots[slot_index]
         slot_name = slot_item.name if slot_item else ''
@@ -964,7 +965,7 @@ class MaterialHandler:
                         tex = slot_item.texture
                         break
             if tex is None:
-                tex = context.blend_data.textures.new(prop_name, tex_type)
+                tex = override['blend_data'].textures.new(prop_name, tex_type)
             slot.texture = tex
         return slot
 

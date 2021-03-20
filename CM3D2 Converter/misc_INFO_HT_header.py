@@ -43,8 +43,8 @@ class CNV_OT_vertices_count_checker(bpy.types.Operator):
         inner_count = len(alreadys)
         real_count = len(me.vertices)
         if inner_count <= 65535:
-            self.report(type={'INFO'}, message="Good, There is space for more vertices, you may add %d more vertices (Vertices:%d(+%d) UV Splitting:+%d％)" % (65535 - inner_count, real_count, inner_count - real_count, int(inner_count / real_count * 100)))
+            self.report(type={'INFO'}, message=f_tip_("✓ There is space for more vertices, you may add {} more vertices. (Verts:{}(+{}) UV Splitting:+{}%)", 65535 - inner_count, real_count, inner_count - real_count, int(inner_count / real_count * 100)))
         else:
-            self.report(type={'ERROR'}, message="X, Too many vertices、please remove %d Vertices (Vertices:%d(+%d) Uv Splitting:+%d％)" % (inner_count - 65535, real_count, inner_count - real_count, int(inner_count / real_count * 100)))
+            self.report(type={'ERROR'}, message=f_tip_("✗ Too many vertices; please remove {} vertices. (Verts:{}(+{}) UV Splitting:+{}%)", inner_count - 65535, real_count, inner_count - real_count, int(inner_count / real_count * 100)))
 
         return {'FINISHED'}

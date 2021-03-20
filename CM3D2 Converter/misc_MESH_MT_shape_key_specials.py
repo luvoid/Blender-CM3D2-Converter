@@ -273,7 +273,7 @@ class shape_key_transfer_op:
             else:
                 self.cleanup(context)
                 diff_time = time.time() - self._start_time
-                self.report(type={'INFO'}, message="%.2f Seconds" % diff_time)
+                self.report(type={'INFO'}, message=f_tip_("{:.2f} Seconds", diff_time))
                 return {'FINISHED'}
 
     def prepare(self, context):
@@ -636,7 +636,7 @@ class CNV_OT_precision_shape_key_transfer(shape_key_transfer_op, bpy.types.Opera
             self.cleanup_sks_transfer(context, target_ob, source_ob, pre_mode)
 
         diff_time = time.time() - start_time
-        self.report(type={'INFO'}, message="%.2f Seconds" % diff_time)
+        self.report(type={'INFO'}, message=f_tip_("{:.2f} Seconds", diff_time))
         return {'FINISHED'}
 
     def prepare(self, context):
@@ -804,7 +804,7 @@ class CNV_PT_vgroups_selector(bpy.types.Panel):
     def draw(self, context):
         target_ob, source_ob = common.get_target_and_source_ob(context)
         matched_vgroups = common.values_of_matched_keys(target_ob.vertex_groups, source_ob.vertex_groups)
-        print("len(matched) = {length}".format(length=len(matched_vgroups)))
+        print(f_("len(matched) = {length}", length=len(matched_vgroups)))
         armature = target_ob.find_armature() or source_ob.find_armature()
         armature = armature and armature.data
         bone_data_ob = (target_ob.get("LocalBoneData:0") and target_ob) or (source_ob.get("LocalBoneData:0") and source_ob) or False
@@ -824,7 +824,7 @@ class CNV_PT_vgroups_selector(bpy.types.Panel):
             self.layout.prop( self, vg_name )
     
     def __getattr__(self, attr):
-        print("get attr {key}".format(key=attr))
+        print(f_("get attr {key}", key=attr))
         if attr == 'matched_vgroups':
             return matched_vgroups
         if attr == 'is_vgroups_used':
@@ -842,7 +842,7 @@ class CNV_PT_vgroups_selector(bpy.types.Panel):
             return
         if attr == 'layout':
             bpy.types.Panel.__setattribute__(self, attr, value)
-        print("set attr {key} = {val}".format(key=attr, val=value))
+        print(f_("set attr {key} = {val}", key=attr, val=value))
         is_vgroups_used[attr] = value
 """
 
@@ -1153,7 +1153,7 @@ class CNV_OT_weighted_shape_key_transfer(shape_key_transfer_op, bpy.types.Operat
         target_ob, source_ob = common.get_target_and_source_ob(context)
 
         self.matched_vgroups = common.values_of_matched_keys(target_ob.vertex_groups, source_ob.vertex_groups)
-        print("len(matched) = {length}".format(length=len(self.matched_vgroups)))
+        print(f_("len(matched) = {length}", length=len(self.matched_vgroups)))
         armature_ob = target_ob.find_armature() or source_ob.find_armature()
         self.armature = armature_ob and armature_ob.data
         self.bone_data_ob = (target_ob.get("LocalBoneData:0") and target_ob) or (source_ob.get("LocalBoneData:0") and source_ob) or None

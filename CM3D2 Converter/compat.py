@@ -29,7 +29,7 @@ class BlRegister():
         else:
             if self.use_bl_attr:
                 bl_ctx = getattr(cls, 'bl_context', '')
-                bl_idname = "{}{}{}{}".format(cls.bl_space_type, cls.bl_region_type, bl_ctx, cls.bl_label)
+                bl_idname = f'{cls.bl_space_type}{cls.bl_region_type}{bl_ctx}{cls.bl_label}'
             else:
                 bl_idname = cls.__qualname__
 

@@ -245,7 +245,7 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
                     if ob_main:
                         compat.set_active(context, ob_main)
                     bpy.ops.object.join()
-                    self.report(type={'INFO'}, message="%d Merged Objects" % selected_count)
+                    self.report(type={'INFO'}, message=f_tip_("Merged {} objects", selected_count))
 
             ret = self.export(context, ob_main)
             if 'FINISHED' not in ret:
@@ -253,7 +253,7 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
 
             context.window_manager.progress_update(10)
             diff_time = time.time() - start_time
-            self.report(type={'INFO'}, message="model was exported %.2f seconds file=%s" % (diff_time, self.filepath))
+            self.report(type={'INFO'}, message=f_tip_("Model exported in {:.2f} seconds. file={}", diff_time, self.filepath))
             return ret
         finally:
             # 作業データの破棄（コピーデータを削除、選択状態の復元、アクティブオブジェクト、モードの復元）
@@ -441,13 +441,13 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
             })
         
         if 1 <= is_over_one:
-            self.report(type={'WARNING'}, message="Found %d vertices whose total weight is more then 1. Please Normalize Weights." % is_over_one)
+            self.report(type={'WARNING'}, message=f_tip_("Found {} vertices whose total weight is more then 1. Please Normalize Weights.", is_over_one))
         if 1 <= is_under_one:
-            self.report(type={'WARNING'}, message="Found %d vertices whose total weight is less then 1. Please Normalize Weights." % is_under_one)
+            self.report(type={'WARNING'}, message=f_tip_("Found {} vertices whose total weight is less then 1. Please Normalize Weights.", is_under_one))
         
         # luvoid : warn that there are vertices in too many vertex groups
         if is_in_too_many > 0:
-            self.report(type={'WARNING'}, message="Found %d vertices that are in more than 4 vertex groups. Please Clean Vertex Groups" % is_in_too_many)
+            self.report(type={'WARNING'}, message=f_tip_("Found {} vertices that are in more than 4 vertex groups. Please Clean Vertex Groups", is_in_too_many))
                 
         # luvoid : check for unused local bones that the game will delete
         is_deleted = 0
@@ -460,10 +460,10 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
             elif is_used == True:
                 pass
             else:
-                print("Unexpected: used_local_bone[{key}] == {value} when len(used_local_bone) == {length}".format(key=index, value=is_used, length=len(used_local_bone)))
-                self.report(type={'WARNING'}, message="Could not find whether bone with index {index} was used. See console for more info.".format(index=i))
+                print(f_tip_("Unexpected: used_local_bone[{key}] == {value} when len(used_local_bone) == {length}", key=index, value=is_used, length=len(used_local_bone)))
+                self.report(type={'WARNING'}, message=f_tip_("Could not find whether bone with index {index} was used. See console for more info.", index=i))
         if is_deleted > 0:
-            self.report(type={'WARNING'}, message="Found {num} local bones with no vertices assigned. See log for more info.".format(num=is_deleted))
+            self.report(type={'WARNING'}, message=f_tip_("Found {num} local bones with no vertices assigned. See log for more info.", num=is_deleted))
             self.report(type={'INFO'}, message=deleted_names)
                 
         context.window_manager.progress_update(4)
@@ -472,7 +472,7 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
         try:
             writer = common.open_temporary(self.filepath, 'wb', is_backup=self.is_backup)
         except:
-            self.report(type={'ERROR'}, message="Failed to Backup previous file. Possibly inaccessible or non-existent.")
+            self.report(type={'ERROR'}, message=f_tip_("Failed to open the file. File does not exist or is inaccessible. file={}", self.filepath))
             return {'CANCELLED'}
 
         model_datas = {
@@ -542,7 +542,7 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
                     vert_indices[vert.index] = vert_count
                     vert_count += 1
         if 65535 < vert_count:
-            raise common.CM3D2ExportException("There are still too many vertices (% d Vertices). Please remove% d more vertices. Aborting." % (vert_count, vert_count - 65535))
+            raise common.CM3D2ExportException(f_tip_("Too many vertices ({} verts). Please remove {} vertices. Aborting", vert_count, vert_count - 65535))
         context.window_manager.progress_update(5)
 
         writer.write(struct.pack('<2i', vert_count, len(ob.material_slots)))

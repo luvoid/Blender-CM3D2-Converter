@@ -334,8 +334,8 @@ class CNV_OT_forced_modifier_apply(bpy.types.Operator):
                     new_shape_deforms.append([v.co.copy() for v in temp_me.vertices])
                 except Exception as e:
                     #ob.modifiers.remove(mod)
-                    self.report(type={'WARNING'}, message="Could not apply '%s' modifier \"%s\" to shapekey %i" % (mod.type, mod.name, shape_index))
-                    print("Error applying '{type}' modifier \"{name}\":\n\t".format(type=mod.type, name=mod.name), e)
+                    self.report(type={'WARNING'}, message=f_tip_("Could not apply '{}' modifier \"{}\" to shapekey {}", mod.type, mod.name, shape_index))
+                    print(f_("Error applying '{type}' modifier \"{name}\":\n\t", type=mod.type, name=mod.name), e)
                 finally:
                     common.remove_data(temp_ob)
                     common.remove_data(temp_me)
@@ -369,8 +369,8 @@ class CNV_OT_forced_modifier_apply(bpy.types.Operator):
                     bpy.ops.object.modifier_apply(override, modifier=mod.name)
                 except Exception as e:
                     #ob.modifiers.remove(mod)
-                    self.report(type={'ERROR', 'WARNING'}, message="Could not apply '{type}' modifier \"{name}\"".format(type=mod.type, name=mod.name))
-                    print("Error applying '{type}' modifier \"{name}\":\n\t".format(type=mod.type, name=mod.name), e)
+                    self.report(type={'ERROR', 'WARNING'}, message=f_tip_("Could not apply '{type}' modifier \"{name}\"", type=mod.type, name=mod.name))
+                    print(f_("Error applying '{type}' modifier \"{name}\":\n\t", type=mod.type, name=mod.name), e)
             
             mod_progress += 1 if (mod.type != 'ARMATURE' or not compat.IS_LEGACY) else 0
             context.window_manager.progress_update( progress_start + (progress + mod_progress / mod_count) / progress_count )
@@ -432,8 +432,8 @@ class CNV_OT_forced_modifier_apply(bpy.types.Operator):
                     bpy.ops.object.modifier_apply(override, modifier=mod.name)
                 except Exception as e:
                     #ob.modifiers.remove(mod)
-                    self.report(type={'ERROR', 'WARNING'}, message="Could not apply '{mod_type}' modifier \"{mod_name}\"".format(mod_type=mod.type, mod_name=mod.name) )
-                    print("Could not apply '{mod_type}' modifier \"{mod_name}\":\n\t".format(mod_type=mod.type, mod_name=mod.name), e)
+                    self.report(type={'ERROR', 'WARNING'}, message=f_tip_("Could not apply '{mod_type}' modifier \"{mod_name}\"", mod_type=mod.type, mod_name=mod.name) )
+                    print(f_("Could not apply '{mod_type}' modifier \"{mod_name}\":\n\t", mod_type=mod.type, mod_name=mod.name), e)
             
             mod_progress += 1 if (mod.type == 'ARMATURE' and compat.IS_LEGACY) else 0
             context.window_manager.progress_update( progress_start + (progress + mod_progress / mod_count) / progress_count )

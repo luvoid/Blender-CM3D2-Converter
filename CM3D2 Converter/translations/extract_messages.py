@@ -332,16 +332,25 @@ def dump_rna_messages(msgs, reports, settings, verbose=False, class_list=bpy.typ
 
     def walk_class(cls):
         if not hasattr(cls, 'bl_rna'):
+            reports["rna_structs_skipped"].append(cls)
             return
         bl_rna = cls.bl_rna
-        #msgsrc = "bpy.types." + bl_rna.identifier # CM3D2 Converter: this does crazy things like change the name of our operators!
-        msgsrc = "bpy.types." + cls.__name__
+        msgsrc = "bpy.types." + bl_rna.identifier # CM3D2 Converter: this does crazy things like change the name of our operators!
+        #msgsrc = "bpy.types." + cls.__name__
+        # Catch operators and redirect through bpy.ops
+        if '_OT_' in bl_rna.identifier:
+            module, operator = cls.bl_idname.split('.')
+            instance = getattr(getattr(bpy.ops, module), operator)
+            cls = instance.get_rna_type().__class__
+            bl_rna = cls.bl_rna
         #print(cls, msgsrc)
         msgctxt = bl_rna.translation_context or default_context
 
         if bl_rna.name and (bl_rna.name != bl_rna.identifier or msgctxt != default_context):
             process_msg(msgs, msgctxt, bl_rna.name, msgsrc, reports, check_ctxt_rna, settings)
-
+        
+        if hasattr(bl_rna, 'bl_description'):
+            process_msg(msgs, default_context, bl_rna.bl_description, msgsrc, reports, check_ctxt_rna_tip, settings)
         if bl_rna.description:
             process_msg(msgs, default_context, bl_rna.description, msgsrc, reports, check_ctxt_rna_tip, settings)
         elif cls.__doc__:  # XXX Some classes (like KeyingSetInfo subclasses) have void description... :(
@@ -540,20 +549,14 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
             print("       Assuming default operator context '{}'".format(default_op_context))
             return default_op_context
 
-    def _prop_to_ctxt(node):
-        # TODO Try and detect where this prop is used and gather contexts from there
-        #      or use the context of the class they are defined within
-        print(node)
-        return i18n_contexts.default
-
     # Gather function names.
     # In addition of UI func, also parse pgettext ones...
     # Tuples of (module name, (short names, ...)).
     pgettext_variants = (
-        ("pgettext", ("_",)),
-        ("pgettext_iface", ("iface_",)),
-        ("pgettext_tip", ("tip_",)),
-        ("pgettext_data", ("data_",)),
+        ("pgettext",       ("_"     , "f_"      , )),
+        ("pgettext_iface", ("iface_", "f_iface_", )),
+        ("pgettext_tip",   ("tip_"  , "f_tip_"  , )),
+        ("pgettext_data",  ("data_" , "f_data_" , )),
     )
     pgettext_variants_args = {"msgid": (0, {"msgctxt": 1})}
 
@@ -569,8 +572,7 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
             (("msgctxt",), _ctxt_to_ctxt),
         ),
         "message": (),
-        #"name": (()_prop_to_ctxt),
-        #"description": (_prop_to_ctxt),
+        "report_message": (), # CM3D2 Converter : for report_cancel()
     }
 
     context_kw_set = {}
@@ -617,16 +619,10 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
         func_translate_args[func_id] = pgettext_variants_args
         for func_id in func_ids:
             func_translate_args[func_id] = pgettext_variants_args
-    # Functions from bpy.props
-    #for func_id in dir(bpy.props):
-    #    if func_id.startswith('__'):
-    #        continue
-    #    func = getattr(bpy.props, func_id)
-    #    # check it has one or more arguments as defined in translate_kw
-    #    for arg_pos, (arg_kw, arg) in enumerate(func.parameters.items()):
-    #        if ((arg_kw in translate_kw) and (not arg.is_output) and (arg.type == 'STRING')):
-    #            func_translate_args.setdefault(func_id, {})[arg_kw] = (arg_pos, {})
-    #print(func_translate_args)
+    
+    # CM3D2 Converter : manually add report_cancel()
+    # XXX Consider removing the use of report_cancel() entierly in model/anim import/export
+    func_translate_args.setdefault('report_cancel', {})['report_message'] = (1, {})
 
     # Break recursive nodes look up on some kind of nodes.
     # E.g. we don't want to get strings inside subscripts (blah["foo"])!

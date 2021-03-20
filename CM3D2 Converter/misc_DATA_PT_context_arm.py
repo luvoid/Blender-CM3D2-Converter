@@ -10,6 +10,7 @@ import mathutils
 import os
 from . import common
 from . import compat
+from .translations.pgettext_functions import *
 
 
 # メニュー等に項目追加
@@ -958,7 +959,7 @@ class CNV_PG_cm3d2_bone_morph(bpy.types.PropertyGroup):
             driver_target = head_var.targets[0]
             driver_target.id_type = 'OBJECT'
             driver_target.id = bone.id_data
-            driver_target.data_path = bone.path_from_id("head") + "[{index}]".format(index=axis)
+            driver_target.data_path = bone.path_from_id("head") + f"[{axis}]"
             
             if axis == 1: # if y axis, include parent bone's length, because head coords are based on parent's tail
                 driver.expression = "(parent_length+head)_"
@@ -966,7 +967,7 @@ class CNV_PG_cm3d2_bone_morph(bpy.types.PropertyGroup):
                 driver.expression = "head_"
             prefix = " * ("
             
-            #driver.expression = "-{direction} + {direction}".format(direction=rest_value)
+            #driver.expression = "-{direction} + {direction}", direction=rest_value
 
         driver_var = driver.variables.get(prop)
         if not driver_var:
@@ -981,7 +982,7 @@ class CNV_PG_cm3d2_bone_morph(bpy.types.PropertyGroup):
         
         # if prop isn't already a factor
         if not prop in driver.expression:
-            driver.expression = driver.expression[:-1] + prefix + "({var}-{offset})*{factor})".format(var=prop, offset=default, factor=value/(100-default))
+            driver.expression = driver.expression[:-1] + prefix + f"({prop}-{default})*{value/(100-default)})"
             
         return
 
@@ -1011,7 +1012,7 @@ class CNV_PG_cm3d2_bone_morph(bpy.types.PropertyGroup):
         
         # if prop isn't already a factor
         if not prop in driver.expression:
-            driver.expression = driver.expression[:-1] + " + ({var}-{offset})*{factor})".format(var=prop, offset=default, factor=value/(100-default))
+            driver.expression = driver.expression[:-1] + f" + ({prop}-{default})*{value/(100-default)})"
  
         return
 
@@ -1177,7 +1178,7 @@ class CNV_PG_cm3d2_wide_slider(bpy.types.PropertyGroup):
             driver.type = 'SCRIPTED'
             driver.expression = "0"
 
-        prop_var = prop + "_{index}_".format(index=index)
+        prop_var = prop + f"_{index}_"
         driver_var = driver.variables.get(prop_var) 
         if not driver_var:
             driver_var = driver.variables.new()
@@ -1187,12 +1188,12 @@ class CNV_PG_cm3d2_wide_slider(bpy.types.PropertyGroup):
             driver_target = driver_var.targets[0]
             driver_target.id_type = 'OBJECT'
             driver_target.id = bone.id_data
-            driver_target.data_path = bone.id_data.cm3d2_wide_slider.path_from_id(prop) + "[{index}]".format(index=index)
+            driver_target.data_path = bone.id_data.cm3d2_wide_slider.path_from_id(prop) + f"[{index}]"
 
               
         # if prop isn't already a factor
         if not prop_var in driver.expression:
-            driver.expression = driver.expression + (" + {var}*{factor}".format(var=prop_var, factor=value))
+            driver.expression = driver.expression + f" + {prop_var}*{value}"
                 
         return
               
@@ -1207,7 +1208,7 @@ class CNV_PG_cm3d2_wide_slider(bpy.types.PropertyGroup):
             driver.type = 'SCRIPTED'
             driver.expression = "1"
         
-        prop_var = prop + "_{index}_".format(index=index)
+        prop_var = f"{prop}_{index}_"
         driver_var = driver.variables.get(prop_var) 
         if not driver_var:
             driver_var = driver.variables.new()
@@ -1217,12 +1218,12 @@ class CNV_PG_cm3d2_wide_slider(bpy.types.PropertyGroup):
             driver_target = driver_var.targets[0]
             driver_target.id_type = 'OBJECT'
             driver_target.id = bone.id_data
-            driver_target.data_path = bone.id_data.cm3d2_wide_slider.path_from_id(prop) + "[{index}]".format(index=index)
+            driver_target.data_path = bone.id_data.cm3d2_wide_slider.path_from_id(prop) + f"[{index}]"
 
               
         # if prop isn't already a factor
         if not prop_var in driver.expression:
-            driver.expression = driver.expression + (" * {var}".format(var=prop_var))
+            driver.expression = driver.expression + f" * {prop_var}"
                 
         return
               
@@ -1778,9 +1779,9 @@ class DATA_PT_cm3d2_wide_sliders(bpy.types.Panel):
                     )
 
             if pos_prop:
-                _vec_prop("Position", pos_prop, pos_enabled, ("X", "Y", "Z"))
+                _vec_prop(iface_("Position"), pos_prop, pos_enabled, ("X", "Y", "Z"))
             if scl_prop:
-                _vec_prop("Scale"   , scl_prop, scl_enabled, ("X", "Y", "Z"))
+                _vec_prop(iface_("Scale"   ), scl_prop, scl_enabled, ("X", "Y", "Z"))
 
 
         _transform_prop("Pelvis"       , None        , "PELSCL"                                                                           )
@@ -1915,17 +1916,17 @@ class CNV_OT_save_cm3d2_body_sliders_to_menu(bpy.types.Operator):
 
             menu_file_data.version     = 1000
             menu_file_data.path        = os.path.relpath(bpy.data.filepath, start=bpy.path.abspath("//.."))
-            menu_file_data.name        = ob.name + "　Body"
+            menu_file_data.name        = f'{ob.name} {data_("Body")}'
             menu_file_data.category    = "set_body"
-            menu_file_data.description = "Generated in blender using body sliders"
+            menu_file_data.description = data_("Generated in blender using body sliders")
                                                                                             
             menu_file_data.parse_list(["メニューフォルダ", "system"                                 ])                               
             menu_file_data.parse_list(["category", "set_body"                               ])
             menu_file_data.parse_list(["priority", "100"                                    ])
             menu_file_data.parse_list(["icons"   , "_i_set_body_1_.tex"                     ])
-            menu_file_data.parse_list(["属性追加"    , "クリックしても選択状態にしない"                        ])                      
+            menu_file_data.parse_list([data_("属性追加")    , data_("クリックしても選択状態にしない")                        ])                      
             menu_file_data.parse_list(["name"    , menu_file_data.name                      ])
-            menu_file_data.parse_list(["setumei" , "Generated in blender using body sliders"])
+            menu_file_data.parse_list(["setumei" , data_("Generated in blender using body sliders")])
 
         add_menu_prop_command('HeadX'     )
         add_menu_prop_command('HeadY'     )

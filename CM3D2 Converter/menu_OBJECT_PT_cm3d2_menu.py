@@ -59,15 +59,12 @@ class OBJECT_PT_cm3d2_menu(bpy.types.Panel):
     @classmethod
     def poll(cls, context):
         ob = context.object
-        if ob and ob.type == 'ARMATURE':
+        if ob:
             return True
         return False
 
     def draw(self, context):
         ob = context.object
-
-        if not ob or ob.type != 'ARMATURE':
-            return
 
         row = self.layout.row(align=True)
         row.operator('cm3d2menu.import', text="Import CM3D2 Menu File", icon=compat.icon('IMPORT'))
@@ -123,7 +120,7 @@ class CM3D2MENU_OT_import(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
         ob = context.object
-        if ob and ob.type == 'ARMATURE':
+        if ob and ob in context.editable_objects:
             return True
         return False
 
