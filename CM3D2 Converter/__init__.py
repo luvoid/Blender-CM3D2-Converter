@@ -311,7 +311,7 @@ def register():
     if compat.IS_LEGACY:
         bpy.types.INFO_MT_file_import.append(model_import.menu_func)
         bpy.types.INFO_MT_file_import.append(anm_import.menu_func)
-        bpy.types.INFO_MT_file_export.append(menu_file.import_menu_func)
+        bpy.types.INFO_MT_file_import.append(menu_file.import_menu_func)
         bpy.types.INFO_MT_file_export.append(model_export.menu_func)
         bpy.types.INFO_MT_file_export.append(anm_export.menu_func)
         bpy.types.INFO_MT_file_export.append(menu_file.export_menu_func)
@@ -397,8 +397,10 @@ def unregister():
     if compat.IS_LEGACY:
         bpy.types.INFO_MT_file_import.remove(model_import.menu_func)
         bpy.types.INFO_MT_file_import.remove(anm_import.menu_func)
+        bpy.types.INFO_MT_file_import.remove(menu_file.import_menu_func)
         bpy.types.INFO_MT_file_export.remove(model_export.menu_func)
         bpy.types.INFO_MT_file_export.remove(anm_export.menu_func)
+        bpy.types.INFO_MT_file_export.remove(menu_file.export_menu_func)
 
         bpy.types.INFO_MT_add.remove(misc_INFO_MT_add.menu_func)
         bpy.types.INFO_MT_curve_add.remove(misc_INFO_MT_curve_add.menu_func)
@@ -418,7 +420,9 @@ def unregister():
         bpy.types.TOPBAR_MT_file_import.remove(model_import.menu_func)
         bpy.types.TOPBAR_MT_file_export.remove(model_export.menu_func)
         bpy.types.TOPBAR_MT_file_import.remove(anm_import.menu_func)
-        bpy.types.TOPBAR_MT_file_export.remove(anm_export.menu_func)
+        bpy.types.TOPBAR_MT_file_export.remove(anm_import.menu_func)
+        bpy.types.TOPBAR_MT_file_import.remove(menu_file.import_menu_func)
+        bpy.types.TOPBAR_MT_file_export.remove(menu_file.export_menu_func)
 
         bpy.types.VIEW3D_MT_add.remove(misc_INFO_MT_add.menu_func)
         bpy.types.VIEW3D_MT_curve_add.remove(misc_INFO_MT_curve_add.menu_func)
