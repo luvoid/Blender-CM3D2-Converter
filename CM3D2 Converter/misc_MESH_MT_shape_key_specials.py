@@ -273,7 +273,7 @@ class shape_key_transfer_op:
             else:
                 self.cleanup(context)
                 diff_time = time.time() - self._start_time
-                self.report(type={'INFO'}, message=f_("%.2f Seconds", diff_time))
+                self.report(type={'INFO'}, message=f_tip_("{:.2f} Seconds", diff_time))
                 return {'FINISHED'}
 
     def prepare(self, context):
@@ -636,7 +636,7 @@ class CNV_OT_precision_shape_key_transfer(shape_key_transfer_op, bpy.types.Opera
             self.cleanup_sks_transfer(context, target_ob, source_ob, pre_mode)
 
         diff_time = time.time() - start_time
-        self.report(type={'INFO'}, message=f_("%.2f Seconds", diff_time))
+        self.report(type={'INFO'}, message=f_tip_("{:.2f} Seconds", diff_time))
         return {'FINISHED'}
 
     def prepare(self, context):

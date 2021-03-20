@@ -223,7 +223,7 @@ class CNV_OT_FCURVE_convert_to_cm3d2_interpolation(bpy.types.Operator):
         
         if found_unsupported:
             for interpolation_type in found_unsupported:
-                self.do_report(type={'INFO'}, message=f_("'{interpolation}' interpolation not convertable", interpolation=interpolation_type))
+                self.do_report(type={'INFO'}, message=f_tip_("'{interpolation}' interpolation not convertable", interpolation=interpolation_type))
             self.do_report(type={'WARNING'}, message="Found {count} unsupported interpolation type(s) in {id_data}'s FCurve {fcurve_path}[{fcurve_index}]. See log for more info.".format(
                 count        = len(found_unsupported),
                 id_data      = fcurve.id_data.name   ,

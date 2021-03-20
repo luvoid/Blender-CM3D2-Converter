@@ -36,7 +36,7 @@ class INFO_MT_help_CM3D2_Converter_RSS(bpy.types.Menu):
             titles = re.findall(r'\<title\>[　\s]*([^　\s][^\<]*[^　\s])[　\s]*\<\/title\>', html)[1:] # matches: <title> something </title>
             updates = re.findall(r'\<updated\>([^\<\>]*)\<\/updated\>', html)[1:]
             links = re.findall(r'<link [^\<\>]*href="([^"]+)"/>', html)[2:]
-            #version_datetime = datetime.datetime.strptime(str(common.bl_info["version"][0]) + "," + str(common.bl_info["version"][1]) + "," + str(common.bl_info["version"][2]) + "," + str(common.bl_info["version"][3]) + "," + str(common.bl_info["version"][4]) + "," + str(common.bl_info["version"][5]), '%Y,%m,%d,%H,%M,%S')
+            #version_datetime = datetime.datetime.strptime(str(common.bl_info["version"][0]) + "," + str(common.bl_info["version"][1]) + "," + str(common.bl_info["version"][2]) + "," + str(common.bl_info["version"][3]) + "," + str(common.bl_info["version"][4]) + "," + str(common.bl_info["version"][5]), '%Y,%m,{},%H,%M,{}')
             numbers_in_version = 0
             sub_version = None
             year = 2000
@@ -97,13 +97,13 @@ class INFO_MT_help_CM3D2_Converter_RSS(bpy.types.Menu):
                     icon = 'PREVIEW_RANGE'
 
                 if 60 * 60 * 24 <= diff_seconds.total_seconds():
-                    date_str = f_("%d日前", int(diff_seconds.total_seconds() / 60 / 60 / 24))
+                    date_str = f_iface_("{}日前", int(diff_seconds.total_seconds() / 60 / 60 / 24))
                 elif 60 * 60 <= diff_seconds.total_seconds():
-                    date_str = f_("%d時間前", int(diff_seconds.total_seconds() / 60 / 60))
+                    date_str = f_iface_("{}時間前", int(diff_seconds.total_seconds() / 60 / 60))
                 elif 60 <= diff_seconds.total_seconds():
-                    date_str = f_("%d分前", int(diff_seconds.total_seconds() / 60))
+                    date_str = f_iface_("{}分前", int(diff_seconds.total_seconds() / 60))
                 else:
-                    date_str = f_("%d秒前", diff_seconds.total_seconds())
+                    date_str = f_iface_("{}秒前", diff_seconds.total_seconds())
 
                 text = "(" + date_str + ") " + title
 

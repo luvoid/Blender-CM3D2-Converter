@@ -52,7 +52,7 @@ class CNV_OT_import_cm3d2_mate(bpy.types.Operator):
         try:
             file = open(self.filepath, 'rb')
         except:
-            self.report(type={'ERROR'}, message=f_("ファイルを開くのに失敗しました、アクセス不可かファイルが存在しません。file=%s", self.filepath))
+            self.report(type={'ERROR'}, message=f_tip_("ファイルを開くのに失敗しました、アクセス不可かファイルが存在しません。file={}", self.filepath))
             return {'CANCELLED'}
 
         try:
@@ -122,7 +122,7 @@ class CNV_OT_import_cm3d2_mate_text(bpy.types.Operator):
         try:
             file = open(self.filepath, 'rb')
         except:
-            self.report(type={'ERROR'}, message="ファイルを開くのに失敗しました、アクセス不可かファイルが存在しません")
+            self.report(type={'ERROR'}, message=f_tip_("ファイルを開くのに失敗しました、アクセス不可かファイルが存在しません。file={}", self.filepath))
             return {'CANCELLED'}
 
         try:

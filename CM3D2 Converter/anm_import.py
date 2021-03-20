@@ -85,7 +85,7 @@ class CNV_OT_import_cm3d2_anm(bpy.types.Operator):
         try:
             file = open(self.filepath, 'rb')
         except:
-            self.report(type={'ERROR'}, message="ファイルを開くのに失敗しました、アクセス不可かファイルが存在しません")
+            self.report(type={'ERROR'}, message=f_tip_("ファイルを開くのに失敗しました、アクセス不可かファイルが存在しません。file={}", self.filepath))
             return {'CANCELLED'}
 
         # ヘッダー
@@ -96,7 +96,7 @@ class CNV_OT_import_cm3d2_anm(bpy.types.Operator):
         anm_version = struct.unpack('<i', file.read(4))[0]
         first_channel_id = struct.unpack('<B', file.read(1))[0]
         if first_channel_id != 1:
-            self.report(type={'ERROR'}, message=f_("Unexpected first channel id = {id} (should be 1).", id=first_channel_id))
+            self.report(type={'ERROR'}, message=f_tip_("Unexpected first channel id = {id} (should be 1).", id=first_channel_id))
             return {'CANCELLED'}
 
 
@@ -253,7 +253,7 @@ class CNV_OT_import_cm3d2_anm(bpy.types.Operator):
 
                 elif channel_id not in found_unknown:
                     found_unknown.append(channel_id)
-                    self.report(type={'INFO'}, message=f_("Unknown channel id {num}", num=channel_id))
+                    self.report(type={'INFO'}, message=f_tip_("Unknown channel id {num}", num=channel_id))
 
             '''
             for frame, (loc, quat) in enumerate(zip(locs.values(), quats.values())):
@@ -515,15 +515,15 @@ class CNV_OT_import_cm3d2_anm(bpy.types.Operator):
         if found_tangents:
             self.report(type={'INFO'}, message="Found the following tangent values:")
             for f1, f2 in found_tangents:
-                self.report(type={'INFO'}, message=f_("f1 = {float1}, f2 = {float2}", float1=f1, float2=f2))
+                self.report(type={'INFO'}, message=f_tip_("f1 = {float1}, f2 = {float2}", float1=f1, float2=f2))
             self.report(type={'INFO'}, message="Found the above tangent values.")  
-            self.report(type={'WARNING'}, message=f_("Found {count} large tangents. Blender animation may not interpolate properly. See log for more info.", count=len(found_tangents)))  
+            self.report(type={'WARNING'}, message=f_tip_("Found {count} large tangents. Blender animation may not interpolate properly. See log for more info.", count=len(found_tangents)))  
         if found_unknown:
             self.report(type={'INFO'}, message="Found the following unknown channel IDs:")
             for channel_id in found_unknown:
-                self.report(type={'INFO'}, message=f_("id = {id}", id=channel_id))
+                self.report(type={'INFO'}, message=f_tip_("id = {id}", id=channel_id))
             self.report(type={'INFO'}, message="Found the above unknown channel IDs.")  
-            self.report(type={'WARNING'}, message=f_("Found {count} unknown channel IDs. Blender animation may be missing some keyframes. See log for more info.", count=len(found_unknown)))
+            self.report(type={'WARNING'}, message=f_tip_("Found {count} unknown channel IDs. Blender animation may be missing some keyframes. See log for more info.", count=len(found_unknown)))
 
         if self.set_frame:
             context.scene.frame_start = 0

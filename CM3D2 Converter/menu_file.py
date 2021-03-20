@@ -198,7 +198,7 @@ class CM3D2MenuCommand():
         # add catch and rethrow for functions
         def catch_throw_wrap(func, gerund, catch_type, throw_type=None):
             throw_type = throw_type or catch_type
-            prefix = f_("Error {gerund} {bl_idname}: ", gerund=gerund, bl_idname=cls.bl_idname) + "{message}"
+            prefix = f_tip_("Error {gerund} {bl_idname}: ", gerund=gerund, bl_idname=cls.bl_idname) + "{message}"
             def _f(*args, **kwargs):
                 try:
                     return func(*args, **kwargs)

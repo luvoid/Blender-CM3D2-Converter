@@ -134,7 +134,7 @@ class CNV_OT_export_cm3d2_anm(bpy.types.Operator):
         try:
             file = common.open_temporary(self.filepath, 'wb', is_backup=self.is_backup)
         except:
-            self.report(type={'ERROR'}, message="ファイルを開くのに失敗しました、アクセス不可の可能性があります")
+            self.report(type={'ERROR'}, message=f_tip_("ファイルを開くのに失敗しました、アクセス不可かファイルが存在しません。file={}", self.filepath))
             return {'CANCELLED'}
 
         try:
@@ -329,7 +329,7 @@ class CNV_OT_export_cm3d2_anm(bpy.types.Operator):
             return quat
 
         for prop, prop_keyed_bones in keyed_bones.items():
-            #self.report(type={'INFO'}, message=f_("{prop} {list}", prop=prop, list=prop_keyed_bones))
+            #self.report(type={'INFO'}, message=f_tip_("{prop} {list}", prop=prop, list=prop_keyed_bones))
             for bone_name in prop_keyed_bones:
                 if bone_name not in anm_data_raw:
                     anm_data_raw[bone_name] = {}
@@ -345,7 +345,7 @@ class CNV_OT_export_cm3d2_anm(bpy.types.Operator):
                     if not fcurve:
                         fcurve = fcurves.new(rna_data_path, index=axis_index, action_group=pose_bone.name)
                         prop_fcurves[axis_index] = fcurve
-                        self.report(type={'WARNING'}, message=f_("Creating missing FCurve for {path}[{index}]", path=rna_data_path, index=axis_index))
+                        self.report(type={'WARNING'}, message=f_tip_("Creating missing FCurve for {path}[{index}]", path=rna_data_path, index=axis_index))
                     else:
                         override = context.copy()
                         override['active_editable_fcurve'] = fcurve
@@ -374,7 +374,7 @@ class CNV_OT_export_cm3d2_anm(bpy.types.Operator):
                                 value         = fcurve.evaluate(frame), 
                                 options       = {'NEEDED', 'FAST'}                        
                             )
-                            self.report(type={'WARNING'}, message=f_("Creating missing keyframe @ frame {frame} for {path}[{index}]", path=rna_data_path, index=axis_index, frame=frame))
+                            self.report(type={'WARNING'}, message=f_tip_("Creating missing keyframe @ frame {frame} for {path}[{index}]", path=rna_data_path, index=axis_index, frame=frame))
                 
                 for fcurve in prop_fcurves:
                     fcurve.update()

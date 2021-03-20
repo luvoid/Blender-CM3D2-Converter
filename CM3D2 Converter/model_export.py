@@ -245,7 +245,7 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
                     if ob_main:
                         compat.set_active(context, ob_main)
                     bpy.ops.object.join()
-                    self.report(type={'INFO'}, message=f_("%d個のオブジェクトをマージしました", selected_count))
+                    self.report(type={'INFO'}, message=f_tip_("{}個のオブジェクトをマージしました", selected_count))
 
             ret = self.export(context, ob_main)
             if 'FINISHED' not in ret:
@@ -253,7 +253,7 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
 
             context.window_manager.progress_update(10)
             diff_time = time.time() - start_time
-            self.report(type={'INFO'}, message=f_("modelのエクスポートが完了しました。%.2f 秒 file=%s", diff_time, self.filepath))
+            self.report(type={'INFO'}, message=f_tip_("modelのエクスポートが完了しました。{:.2f} 秒 file={}", diff_time, self.filepath))
             return ret
         finally:
             # 作業データの破棄（コピーデータを削除、選択状態の復元、アクティブオブジェクト、モードの復元）
@@ -439,13 +439,13 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
             })
         
         if 1 <= is_over_one:
-            self.report(type={'WARNING'}, message=f_("ウェイトの合計が1.0を超えている頂点が見つかりました。正規化してください。超過している頂点の数:%d", is_over_one))
+            self.report(type={'WARNING'}, message=f_tip_("ウェイトの合計が1.0を超えている頂点が見つかりました。正規化してください。超過している頂点の数:{}", is_over_one))
         if 1 <= is_under_one:
-            self.report(type={'WARNING'}, message=f_("ウェイトの合計が1.0未満の頂点が見つかりました。正規化してください。不足している頂点の数:%d", is_under_one))
+            self.report(type={'WARNING'}, message=f_tip_("ウェイトの合計が1.0未満の頂点が見つかりました。正規化してください。不足している頂点の数:{}", is_under_one))
         
         # luvoid : warn that there are vertices in too many vertex groups
         if is_in_too_many > 0:
-            self.report(type={'WARNING'}, message=f_("4つを超える頂点グループにある頂点が見つかりました。頂点グループをクリーンアップしてください。不足している頂点の数:%d", is_in_too_many))
+            self.report(type={'WARNING'}, message=f_tip_("4つを超える頂点グループにある頂点が見つかりました。頂点グループをクリーンアップしてください。不足している頂点の数:{}", is_in_too_many))
                 
         # luvoid : check for unused local bones that the game will delete
         is_deleted = 0
@@ -458,10 +458,10 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
             elif is_used == True:
                 pass
             else:
-                print(f_("Unexpected: used_local_bone[{key}] == {value} when len(used_local_bone) == {length}", key=index, value=is_used, length=len(used_local_bone)))
-                self.report(type={'WARNING'}, message=f_("Could not find whether bone with index {index} was used. See console for more info.", index=i))
+                print(f_tip_("Unexpected: used_local_bone[{key}] == {value} when len(used_local_bone) == {length}", key=index, value=is_used, length=len(used_local_bone)))
+                self.report(type={'WARNING'}, message=f_tip_("Could not find whether bone with index {index} was used. See console for more info.", index=i))
         if is_deleted > 0:
-            self.report(type={'WARNING'}, message=f_("頂点が割り当てられていない{num}つのローカルボーンが見つかりました。 詳細については、ログを参照してください。", num=is_deleted))
+            self.report(type={'WARNING'}, message=f_tip_("頂点が割り当てられていない{num}つのローカルボーンが見つかりました。 詳細については、ログを参照してください。", num=is_deleted))
             self.report(type={'INFO'}, message=deleted_names)
                 
         context.window_manager.progress_update(4)
@@ -470,7 +470,7 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
         try:
             writer = common.open_temporary(self.filepath, 'wb', is_backup=self.is_backup)
         except:
-            self.report(type={'ERROR'}, message="ファイルを開くのに失敗しました、アクセス不可の可能性があります")
+            self.report(type={'ERROR'}, message=f_tip_("ファイルを開くのに失敗しました、アクセス不可かファイルが存在しません。file={}", self.filepath))
             return {'CANCELLED'}
 
         model_datas = {
@@ -540,7 +540,7 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
                     vert_indices[vert.index] = vert_count
                     vert_count += 1
         if 65535 < vert_count:
-            raise common.CM3D2ExportException(f_("頂点数がまだ多いです (現在%d頂点)。あと%d頂点以上減らしてください、中止します", vert_count, vert_count - 65535))
+            raise common.CM3D2ExportException(f_tip_("頂点数がまだ多いです (現在{}頂点)。あと{}頂点以上減らしてください、中止します", vert_count, vert_count - 65535))
         context.window_manager.progress_update(5)
 
         writer.write(struct.pack('<2i', vert_count, len(ob.material_slots)))

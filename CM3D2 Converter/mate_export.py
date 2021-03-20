@@ -57,7 +57,7 @@ class CNV_OT_export_cm3d2_mate(bpy.types.Operator):
         try:
             writer = common.open_temporary(self.filepath, 'wb', is_backup=self.is_backup)
         except:
-            self.report(type={'ERROR'}, message="ファイルを開くのに失敗しました、アクセス不可の可能性があります")
+            self.report(type={'ERROR'}, message=f_tip_("ファイルを開くのに失敗しました、アクセス不可かファイルが存在しません。file={}", self.filepath))
             return {'CANCELLED'}
 
         try:
@@ -152,7 +152,7 @@ class CNV_OT_export_cm3d2_mate_text(bpy.types.Operator):
         try:
             file = common.open_temporary(self.filepath, 'wb', is_backup=self.is_backup)
         except:
-            self.report(type={'ERROR'}, message="ファイルを開くのに失敗しました、アクセス不可の可能性があります")
+            self.report(type={'ERROR'}, message=f_tip_("ファイルを開くのに失敗しました、アクセス不可かファイルが存在しません。file={}", self.filepath))
             return {'CANCELLED'}
 
         try:

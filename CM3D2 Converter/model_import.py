@@ -128,7 +128,7 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator, bpy_extras.io_utils.ImportHe
         try:
             reader = open(self.filepath, 'rb')
         except:
-            self.report(type={'ERROR'}, message="ファイルを開くのに失敗しました、アクセス不可かファイルが存在しません" + " " + self.filepath)
+            self.report(type={'ERROR'}, message=f_tip_("ファイルを開くのに失敗しました、アクセス不可かファイルが存在しません。file={}", self.filepath))
             return {'CANCELLED'}
 
         self.texpath_dict = common.get_texpath_dict(reload=self.reload_tex_cache)
@@ -780,7 +780,7 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator, bpy_extras.io_utils.ImportHe
         elif 1024 < filesize:
             filesize = filesize / 1024.0
             filesize_str = "KB"
-        self.report(type={'INFO'}, message=f_("modelのインポートが完了しました (%d %s/ %.2f 秒)", filesize, filesize_str, require_time))
+        self.report(type={'INFO'}, message=f_tip_("modelのインポートが完了しました ({} {}/ {:.2f} 秒)", filesize, filesize_str, require_time))
 
         return {'FINISHED'}
 

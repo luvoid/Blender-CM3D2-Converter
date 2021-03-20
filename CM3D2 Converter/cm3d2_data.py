@@ -476,7 +476,7 @@ class Material():
         if read_header:
             header = common.read_str(reader)
             if header != 'CM3D2_MATERIAL':
-                raise Exception(f_("mateファイルではありません。ヘッダ:%s", header))
+                raise Exception(f_tip_("mateファイルではありません。ヘッダ:{}", header))
             self.version = struct.unpack('<i', reader.read(4))[0]
             self.name1 = common.read_str(reader)
         self.name2 = common.read_str(reader)
@@ -512,7 +512,7 @@ class Material():
             elif prop_type == 'end':
                 break
             else:
-                raise Exception(f_("Materialプロパティに未知の設定値タイプ({prop})が見つかりました。", prop=prop_type))
+                raise Exception(f_tip_("Materialプロパティに未知の設定値タイプ({prop})が見つかりました。", prop=prop_type))
 
     def write(self, writer, write_header=True):
         if write_header:

@@ -217,7 +217,7 @@ class CNV_OT_align_to_cm3d2_base_bone(bpy.types.Operator):
                       or self.bone_info_mode
         self.report(
             type    = {'ERROR'},
-            message = f_(
+            message = f_tip_(
                 "Could not find 'BaseBone' in {source_name} Please add it or change source", 
                 source_name = source_name
             )

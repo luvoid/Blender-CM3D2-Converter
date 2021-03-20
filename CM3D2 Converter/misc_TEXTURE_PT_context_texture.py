@@ -397,11 +397,11 @@ class CNV_OT_replace_cm3d2_tex(bpy.types.Operator, common.NodeHandler):
         if node and node.type == 'TEX_IMAGE':
             img = node.image
             if img and common.replace_cm3d2_tex(img, reload_path=True):
-                self.report(type={'INFO'}, message=f_("テクスチャファイルを読み込みました。file=%s", img.filepath))
+                self.report(type={'INFO'}, message=f_tip_("テクスチャファイルを読み込みました。file={}", img.filepath))
                 node.image_user.use_auto_refresh = True
                 return {'FINISHED'}
             else:
-                msg = f_("テクスチャファイルが見つかりませんでした。file=%s", img.filepath if img else "イメージが設定されていません。")
+                msg = f_tip_("テクスチャファイルが見つかりませんでした。file={}", img.filepath) if img else f_tip_("イメージが設定されていません。")
                 self.report(type={'ERROR'}, message=msg)
         else:
             self.report(type={'ERROR'}, message="テクスチャノードが見つからないため、スキップしました。")
@@ -496,7 +496,7 @@ class CNV_OT_set_default_toon_textures(bpy.types.Operator, common.NodeHandler):
     def execute(self, context):
         node = self.get_node(context)
         if node is None:
-            self.report(type={'ERROR'}, message=f_("対象のノードが見つかりません=%s", self.node_name))
+            self.report(type={'ERROR'}, message=f_tip_("対象のノードが見つかりません={}", self.node_name))
             return {'CANCELLED'}
 
         texpathes = common.get_texpath_dict()
@@ -518,7 +518,7 @@ class CNV_OT_set_default_toon_textures(bpy.types.Operator, common.NodeHandler):
                 node.image.reload()
 
         node.image['cm3d2_path'] = common.get_tex_cm3d2path(node.image.filepath)
-        self.report(type={'INFO'}, message=f_("ノード(%s)のテクスチャを再設定しました。filepath=%s", self.node_name, node.image.filepath))
+        self.report(type={'INFO'}, message=f_tip_("ノード({})のテクスチャを再設定しました。filepath={}", self.node_name, node.image.filepath))
         return {'FINISHED'}
 
 
@@ -541,7 +541,7 @@ class CNV_OT_reload_textures(bpy.types.Operator):
             image.reload()
             return {'FINISHED'}
 
-        self.report(type={'ERROR'}, message=f_("対象のイメージが見つかりません=%s", self.tex_name))
+        self.report(type={'ERROR'}, message=f_tip_("対象のイメージが見つかりません={}", self.tex_name))
         return {'CANCELLED'}
 
 
@@ -807,7 +807,7 @@ class CNV_OT_quick_export_cm3d2_tex(bpy.types.Operator):
     def execute(self, context):
         img = compat.get_tex_image(context, self.node_name)
         if img is None or len(img.pixels) == 0:
-            self.report(type={'ERROR'}, message=f_("イメージの取得に失敗しました。%s", self.node_name))
+            self.report(type={'ERROR'}, message=f_tip_("イメージの取得に失敗しました。{}", self.node_name))
             return {'CANCELLED'}
 
         override = context.copy()
