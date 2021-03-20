@@ -397,7 +397,7 @@ class CNV_OT_replace_cm3d2_tex(bpy.types.Operator, common.NodeHandler):
         if node and node.type == 'TEX_IMAGE':
             img = node.image
             if img and common.replace_cm3d2_tex(img, reload_path=True):
-                self.report(type={'INFO'}, message=f_tip_("Loaded texture file. file={}"m img.filepath))
+                self.report(type={'INFO'}, message=f_tip_("Loaded texture file. file={}", img.filepath))
                 node.image_user.use_auto_refresh = True
                 return {'FINISHED'}
             else:
