@@ -1,9 +1,0 @@
-Context,Original,Translation,Comments
-# encoding UTF-8
-# tex_export.py
-"*","texファイルを出力しました。","The .tex file was output at "
-"*","texファイルの出力に失敗しました。%s","Failed to output the .tex file. %s"
-# tex_import.py
-"*","展開方法","Mode"
-"*","texファイルのヘッダが正しくありません。","The .tex file has an invalid header."
-"*","未対応フォーマットのtexです。format=","Unsupported .tex format! format="
