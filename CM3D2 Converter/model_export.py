@@ -295,10 +295,6 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
             ob.active_shape_key_index = 0
             me.update()
 
-        if self.is_align_to_base_bone:
-            bpy.ops.object.align_to_cm3d2_base_bone(scale=1.0/self.scale, is_preserve_mesh=True, bone_info_mode=self.bone_info_mode)
-            me.update()
-
         # データの成否チェック
         if self.bone_info_mode == 'ARMATURE':
             arm_ob = ob.parent
@@ -378,6 +374,10 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
         bone_name_indices = {bone['name']: index for index, bone in enumerate(bone_data)}
         context.window_manager.progress_update(2)
 
+        if self.is_align_to_base_bone:
+            bpy.ops.object.align_to_cm3d2_base_bone(scale=1.0/self.scale, is_preserve_mesh=True, bone_info_mode=self.bone_info_mode)
+            me.update()
+
         # LocalBoneData情報読み込み
         local_bone_data = []
         if self.bone_info_mode == 'ARMATURE':
@@ -404,6 +404,8 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
         for i, vert in enumerate(me.vertices):
             vgs = []
             for vg in vert.groups:
+                if len(ob.vertex_groups) <= vg.group: # Apparently a vertex can be assigned to a non-existent group.
+                    continue
                 name = common.encode_bone_name(ob.vertex_groups[vg.group].name, self.is_convert_bone_weight_names)
                 index = local_bone_name_indices.get(name, -1)
                 if index >= 0 and (vg.weight > 0.0 or not self.is_clean_vertex_groups):
@@ -798,16 +800,17 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
         ob = context.active_object
         me = ob.data
         bpy.ops.object.mode_set(mode='EDIT')
-        bpy.ops.mesh.select_all(action='DESELECT')
-        bpy.ops.object.mode_set(mode='OBJECT')
+        bpy.ops.mesh.select_all(action='SELECT')
+        #bpy.ops.object.mode_set(mode='OBJECT')
         context.tool_settings.mesh_select_mode = (True, False, False)
         for vert in me.vertices:
             for vg in vert.groups:
+                if len(ob.vertex_groups) <= vg.group: # Apparently a vertex can be assigned to a non-existent group.
+                    continue
                 name = common.encode_bone_name(ob.vertex_groups[vg.group].name, self.is_convert_bone_weight_names)
                 if name in local_bone_name_indices and 0.0 < vg.weight:
+                    vert.select = False
                     break
-            else:
-                vert.select = True
         bpy.ops.object.mode_set(mode='EDIT')
 
     def armature_bone_data_parser(self, context, ob):
