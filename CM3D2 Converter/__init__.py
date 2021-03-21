@@ -4,7 +4,7 @@
 bl_info = {
     "name": "CM3D2 Converter",
     "author": "@saidenka_cm3d2, @trzrz, @luvoid",
-    "version": ("luv", 2021, 3, 17),
+    "version": ("luv", 2021, 3, 20),
     "blender": (2, 80, 0),
     "location": "ファイル > インポート/エクスポート > CM3D2 Model (.model)",
     "description": "カスタムメイド3D2/カスタムオーダーメイド3D2専用ファイルのインポート/エクスポートを行います",
@@ -210,6 +210,38 @@ class AddonPreferences(bpy.types.AddonPreferences):
             self.layout.label(text="ここの設定は「ユーザー設定の保存」ボタンを押すまで保存されていません", icon='QUESTION')
         else:
             self.layout.label(text="設定値を変更した場合、「プリファレンスを保存」ボタンを押下するか、「プリファレンスを自動保存」を有効にして保存してください", icon='QUESTION')
+        
+        col = self.layout.column()
+        col.label(text="CM3D2 Converter Info")
+        factor = 0.25
+        split = compat.layout_split(col.row(), factor)
+        split.label(text="Add-on Version: ")
+        split.label(text=".".join(str(i) for i in bl_info["version"]))
+        split = compat.layout_split(col.row(), factor)
+        split.label(text="Branch: ")
+        split.label(text=common.BRANCH)
+        split = compat.layout_split(col.row(), factor)
+        split.label(text="Repo URL: ")
+        split.label(text=common.URL_REPOS)
+        split = compat.layout_split(col.row(), factor)
+        split.label(text="Blender Version: ")
+        split.label(text=".".join(str(i) for i in bpy.app.version) if hasattr(bpy.app, 'version') else "Legacy")
+        split = compat.layout_split(col.row(), factor)
+        split.label(text="Blender Language: ")
+        split.label(text=compat.get_system(bpy.context).language or 'None')
+        default_locale = 'UNKNOWN'
+        try:
+            import locale
+            default_locale = locale.getdefaultlocale()[0]
+        except:
+            pass
+        split = compat.layout_split(col.row(), factor)
+        split.label(text="Default Language: ")
+        split.label(text=default_locale)
+
+        self.layout.label(text="."*9999)
+        self.layout.label(text="Preferences:")
+
         self.layout.prop(self, 'cm3d2_path', icon_value=common.kiss_icon())
         self.layout.prop(self, 'backup_ext', icon='FILE_BACKUP')
 
