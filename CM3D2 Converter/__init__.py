@@ -4,7 +4,7 @@
 bl_info = {
     "name": "CM3D2 Converter",
     "author": "@saidenka_cm3d2, @trzrz, @luvoid",
-    "version": ("luv", 2021, 3, "20a"),
+    "version": ("luv", 2021, 3, "20b"),
     "blender": (2, 80, 0),
     "location": "ファイル > インポート/エクスポート > CM3D2 Model (.model)",
     "description": "カスタムメイド3D2/カスタムオーダーメイド3D2専用ファイルのインポート/エクスポートを行います",
@@ -452,7 +452,7 @@ def unregister():
         bpy.types.TOPBAR_MT_file_import.remove(model_import.menu_func)
         bpy.types.TOPBAR_MT_file_export.remove(model_export.menu_func)
         bpy.types.TOPBAR_MT_file_import.remove(anm_import.menu_func)
-        bpy.types.TOPBAR_MT_file_export.remove(anm_import.menu_func)
+        bpy.types.TOPBAR_MT_file_export.remove(anm_export.menu_func)
         bpy.types.TOPBAR_MT_file_import.remove(menu_file.import_menu_func)
         bpy.types.TOPBAR_MT_file_export.remove(menu_file.export_menu_func)
 
