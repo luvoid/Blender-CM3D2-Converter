@@ -4,7 +4,7 @@
 bl_info = {
     "name": "CM3D2 Converter",
     "author": "@saidenka_cm3d2, @trzrz, @luvoid",
-    "version": ("luv", 2021, 3, 17),
+    "version": ("luv", 2021, 3, 20),
     "blender": (2, 80, 0),
     "location" : "File > Import/Export > CM3D2 Model (.model)",
     "description" : "A plugin dedicated to the editing, importing, and exporting of CM3D2 .model Files.",
@@ -211,6 +211,38 @@ class AddonPreferences(bpy.types.AddonPreferences):
             self.layout.label(text="You must press 'Save User Settings' button for these settings to be saved.", icon='QUESTION')
         else:
             self.layout.label(text="If you changed your preferences, remember to save them before exiting.", icon='QUESTION')
+        
+        col = self.layout.column()
+        col.label(text="CM3D2 Converter Info")
+        factor = 0.25
+        split = compat.layout_split(col.row(), factor)
+        split.label(text="Add-on Version: ")
+        split.label(text=".".join(str(i) for i in bl_info["version"]))
+        split = compat.layout_split(col.row(), factor)
+        split.label(text="Branch: ")
+        split.label(text=common.BRANCH)
+        split = compat.layout_split(col.row(), factor)
+        split.label(text="Repo URL: ")
+        split.label(text=common.URL_REPOS)
+        split = compat.layout_split(col.row(), factor)
+        split.label(text="Blender Version: ")
+        split.label(text=".".join(str(i) for i in bpy.app.version) if hasattr(bpy.app, 'version') else "Legacy")
+        split = compat.layout_split(col.row(), factor)
+        split.label(text="Blender Language: ")
+        split.label(text=compat.get_system(bpy.context).language or 'None')
+        default_locale = 'UNKNOWN'
+        try:
+            import locale
+            default_locale = locale.getdefaultlocale()[0]
+        except:
+            pass
+        split = compat.layout_split(col.row(), factor)
+        split.label(text="Default Language: ")
+        split.label(text=default_locale)
+
+        self.layout.label(text="."*9999)
+        self.layout.label(text="Preferences:")
+
         self.layout.prop(self, 'cm3d2_path', icon_value=common.kiss_icon())
         self.layout.prop(self, 'backup_ext', icon='FILE_BACKUP')
 
