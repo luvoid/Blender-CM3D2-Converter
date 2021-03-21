@@ -3,6 +3,7 @@ import os
 import struct
 from . import common
 from . import compat
+from .translations.pgettext_functions import *
 
 
 @compat.BlRegister()

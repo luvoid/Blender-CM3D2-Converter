@@ -2,6 +2,7 @@ import bpy
 from . import common
 from . import compat
 from . import cm3d2_data
+from .translations.pgettext_functions import *
 
 
 @compat.BlRegister()
