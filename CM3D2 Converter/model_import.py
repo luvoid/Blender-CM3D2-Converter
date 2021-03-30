@@ -145,148 +145,166 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator, bpy_extras.io_utils.ImportHe
                 self.report(type={'ERROR'}, message="This is not a CM3D2 Model File.")
                 return {'CANCELLED'}
             model_ver = struct.unpack('<i', reader.read(4))[0]
+            self.report(type={'INFO'}, message=f_tip_("Model Version = {version}", version=model_ver))
             context.window_manager.progress_update(0.1)
 
-            # 名前群を取得
-            model_name1 = common.read_str(reader)
-            model_name2 = common.read_str(reader)
-            context.window_manager.progress_update(0.2)
+            try:
+                # 名前群を取得
+                model_name1 = common.read_str(reader)
+                model_name2 = common.read_str(reader)
+                context.window_manager.progress_update(0.2)
 
-            # ボーン情報読み込み
-            bone_data = []
-            bone_count = struct.unpack('<i', reader.read(4))[0]
-            for i in range(bone_count):
-                name = common.read_str(reader)
-                unknown = struct.unpack('<B', reader.read(1))[0]
-                bone_data.append({'name': name, 'unknown': unknown})
+                # ボーン情報読み込み
+                bone_data = []
+                bone_count = struct.unpack('<i', reader.read(4))[0]
+                for i in range(bone_count):
+                    name = common.read_str(reader)
+                    unknown = struct.unpack('<B', reader.read(1))[0]
+                    bone_data.append({'name': name, 'unknown': unknown})
 
-            for i in range(bone_count):
-                parent_index = struct.unpack('<i', reader.read(4))[0]
-                parent_name = None
-                if parent_index != -1:
-                    parent_name = bone_data[parent_index]['name']
-                bone_data[i]['parent_index'] = parent_index
-                bone_data[i]['parent_name'] = parent_name
+                for i in range(bone_count):
+                    parent_index = struct.unpack('<i', reader.read(4))[0]
+                    parent_name = None
+                    if parent_index != -1:
+                        parent_name = bone_data[parent_index]['name']
+                    bone_data[i]['parent_index'] = parent_index
+                    bone_data[i]['parent_name'] = parent_name
 
-            for i in range(bone_count):
-                x, y, z = struct.unpack('<3f', reader.read(3*4))
-                bone_data[i]['co'] = mathutils.Vector((x, y, z))
+                for i in range(bone_count):
+                    x, y, z = struct.unpack('<3f', reader.read(3*4))
+                    bone_data[i]['co'] = mathutils.Vector((x, y, z))
 
-                x, y, z = struct.unpack('<3f', reader.read(3*4))
-                w = struct.unpack('<f', reader.read(4))[0]
-                bone_data[i]['rot'] = mathutils.Quaternion((w, x, y, z))
-                if model_ver >= 2001:
-                    use_scale = struct.unpack('<B', reader.read(1))[0]
-                    if use_scale:
-                        scale_x, scale_y, scale_z = struct.unpack('<3f', reader.read(3*4))
-                        bone_data[i]['scale'] = [scale_x, scale_y, scale_z]
+                    x, y, z = struct.unpack('<3f', reader.read(3*4))
+                    w = struct.unpack('<f', reader.read(4))[0]
+                    bone_data[i]['rot'] = mathutils.Quaternion((w, x, y, z))
+                    if model_ver >= 2001:
+                        use_scale = struct.unpack('<B', reader.read(1))[0]
+                        if use_scale:
+                            scale_x, scale_y, scale_z = struct.unpack('<3f', reader.read(3*4))
+                            bone_data[i]['scale'] = [scale_x, scale_y, scale_z]
 
-            context.window_manager.progress_update(0.3)
+                context.window_manager.progress_update(0.3)
 
-            vertex_count, mesh_count, local_bone_count = struct.unpack('<3i', reader.read(3*4))
+                print(f_("Reading vertex, mesh, and local bone count at 0x{num:02X}", num=reader.tell()))
+                vertex_count, mesh_count, local_bone_count = struct.unpack('<3i', reader.read(3*4))
 
-            # ローカルボーン情報読み込み
-            local_bone_data = []
-            for i in range(local_bone_count):
-                local_bone_data.append({'name': common.read_str(reader)})
+                # ローカルボーン情報読み込み
+                local_bone_data = []
+                for i in range(local_bone_count):
+                    local_bone_data.append({'name': common.read_str(reader)})
 
-            for i in range(local_bone_count):
-                row0 = struct.unpack('<4f', reader.read(4 * 4))
-                row1 = struct.unpack('<4f', reader.read(4 * 4))
-                row2 = struct.unpack('<4f', reader.read(4 * 4))
-                row3 = struct.unpack('<4f', reader.read(4 * 4))
-                local_bone_data[i]['matrix'] = mathutils.Matrix([row0, row1, row2, row3])
-            context.window_manager.progress_update(0.4)
+                for i in range(local_bone_count):
+                    row0 = struct.unpack('<4f', reader.read(4 * 4))
+                    row1 = struct.unpack('<4f', reader.read(4 * 4))
+                    row2 = struct.unpack('<4f', reader.read(4 * 4))
+                    row3 = struct.unpack('<4f', reader.read(4 * 4))
+                    local_bone_data[i]['matrix'] = mathutils.Matrix([row0, row1, row2, row3])
+                context.window_manager.progress_update(0.4)
 
-            # 頂点情報読み込み
-            vertex_data = []
-            for i in range(vertex_count):
-                co = struct.unpack('<3f', reader.read(3 * 4))
-                no = struct.unpack('<3f', reader.read(3 * 4))
-                uv = struct.unpack('<2f', reader.read(2 * 4))
-                vertex_data.append({'co': co, 'normal': no, 'uv': uv})
-            comparison_data = list(hash(repr(v['co']) + " " + repr(v['normal'])) for v in vertex_data)
-            comparison_counter = Counter(comparison_data)
-            comparison_data = list((comparison_counter[h] > 1) for h in comparison_data)
-            del comparison_counter
-            unknown_count = struct.unpack('<i', reader.read(4))[0]
-            for i in range(unknown_count):
-                struct.unpack('<4f', reader.read(4 * 4))
-            for i in range(vertex_count):
-                indexes = struct.unpack('<4H', reader.read(4 * 2))
-                values = struct.unpack('<4f', reader.read(4 * 4))
-                vertex_data[i]['weights'] = list({
-                        'index': index,
-                        'value': value,
-                        'name': local_bone_data[index]['name'],
-                    } for index, value in zip(indexes, values))
-            context.window_manager.progress_update(0.5)
+                # 頂点情報読み込み
+                vertex_data = []
+                print(f_("Reading vertex data at 0x{num:02X}", num=reader.tell()))
+                cr_unknown = reader.read(7)
+                print(f_("cr_unknown = {bytes}", bytes=cr_unknown))
+                for i in range(vertex_count):
+                    co = struct.unpack('<3f', reader.read(3 * 4))
+                    no = struct.unpack('<3f', reader.read(3 * 4))
+                    uv = struct.unpack('<2f', reader.read(2 * 4))
+                    cr_vert_unknown = None
+                    if model_ver >= 2102: # CR Edit Mode
+                        cr_unknown = struct.unpack('<4f', reader.read(4 * 4))
+                    vertex_data.append({'co': co, 'normal': no, 'uv': uv, 'cr_vert_unknown': cr_vert_unknown})
+                if self.is_remove_doubles:
+                    comparison_data = list(hash(repr(v['co']) + " " + repr(v['normal'])) for v in vertex_data)
+                    comparison_counter = Counter(comparison_data)
+                    comparison_data = list((comparison_counter[h] > 1) for h in comparison_data)
+                    del comparison_counter
+                print(f_("Reading unknown count at 0x{num:02X}", num=reader.tell()))
+                unknown_count = struct.unpack('<i', reader.read(4))[0]
+                for i in range(unknown_count):
+                    struct.unpack('<4f', reader.read(4 * 4))
+                for i in range(vertex_count):
+                    indexes = struct.unpack('<4H', reader.read(4 * 2))
+                    values = struct.unpack('<4f', reader.read(4 * 4))
+                    vertex_data[i]['weights'] = list({
+                            'index': index,
+                            'value': value,
+                            'name': local_bone_data[index]['name'],
+                        } for index, value in zip(indexes, values))
+                context.window_manager.progress_update(0.5)
+                #0xA425F - 0xF3286
+                # 面情報読み込み
+                face_data = []
+                for i in range(mesh_count):
+                    face_count = int(struct.unpack('<i', reader.read(4))[0] / 3)
+                    datum = [tuple(reversed(struct.unpack('<3H', reader.read(3 * 2)))) for j in range(face_count)]
+                    face_data.append(datum)
+                context.window_manager.progress_update(0.6)
 
-            # 面情報読み込み
-            face_data = []
-            for i in range(mesh_count):
-                face_count = int(struct.unpack('<i', reader.read(4))[0] / 3)
-                datum = [tuple(reversed(struct.unpack('<3H', reader.read(3 * 2)))) for j in range(face_count)]
-                face_data.append(datum)
-            context.window_manager.progress_update(0.6)
+                # マテリアル情報読み込み
+                # TODO MaterialHandlerに変更
+                material_data = []
+                material_count = struct.unpack('<i', reader.read(4))[0]
+                for i in range(material_count):
+                    print(f_("mate count: {num} of {count}", num=i, count=material_count))
+                    data = cm3d2_data.MaterialHandler.read(reader, read_header=False)
+                    data.version = model_ver
+                    data.name1 = data.name.lower()
+                    material_data.append(data)
+                    
+                    # name1 = common.read_str(reader)
+                    # name2 = common.read_str(reader)
+                    # name3 = common.read_str(reader)
+                    # data_list = []
+                    # material_data.append({'name1': name1, 'name2': name2, 'name3': name3, 'data': data_list})
+                    # while True:
+                    #     data_type = common.read_str(reader)
+                    #     if data_type == 'tex':
+                    #         data_item = {'type': data_type}
+                    #         data_list.append(data_item)
+                    #         data_item['name'] = common.read_str(reader)
+                    #         data_item['type2'] = common.read_str(reader)
+                    #         if data_item['type2'] == 'tex2d':
+                    #             data_item['name2'] = common.read_str(reader)
+                    #             data_item['path'] = common.read_str(reader)
+                    #             data_item['tex_map'] = struct.unpack('<4f', reader.read(4*4))
+                    #     elif data_type == 'col':
+                    #         name = common.read_str(reader)
+                    #         col = struct.unpack('<4f', reader.read(4*4))
+                    #         data_list.append({'type': data_type, 'name': name, 'color': col})
+                    #     elif data_type == 'f':
+                    #         name = common.read_str(reader)
+                    #         fval = struct.unpack('<f', reader.read(4))[0]
+                    #         data_list.append({'type': data_type, 'name': name, 'float': fval})
+                    #     else:
+                    #         break
 
-            # マテリアル情報読み込み
-            # TODO MaterialHandlerに変更
-            material_data = []
-            material_count = struct.unpack('<i', reader.read(4))[0]
-            for i in range(material_count):
-                print(f_("mate count: {num} of {count}", num=i, count=material_count))
-                data = cm3d2_data.MaterialHandler.read(reader, read_header=False)
-                data.version = model_ver
-                data.name1 = data.name.lower()
-                material_data.append(data)
-                
-                # name1 = common.read_str(reader)
-                # name2 = common.read_str(reader)
-                # name3 = common.read_str(reader)
-                # data_list = []
-                # material_data.append({'name1': name1, 'name2': name2, 'name3': name3, 'data': data_list})
-                # while True:
-                #     data_type = common.read_str(reader)
-                #     if data_type == 'tex':
-                #         data_item = {'type': data_type}
-                #         data_list.append(data_item)
-                #         data_item['name'] = common.read_str(reader)
-                #         data_item['type2'] = common.read_str(reader)
-                #         if data_item['type2'] == 'tex2d':
-                #             data_item['name2'] = common.read_str(reader)
-                #             data_item['path'] = common.read_str(reader)
-                #             data_item['tex_map'] = struct.unpack('<4f', reader.read(4*4))
-                #     elif data_type == 'col':
-                #         name = common.read_str(reader)
-                #         col = struct.unpack('<4f', reader.read(4*4))
-                #         data_list.append({'type': data_type, 'name': name, 'color': col})
-                #     elif data_type == 'f':
-                #         name = common.read_str(reader)
-                #         fval = struct.unpack('<f', reader.read(4))[0]
-                #         data_list.append({'type': data_type, 'name': name, 'float': fval})
-                #     else:
-                #         break
+                context.window_manager.progress_update(0.8)
 
-            context.window_manager.progress_update(0.8)
+                # その他情報読み込み
+                misc_data = []
+                while True:
+                    #print(f_("Reading data_type at 0x{num:02X}", num=reader.tell()))
+                    data_type = common.read_str(reader)
+                    if data_type == 'morph':
+                        misc_item = {'type': data_type}
+                        misc_data.append(misc_item)
+                        misc_item['name'] = common.read_str(reader)
+                        misc_item['data'] = data_list = []
+                        morph_vert_count = struct.unpack('<i', reader.read(4))[0]
+                        misc_item['cr_unknown'] = reader.read(1)
+                        print(f_("{morph}.cr_unknown = {bytes}", morph=misc_item['name'], bytes=misc_item['cr_unknown']))
+                        for i in range(morph_vert_count):
+                            index = struct.unpack('<H', reader.read(2))[0]
+                            co = mathutils.Vector(struct.unpack('<3f', reader.read(3 * 4)))
+                            normal = struct.unpack('<3f', reader.read(3 * 4))
+                            data_list.append({'index': index, 'co': co, 'normal': normal, 'cr_vert_unknown': cr_vert_unknown})
+                    else:
+                        break
 
-            # その他情報読み込み
-            misc_data = []
-            while True:
-                data_type = common.read_str(reader)
-                if data_type == 'morph':
-                    misc_item = {'type': data_type}
-                    misc_data.append(misc_item)
-                    misc_item['name'] = common.read_str(reader)
-                    misc_item['data'] = data_list = []
-                    morph_vert_count = struct.unpack('<i', reader.read(4))[0]
-                    for i in range(morph_vert_count):
-                        index = struct.unpack('<H', reader.read(2))[0]
-                        co = mathutils.Vector(struct.unpack('<3f', reader.read(3 * 4)))
-                        normal = struct.unpack('<3f', reader.read(3 * 4))
-                        data_list.append({'index': index, 'co': co, 'normal': normal})
-                else:
-                    break
+            except Exception as e:
+                self.report(type={'ERROR'}, message=f_tip_("Error reading file at byte 0x{num:02X}", num=reader.tell()))
+                print(e)
 
         context.window_manager.progress_update(1)
 
