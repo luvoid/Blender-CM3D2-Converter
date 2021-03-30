@@ -204,16 +204,20 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator, bpy_extras.io_utils.ImportHe
                 # 頂点情報読み込み
                 vertex_data = []
                 print(f_("Reading vertex data at 0x{num:02X}", num=reader.tell()))
-                cr_unknown = reader.read(7)
-                print(f_("cr_unknown = {bytes}", bytes=cr_unknown))
+                extra_uv_uses = [False] * 7
+                if model_ver >= 2102: # CR Edit Mode
+                    extra_uv_uses = struct.unpack('<7?', reader.read(7))
+                    print(f_("extra_uv_uses = {boollist}", boollist=extra_uv_uses))
                 for i in range(vertex_count):
                     co = struct.unpack('<3f', reader.read(3 * 4))
                     no = struct.unpack('<3f', reader.read(3 * 4))
                     uv = struct.unpack('<2f', reader.read(2 * 4))
-                    cr_vert_unknown = None
+                    extra_uvs = []
                     if model_ver >= 2102: # CR Edit Mode
-                        cr_unknown = struct.unpack('<4f', reader.read(4 * 4))
-                    vertex_data.append({'co': co, 'normal': no, 'uv': uv, 'cr_vert_unknown': cr_vert_unknown})
+                        for i, used in enumerate(extra_uv_uses):
+                            if used:
+                                extra_uvs.append(struct.unpack('<2f', reader.read(2 * 4)))
+                    vertex_data.append({'co': co, 'normal': no, 'uv': uv, 'extra_uvs': extra_uvs})
                 if self.is_remove_doubles:
                     comparison_data = list(hash(repr(v['co']) + " " + repr(v['normal'])) for v in vertex_data)
                     comparison_counter = Counter(comparison_data)
@@ -247,8 +251,7 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator, bpy_extras.io_utils.ImportHe
                 material_count = struct.unpack('<i', reader.read(4))[0]
                 for i in range(material_count):
                     print(f_("mate count: {num} of {count}", num=i, count=material_count))
-                    data = cm3d2_data.MaterialHandler.read(reader, read_header=False)
-                    data.version = model_ver
+                    data = cm3d2_data.MaterialHandler.read(reader, read_header=False, version=model_ver)
                     data.name1 = data.name.lower()
                     material_data.append(data)
                     
@@ -292,8 +295,9 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator, bpy_extras.io_utils.ImportHe
                         misc_item['name'] = common.read_str(reader)
                         misc_item['data'] = data_list = []
                         morph_vert_count = struct.unpack('<i', reader.read(4))[0]
-                        misc_item['cr_unknown'] = reader.read(1)
-                        print(f_("{morph}.cr_unknown = {bytes}", morph=misc_item['name'], bytes=misc_item['cr_unknown']))
+                        if model_ver >= 2102: # CR Edit Mode
+                            misc_item['cr_unknown'] = reader.read(1)
+                            print(f_("{morph}.cr_unknown = {bytes}", morph=misc_item['name'], bytes=misc_item['cr_unknown']))
                         for i in range(morph_vert_count):
                             index = struct.unpack('<H', reader.read(2))[0]
                             co = mathutils.Vector(struct.unpack('<3f', reader.read(3 * 4)))
@@ -304,7 +308,7 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator, bpy_extras.io_utils.ImportHe
 
             except Exception as e:
                 self.report(type={'ERROR'}, message=f_tip_("Error reading file at byte 0x{num:02X}", num=reader.tell()))
-                print(e)
+                raise e
 
         context.window_manager.progress_update(1)
 
@@ -565,12 +569,18 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator, bpy_extras.io_utils.ImportHe
             context.window_manager.progress_update(4)
 
             # UV作成
-            bpy.ops.mesh.uv_texture_add()
             bm = bmesh.new()
             bm.from_mesh(me)
+            bm.loops.layers.uv.new(f_data_("MainUV"))
+            for i, used in enumerate(extra_uv_uses):    
+                if used:
+                    bm.loops.layers.uv.new(f_data_("ExtraUV{num}", num=i))
             for face in bm.faces:
                 for loop in face.loops:
-                    loop[bm.loops.layers.uv.active].uv = vertex_data[loop.vert.index]['uv']
+                    loop[bm.loops.layers.uv[0]].uv = vertex_data[loop.vert.index]['uv']
+                    for extra_uv_index, extra_uv in enumerate(vertex_data[loop.vert.index]['extra_uvs']):
+                        loop[bm.loops.layers.uv[extra_uv_index+1]].uv = extra_uv
+
             bm.to_mesh(me)
             bm.free()
             context.window_manager.progress_update(5)

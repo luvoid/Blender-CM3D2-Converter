@@ -459,9 +459,12 @@ class Material():
         self.shader1 = None
         self.shader2 = None
 
+        self.uv_index = None
+
         self.tex_list = []  # prop_name, (tex_name, tex_path, trans[2], scale[2])
         self.col_list = []  # prop_name, col[4]
         self.f_list = []  # prop_name, f
+        self.range_list = [] # prop_name, col[4]
 
     def sort(self):
         self.tex_list = sorted(self.tex_list, key=lambda item: item[0])
@@ -484,6 +487,9 @@ class Material():
 
         self.shader1 = common.read_str(reader)
         self.shader2 = common.read_str(reader)
+        
+        if self.version >= 2102: # CR Edit Mode
+            self.uv_index = struct.unpack('<B', reader.read(1))[0]
 
         for i in range(99999):
             prop_type = common.read_str(reader)
@@ -509,6 +515,16 @@ class Material():
                 prop_name = common.read_str(reader)
                 f = struct.unpack('<f', reader.read(4))[0]
                 self.f_list.append([prop_name, f])
+
+            elif prop_type == 'range':
+                prop_name = common.read_str(reader)
+                col = struct.unpack('<4B', reader.read(4))
+                self.range_list.append([prop_name, col])
+
+            elif prop_type == 'keyword':
+                prop_name = common.read_str(reader)
+                col = struct.unpack('<4B', reader.read(4))
+                self.range_list.append([prop_name, col])
 
             elif prop_type == 'end':
                 break
@@ -651,8 +667,12 @@ class MaterialHandler:
         return [node_name, f]
 
     @classmethod
-    def read(cls, reader, read_header=True):
+    def read(cls, reader, read_header=True, version=None):
+        if not read_header and version == None:
+            raise Exception(f_tip_("The argument 'version' is required when 'read_header' is False for MaterialHandler.read()"))
         mat_data = Material()
+        if version:
+            mat_data.version = version
         mat_data.read(reader, read_header)
 
         return mat_data
