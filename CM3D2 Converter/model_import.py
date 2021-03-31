@@ -305,8 +305,8 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator, bpy_extras.io_utils.ImportHe
                             normal = struct.unpack('<3f', reader.read(3 * 4))
                             extra_uvs = [] # CR Edit
                             if morph_extra_uvs:
-                                for i, used in enumerate(extra_uv_uses):
-                                    if used:
+                                for i in range(2): #, used in enumerate(extra_uv_uses):
+                                    if True: #used:
                                         extra_uvs.append(struct.unpack('<2f', reader.read(2 * 4)))
                             data_list.append({'index': index, 'co': co, 'normal': normal, 'extra_uvs': extra_uvs})
                     else:
