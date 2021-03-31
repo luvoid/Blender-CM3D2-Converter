@@ -2,6 +2,7 @@ import os
 import math
 import struct
 import time
+import traceback
 import bpy
 import bpy_extras
 import bmesh
@@ -212,11 +213,10 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator, bpy_extras.io_utils.ImportHe
                     co = struct.unpack('<3f', reader.read(3 * 4))
                     no = struct.unpack('<3f', reader.read(3 * 4))
                     uv = struct.unpack('<2f', reader.read(2 * 4))
-                    extra_uvs = []
-                    if model_ver >= 2102: # CR Edit Mode
-                        for i, used in enumerate(extra_uv_uses):
-                            if used:
-                                extra_uvs.append(struct.unpack('<2f', reader.read(2 * 4)))
+                    extra_uvs = [] # CR Edit
+                    for i, used in enumerate(extra_uv_uses):
+                        if used:
+                            extra_uvs.append(struct.unpack('<2f', reader.read(2 * 4)))
                     vertex_data.append({'co': co, 'normal': no, 'uv': uv, 'extra_uvs': extra_uvs})
                 if self.is_remove_doubles:
                     comparison_data = list(hash(repr(v['co']) + " " + repr(v['normal'])) for v in vertex_data)
@@ -236,7 +236,6 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator, bpy_extras.io_utils.ImportHe
                             'name': local_bone_data[index]['name'],
                         } for index, value in zip(indexes, values))
                 context.window_manager.progress_update(0.5)
-                #0xA425F - 0xF3286
                 # 面情報読み込み
                 face_data = []
                 for i in range(mesh_count):
@@ -250,7 +249,7 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator, bpy_extras.io_utils.ImportHe
                 material_data = []
                 material_count = struct.unpack('<i', reader.read(4))[0]
                 for i in range(material_count):
-                    print(f_("mate count: {num} of {count}", num=i, count=material_count))
+                    print(f_("mate count: {num} of {count} @ 0x{pos:02X}", num=i, count=material_count, pos=reader.tell()))
                     data = cm3d2_data.MaterialHandler.read(reader, read_header=False, version=model_ver)
                     data.name1 = data.name.lower()
                     material_data.append(data)
@@ -295,20 +294,53 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator, bpy_extras.io_utils.ImportHe
                         misc_item['name'] = common.read_str(reader)
                         misc_item['data'] = data_list = []
                         morph_vert_count = struct.unpack('<i', reader.read(4))[0]
+                        morph_extra_uvs = False
                         if model_ver >= 2102: # CR Edit Mode
-                            misc_item['cr_unknown'] = reader.read(1)
-                            print(f_("{morph}.cr_unknown = {bytes}", morph=misc_item['name'], bytes=misc_item['cr_unknown']))
+                            morph_extra_uvs = struct.unpack('<?', reader.read(1))[0]
+                            misc_item['uvs'] = []
+                            print(f_("{morph}.morph_extra_uvs @ 0x{pos:02X} = {bool}", morph=misc_item['name'], bool=morph_extra_uvs, pos=reader.tell()-1))
                         for i in range(morph_vert_count):
                             index = struct.unpack('<H', reader.read(2))[0]
                             co = mathutils.Vector(struct.unpack('<3f', reader.read(3 * 4)))
                             normal = struct.unpack('<3f', reader.read(3 * 4))
-                            data_list.append({'index': index, 'co': co, 'normal': normal, 'cr_vert_unknown': cr_vert_unknown})
+                            extra_uvs = [] # CR Edit
+                            if morph_extra_uvs:
+                                for i, used in enumerate(extra_uv_uses):
+                                    if used:
+                                        extra_uvs.append(struct.unpack('<2f', reader.read(2 * 4)))
+                            data_list.append({'index': index, 'co': co, 'normal': normal, 'extra_uvs': extra_uvs})
                     else:
                         break
+            
+            except UnicodeDecodeError as e:
+                msg = [
+                    f_tip_("Error reading file at byte 0x{num:02X}", num=reader.tell()-len(e.object)) + "\n",
+                    str(e) + "\n",
+                    *traceback.format_tb(e.__traceback__)
+                ]
+                self.report(type={'ERROR'}, message="".join(reversed(msg))[0:-1])
+                print("".join(msg))
+                return {'CANCELLED'}
+            
+            except struct.error as e:
+                msg = [
+                    f_tip_("Error reading file at byte 0x{num:02X}", num=reader.tell()) + "\n",
+                    str(e) + "\n",
+                    *traceback.format_tb(e.__traceback__)
+                ]
+                self.report(type={'ERROR'}, message="".join(reversed(msg))[0:-1])
+                print("".join(msg))
+                return {'CANCELLED'}
 
-            except Exception as e:
-                self.report(type={'ERROR'}, message=f_tip_("Error reading file at byte 0x{num:02X}", num=reader.tell()))
-                raise e
+            except common.CM3D2ImportException as e:
+                msg = [
+                    f_tip_("Error reading file at byte 0x{num:02X}", num=reader.tell()) + "\n",
+                    str(e) + "\n",
+                    *traceback.format_tb(e.__traceback__)
+                ]
+                self.report(type={'ERROR'}, message="".join(reversed(msg))[0:-1])
+                print("".join(msg))
+                return {'CANCELLED'}
 
         context.window_manager.progress_update(1)
 

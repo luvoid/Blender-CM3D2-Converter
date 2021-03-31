@@ -459,8 +459,6 @@ class Material():
         self.shader1 = None
         self.shader2 = None
 
-        self.uv_index = None
-
         self.tex_list = []  # prop_name, (tex_name, tex_path, trans[2], scale[2])
         self.col_list = []  # prop_name, col[4]
         self.f_list = []  # prop_name, f
@@ -479,7 +477,7 @@ class Material():
         if read_header:
             header = common.read_str(reader)
             if header != 'CM3D2_MATERIAL':
-                raise Exception(f_tip_("The .mate file has an invalid header: {}", header))
+                raise common.CM3D2ImportException(f_tip_("The .mate file has an invalid header: {}", header))
             self.version = struct.unpack('<i', reader.read(4))[0]
             self.name1 = common.read_str(reader)
 
@@ -488,8 +486,13 @@ class Material():
         self.shader1 = common.read_str(reader)
         self.shader2 = common.read_str(reader)
         
-        if self.version >= 2102: # CR Edit Mode
-            self.uv_index = struct.unpack('<B', reader.read(1))[0]
+        peeked = reader.peek()[0]
+        print(f"type({peeked}) = {type(peeked)}")
+        if self.version >= 2102 and (peeked in (0, 1)): # CR Edit Mode
+            cr_unknown_float_count = struct.unpack('<B', reader.read(1))[0]
+            for i in range(cr_unknown_float_count):
+                cr_unknown_float = struct.unpack('<f', reader.read(4))
+                # CR TODO
 
         for i in range(99999):
             prop_type = common.read_str(reader)
@@ -524,12 +527,16 @@ class Material():
             elif prop_type == 'keyword':
                 prop_name = common.read_str(reader)
                 col = struct.unpack('<4B', reader.read(4))
-                self.range_list.append([prop_name, col])
+                # CR TODO
+
+            elif prop_type == '_ALPHAPREMULTIPLY_ON':
+                cr_unknown_bool = struct.unpack('<?', reader.read(1))
+                # CR TODO
 
             elif prop_type == 'end':
                 break
             else:
-                raise Exception(f_tip_("Unknown setting value '{prop}' was found in the material!", prop=prop_type))
+                raise common.CM3D2ImportException(f_tip_("Unknown setting value '{prop}' was found in the material!", prop=prop_type))
 
     def write(self, writer, write_header=True):
         if write_header:
@@ -633,7 +640,7 @@ class MaterialHandler:
         try:
             img = node.image
         except:
-            raise Exception('Failed to get setting value of tex type of material property。')
+            raise common.CM3D2ImportException('Failed to get setting value of tex type of material property。')
 
         if img:
             tex_name = common.remove_serial_number(img.name, remove_serial)
@@ -669,7 +676,7 @@ class MaterialHandler:
     @classmethod
     def read(cls, reader, read_header=True, version=None):
         if not read_header and version == None:
-            raise Exception(f_tip_("The argument 'version' is required when 'read_header' is False for MaterialHandler.read()"))
+            raise ValueError(f_tip_("The argument 'version' is required when 'read_header' is False for MaterialHandler.read()"))
         mat_data = Material()
         if version:
             mat_data.version = version
