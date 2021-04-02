@@ -303,12 +303,10 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator, bpy_extras.io_utils.ImportHe
                             index = struct.unpack('<H', reader.read(2))[0]
                             co = mathutils.Vector(struct.unpack('<3f', reader.read(3 * 4)))
                             normal = struct.unpack('<3f', reader.read(3 * 4))
-                            extra_uvs = [] # CR Edit
+                            extra_uvs = () # CR Edit
                             if morph_extra_uvs:
-                                for i in range(2): #, used in enumerate(extra_uv_uses):
-                                    if True: #used:
-                                        extra_uvs.append(struct.unpack('<2f', reader.read(2 * 4)))
-                            data_list.append({'index': index, 'co': co, 'normal': normal, 'extra_uvs': extra_uvs})
+                                extra_uvs = struct.unpack('<4f', reader.read(4 * 4))
+                            data_list.append({'index': index, 'co': co, 'normal': normal, 'color': extra_uvs})
                     else:
                         break
             
@@ -604,11 +602,13 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator, bpy_extras.io_utils.ImportHe
             bm = bmesh.new()
             bm.from_mesh(me)
             bm.loops.layers.uv.new(f_data_("MainUV"))
+            vert_loops = {}
             for i, used in enumerate(extra_uv_uses):    
                 if used:
                     bm.loops.layers.uv.new(f_data_("ExtraUV{num}", num=i))
             for face in bm.faces:
                 for loop in face.loops:
+                    vert_loops.setdefault(loop.vert.index, []).append(loop.index)
                     loop[bm.loops.layers.uv[0]].uv = vertex_data[loop.vert.index]['uv']
                     for extra_uv_index, extra_uv in enumerate(vertex_data[loop.vert.index]['extra_uvs']):
                         loop[bm.loops.layers.uv[extra_uv_index+1]].uv = extra_uv
@@ -616,7 +616,6 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator, bpy_extras.io_utils.ImportHe
             bm.to_mesh(me)
             bm.free()
             context.window_manager.progress_update(5)
-
             # モーフ追加
             morph_count = 0
             for data in misc_data:
@@ -625,9 +624,27 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator, bpy_extras.io_utils.ImportHe
                         bpy.ops.object.shape_key_add(from_mix=False)
                         me.shape_keys.name = model_name1
                     shape_key = ob.shape_key_add(name=data['name'], from_mix=False)
+                    normals_color = me.vertex_colors.new(name=f"{data['name']}_normals", do_init=False) or me.vertex_colors[-1]
+                    unknown_color = me.vertex_colors.new(name=f"{data['name']}_unknown", do_init=False) or me.vertex_colors[-1]
                     for vert in data['data']:
+                        vert_index = vert['index']
                         co = compat.convert_cm_to_bl_space( mathutils.Vector(vert['co']) * self.scale )
-                        shape_key.data[vert['index']].co = shape_key.data[vert['index']].co + co
+                        shape_key.data[vert_index].co = shape_key.data[vert_index].co + co
+                        for loop_index in vert_loops[vert_index]:
+                            normals_color.data[loop_index].color = ( # convert from range(-1, 1) to range(0, 1)
+                                vert['normal'][0] * 0.5 + 0.5,
+                                vert['normal'][1] * 0.5 + 0.5,
+                                vert['normal'][2] * 0.5 + 0.5,
+                                1,
+                            )
+                            unknown_color.data[loop_index].color = ( # convert from range(-1, 1) to range(0, 1)
+                                vert['color'][0] * 0.5 * vert['color'][3] + 0.5,
+                                vert['color'][1] * 0.5 * vert['color'][3] + 0.5,
+                                vert['color'][2] * 0.5 * vert['color'][3] + 0.5,
+                                1,
+                            )
+
+                    # XXX Morph custom-normal data is lost
                     morph_count += 1
             context.window_manager.progress_update(6)
 

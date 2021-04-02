@@ -4,7 +4,7 @@
 bl_info = {
     "name": "CM3D2 Converter",
     "author": "@saidenka_cm3d2, @trzrz, @luvoid",
-    "version": ("luv", 2021, 3, "29c"),
+    "version": ("luv", 2021, 4, 2),
     "blender": (2, 80, 0),
     "location" : "File > Import/Export > CM3D2 Model (.model)",
     "description" : "A plugin dedicated to the editing, importing, and exporting of CM3D2 .model Files.",

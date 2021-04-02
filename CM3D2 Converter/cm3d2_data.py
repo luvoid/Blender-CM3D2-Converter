@@ -1,5 +1,6 @@
 """CM3D2/COM3D2用のデータ構造を扱うデータクラス"""
 import bpy
+import copy
 import struct
 from . import common
 from . import compat
@@ -464,6 +465,8 @@ class Material():
         self.f_list = []  # prop_name, f
         self.range_list = [] # prop_name, col[4]
 
+        self.custom_list = dict()
+
     def sort(self):
         self.tex_list = sorted(self.tex_list, key=lambda item: item[0])
         self.col_list = sorted(self.col_list, key=lambda item: item[0])
@@ -491,8 +494,8 @@ class Material():
         if self.version >= 2102 and (peeked in (0, 1)): # CR Edit Mode
             cr_unknown_float_count = struct.unpack('<B', reader.read(1))[0]
             for i in range(cr_unknown_float_count):
-                cr_unknown_float = struct.unpack('<f', reader.read(4))
                 # CR TODO
+                self.custom_list[f'cr_unknown_float:{i:03d}'] = struct.unpack('<f', reader.read(4))
 
         for i in range(99999):
             prop_type = common.read_str(reader)
@@ -514,24 +517,22 @@ class Material():
                 col = struct.unpack('<4f', reader.read(4 * 4))
                 self.col_list.append([prop_name, col])
 
-            elif prop_type == 'f':
+            elif prop_type == 'f' or prop_type == 'range': # 'range' from CR Edit
                 prop_name = common.read_str(reader)
                 f = struct.unpack('<f', reader.read(4))[0]
                 self.f_list.append([prop_name, f])
-
-            elif prop_type == 'range':
-                prop_name = common.read_str(reader)
-                col = struct.unpack('<4B', reader.read(4))
-                self.range_list.append([prop_name, col])
-
+            
+            # CR TODO
             elif prop_type == 'keyword':
                 prop_name = common.read_str(reader)
-                col = struct.unpack('<4B', reader.read(4))
-                # CR TODO
-
+                keyword_f = struct.unpack('<f', reader.read(4))[0]
+                print(keyword_f, type(keyword_f))
+                self.custom_list.setdefault('keyword', dict())[prop_name] = keyword_f #.append([prop_name, keyword_f])
+                
+            # CR TODO
             elif prop_type == '_ALPHAPREMULTIPLY_ON':
-                cr_unknown_bool = struct.unpack('<?', reader.read(1))
-                # CR TODO
+                alpha_bool = struct.unpack('<?', reader.read(1))[0]
+                self.custom_list['_ALPHAPREMULTIPLY_ON'] = alpha_bool
 
             elif prop_type == 'end':
                 break
@@ -685,6 +686,22 @@ class MaterialHandler:
         return mat_data
 
     @classmethod
+    def get_shader_prop_dynamic(cls, mate, ):
+        lists = { 'VALUE':'f_list', 'RGB':'col_list', 'TEX_IMAGE':'tex_list' }
+        shader_prop = copy.deepcopy( DataHandler.get_shader_prop(mate.get('shader1')) )
+        for node in mate.node_tree.nodes:
+            if node.name[0] != '_':
+                continue
+            list_name = lists.get(node.type)
+            if not list_name:
+                continue
+            prop_list = shader_prop[list_name]
+            if node.name in prop_list:
+                continue
+            prop_list.append(node.name)
+        return shader_prop
+
+    @classmethod
     def parse_mate(cls, mate, remove_serial=True):
         mat_data = Material()
 
@@ -695,7 +712,7 @@ class MaterialHandler:
         mat_data.shader2 = mate['shader2']
 
         nodes = mate.node_tree.nodes
-        shader_prop = DataHandler.get_shader_prop(mat_data.shader1)
+        shader_prop = cls.get_shader_prop_dynamic(mate) #DataHandler.get_shader_prop(mat_data.shader1)
         if shader_prop:
             for node_name in shader_prop['tex_list']:
                 node = nodes.get(node_name)
@@ -881,6 +898,21 @@ class MaterialHandler:
             f = item[1]
             common.create_float(override, mate, prop_name, f)
 
+        for key, value in mat_data.custom_list.items():
+            mate[key] = value
+            if type(value) == bool:
+                rna_ui = mate.get('_RNA_UI', dict())
+                rna_ui[key] = {
+                    "default"  : value,
+                    "min"      : 0    ,
+                    "max"      : 1    ,
+                    "soft_min" : 0    ,
+                    "soft_max" : 1    ,
+                }
+                mate['_RNA_UI'] = rna_ui
+
+
+
         align_nodes(mate)
 
     @classmethod
@@ -1022,7 +1054,7 @@ def align_nodes(mate):
     if shader_name:
         location_x = base_location[0] - 400
         location_y = base_location[1] + 60
-        shader_prop = DataHandler.get_shader_prop(shader_name)
+        shader_prop = MaterialHandler.get_shader_prop_dynamic(mate) #DataHandler.get_shader_prop(shader_name)
         node_list = shader_prop.get('tex_list')
         if node_list:
             for node_name in node_list:
