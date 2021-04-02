@@ -340,8 +340,8 @@ def set_bone_matrix(bone, mat):
     if not IS_LEGACY and isinstance(bone, bpy.types.EditBone):
         #print("Bone align_roll: ", (mat[0][0],mat[1][0],mat[2][0]))
         bone.align_roll((mat[0][2],mat[1][2],mat[2][2]))
-    print("bone: ", bone.matrix)
-    print("mat:  ", mat)
+    #print("bone: ", bone.matrix)
+    #print("mat:  ", mat)
 
 
 BL28_TO_LEGACY_ICON = {

@@ -1026,6 +1026,9 @@ def trigonometric_smooth(x):
 class CM3D2ExportException(Exception):
     pass
 
+class CM3D2ImportException(Exception):
+    pass
+
 
 # ノード取得クラス
 class NodeHandler():

@@ -46,7 +46,7 @@ def menu_func(self, context):
 
             icon = 'ERROR'
             shader1 = mate['shader1']
-            shader_prop = cm3d2_data.Handler.get_shader_prop(shader1)
+            shader_prop = cm3d2_data.MaterialHandler.get_shader_prop_dynamic(mate) #cm3d2_data.Handler.get_shader_prop(shader1)
             type_name = shader_prop.get('type_name')
             icon = shader_prop.get('icon')
 
@@ -166,7 +166,7 @@ class MATERIAL_PT_cm3d2_properties(bpy.types.Panel):
                 opr.is_create = False
 
                 shader1 = mate['shader1']
-                shader_prop = cm3d2_data.Handler.get_shader_prop(shader1)
+                shader_prop = cm3d2_data.MaterialHandler.get_shader_prop_dynamic(mate) #cm3d2_data.Handler.get_shader_prop(shader1)
                 type_name = shader_prop.get('type_name', '不明')
                 icon = shader_prop.get('icon', 'ERROR')
 
@@ -260,6 +260,13 @@ class MATERIAL_PT_cm3d2_properties(bpy.types.Panel):
                             menu_mateprop_f(context, box, node)
                         else:
                             row.operator(CNV_OT_material_prop_expand.bl_idname, icon='TRIA_LEFT', text="", emboss=False).node_name = node.name
+
+                    if '_ALPHAPREMULTIPLY_ON' in mate.keys():
+                        row = box.row(align=True)
+                        sub_row = compat.layout_split(row, factor=1 / 3, align=True)
+                        sub_row.label(text="_ALPHAPREMULTIPLY_ON", icon='CHECKBOX_HLT')
+                        sub_row.prop(mate, '["_ALPHAPREMULTIPLY_ON"]', icon=compat.icon('SHADING_RENDERED'), text="Value", toggle=1)
+                        row.label(text="", icon='BLANK1')
 
                     # if compat.IS_LEGACY:
                     # 	box.operator('texture.sync_tex_color_ramps', icon='LINKED')
