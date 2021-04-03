@@ -625,7 +625,8 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator, bpy_extras.io_utils.ImportHe
                         me.shape_keys.name = model_name1
                     shape_key = ob.shape_key_add(name=data['name'], from_mix=False)
                     normals_color = me.vertex_colors.new(name=f"{data['name']}_normals", do_init=False) or me.vertex_colors[-1]
-                    unknown_color = me.vertex_colors.new(name=f"{data['name']}_unknown", do_init=False) or me.vertex_colors[-1]
+                    if len(data['data']) and data['data'][0]['color']:
+                        unknown_color = me.vertex_colors.new(name=f"{data['name']}_unknown", do_init=False) or me.vertex_colors[-1]
                     for vert in data['data']:
                         vert_index = vert['index']
                         co = compat.convert_cm_to_bl_space( mathutils.Vector(vert['co']) * self.scale )
@@ -637,12 +638,13 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator, bpy_extras.io_utils.ImportHe
                                 vert['normal'][2] * 0.5 + 0.5,
                                 1,
                             )
-                            unknown_color.data[loop_index].color = ( # convert from range(-1, 1) to range(0, 1)
-                                vert['color'][0] * 0.5 * vert['color'][3] + 0.5,
-                                vert['color'][1] * 0.5 * vert['color'][3] + 0.5,
-                                vert['color'][2] * 0.5 * vert['color'][3] + 0.5,
-                                1,
-                            )
+                            if vert['color']:
+                                unknown_color.data[loop_index].color = ( # convert from range(-1, 1) to range(0, 1)
+                                    vert['color'][0] * 0.5 * vert['color'][3] + 0.5,
+                                    vert['color'][1] * 0.5 * vert['color'][3] + 0.5,
+                                    vert['color'][2] * 0.5 * vert['color'][3] + 0.5,
+                                    1,
+                                )
 
                     # XXX Morph custom-normal data is lost
                     morph_count += 1
