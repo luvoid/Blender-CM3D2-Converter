@@ -181,6 +181,7 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator, bpy_extras.io_utils.ImportHe
                     if model_ver >= 2001:
                         use_scale = struct.unpack('<B', reader.read(1))[0]
                         if use_scale:
+                            print(bone_data[i]['name'],"has scale data!")
                             scale_x, scale_y, scale_z = struct.unpack('<3f', reader.read(3*4))
                             bone_data[i]['scale'] = [scale_x, scale_y, scale_z]
 
@@ -373,6 +374,7 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator, bpy_extras.io_utils.ImportHe
                 if not data['parent_name']:
                     bone = arm.edit_bones.new(common.decode_bone_name(data['name'], self.is_convert_bone_weight_names))
                     bone.head, bone.tail = (0, 0, 0), (0, 1, 0)
+                    bone.use_deform = False
 
                     #co.x, co.y, co.z = -co.x, co.z, -co.y
                     #rot = compat.mul(rot, mathutils.Quaternion((0, 0, 1), math.radians(90)))
@@ -406,6 +408,15 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator, bpy_extras.io_utils.ImportHe
 
 
                     bone["UnknownFlag"] = 1 if data['unknown'] else 0
+                    if 'scale' in data:
+                        bone['cm3d2_bone_scale'] = data['scale']
+                        scale = mathutils.Vector(data['scale']) * self.scale
+                        scale = compat.convert_cm_to_bl_bone_rotation(scale)
+                        bone.bbone_x = scale.x
+                        bone.bbone_y = scale.y
+                        look = bone.tail - bone.head
+                        look *= scale
+                        bone.tail = look + bone.head
                 else:
                     child_data.append(data)
             context.window_manager.progress_update(1.333)
@@ -418,6 +429,7 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator, bpy_extras.io_utils.ImportHe
                     bone = arm.edit_bones.new(common.decode_bone_name(data['name'], self.is_convert_bone_weight_names))
                     bone.parent = parent
                     bone.head, bone.tail = (0, 0, 0), (0, 1, 0)
+                    bone.use_deform = False
 
                     #parent_mats = []
                     #current_bone = bone
@@ -492,12 +504,35 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator, bpy_extras.io_utils.ImportHe
                     compat.set_bone_matrix(bone, mat)
                     
                     bone["UnknownFlag"] = 1 if data['unknown'] else 0
+                    if 'scale' in data:
+                        bone['cm3d2_bone_scale'] = data['scale']
+                        scale = mathutils.Vector(data['scale']) * self.scale
+                        scale = compat.convert_cm_to_bl_bone_rotation(scale)
+                        bone.bbone_x = scale.x
+                        bone.bbone_y = scale.y
+                        look = bone.tail - bone.head
+                        look *= scale
+                        bone.tail = look + bone.head
                 else:
                     child_data.append(data)
             context.window_manager.progress_update(1.666)
-
+            
+            # Configure bones in local bone data
+            for data in local_bone_data:
+                bone = arm.edit_bones.get(common.decode_bone_name(data['name'], self.is_convert_bone_weight_names))
+                bone.use_deform = True
+                mat = mathutils.Matrix(data['matrix'])
+                mat = compat.convert_cm_to_bl_bone_rotation(mat)
+                mat = compat.mul(mathutils.Matrix.Scale(-1, 4, (1, 0, 0)), mat)
+                #mat = compat.convert_cm_to_bl_space(mat)
+                mat.translation = bone.matrix.translation
+                # The matrices from the local bone data are more precise rotations
+                compat.set_bone_matrix(bone, mat)
+            
             # ボーン整頓
             for bone in arm.edit_bones:
+                if bone.get('cm3d2_bone_scale'):
+                    continue
                 if len(bone.children) == 0:
                     if bone.parent:
                         pass
@@ -517,6 +552,8 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator, bpy_extras.io_utils.ImportHe
                     else:
                         bone.length = 0.2 * self.scale
             for bone in arm.edit_bones:
+                if bone.get('cm3d2_bone_scale'):
+                    continue
                 if len(bone.children) == 0:
                     if bone.parent:
                         bone.length = bone.parent.length * 0.5

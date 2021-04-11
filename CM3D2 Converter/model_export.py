@@ -856,8 +856,8 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
                 mat = compat.mul(bone.parent.matrix.inverted(), mat)
                 mat = compat.convert_bl_to_cm_bone_space(mat)
             else:
-                mat = compat.convert_bl_to_cm_space(mat)
                 mat = compat.convert_bl_to_cm_bone_rotation(mat)
+                mat = compat.convert_bl_to_cm_space(mat)
             
             co = mat.to_translation() * self.scale
             rot = mat.to_quaternion()
@@ -893,13 +893,17 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
             #co = opengl_mat.to_translation() * self.scale
             #rot = opengl_mat.to_quaternion()
 
-            bone_data.append({
+            data = {
                 'name': bone.name,
                 'unknown': unknown_flag,
                 'parent_index': parent_index,
                 'co': co.copy(),
                 'rot': rot.copy(),
-            })
+            }
+            scale = bone.edit_bone.get('cm3d2_bone_scale')
+            if scale:
+                data['scale'] = scale
+            bone_data.append(data)
         
         compat.set_active(context, pre_active)
         bpy.ops.object.mode_set(mode=pre_mode)
@@ -941,6 +945,8 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
         """アーマチュアを解析してBoneDataを返す"""
         arm = ob.data
 
+        # XXX Instead of just adding all bones, only bones / bones-with-decendants 
+        #     that have use_deform == True or mathcing vertex groups should be used
         bones = []
         bone_name_indices = {}
         already_bone_names = []
@@ -963,33 +969,35 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
 
         local_bone_data = []
         for bone in bones:
-
             mat = bone.matrix_local.copy()
-
-            co = mat.to_translation() * self.scale
-            rot = mat.to_quaternion()
-
-            co.rotate(rot.inverted())
-            co.x, co.y, co.z = co.y, co.x, -co.z
-
-            fix_quat = mathutils.Euler((0, 0, math.radians(-90)), 'XYZ').to_quaternion()
-            rot = compat.mul(rot, fix_quat)
-            rot.w, rot.x, rot.y, rot.z = -rot.z, -rot.y, -rot.x, rot.w
-
-            co_mat = mathutils.Matrix.Translation(co)
-            rot_mat = rot.to_matrix().to_4x4()
-            mat = compat.mul(co_mat, rot_mat)
-
-            copy_mat = mat.copy()
-            mat[0][0], mat[0][1], mat[0][2], mat[0][3] = copy_mat[0][0], copy_mat[1][0], copy_mat[2][0], copy_mat[3][0]
-            mat[1][0], mat[1][1], mat[1][2], mat[1][3] = copy_mat[0][1], copy_mat[1][1], copy_mat[2][1], copy_mat[3][1]
-            mat[2][0], mat[2][1], mat[2][2], mat[2][3] = copy_mat[0][2], copy_mat[1][2], copy_mat[2][2], copy_mat[3][2]
-            mat[3][0], mat[3][1], mat[3][2], mat[3][3] = copy_mat[0][3], copy_mat[1][3], copy_mat[2][3], copy_mat[3][3]
+            mat = compat.mul(mathutils.Matrix.Scale(-1, 4, (1, 0, 0)), mat)
+            mat = compat.convert_bl_to_cm_bone_rotation(mat)
+            mat.translation = mathutils.Vector((0, 0, 0))
+            
+            #co = mat.to_translation() * self.scale
+            #rot = mat.to_quaternion()
+            #
+            #co.rotate(rot.inverted())
+            #co.x, co.y, co.z = co.y, co.x, -co.z
+            #
+            #fix_quat = mathutils.Euler((0, 0, math.radians(-90)), 'XYZ').to_quaternion()
+            #rot = compat.mul(rot, fix_quat)
+            #rot.w, rot.x, rot.y, rot.z = -rot.z, -rot.y, -rot.x, rot.w
+            #
+            #co_mat = mathutils.Matrix.Translation(co)
+            #rot_mat = rot.to_matrix().to_4x4()
+            #mat = compat.mul(co_mat, rot_mat)
+            #
+            #copy_mat = mat.copy()
+            #mat[0][0], mat[0][1], mat[0][2], mat[0][3] = copy_mat[0][0], copy_mat[1][0], copy_mat[2][0], copy_mat[3][0]
+            #mat[1][0], mat[1][1], mat[1][2], mat[1][3] = copy_mat[0][1], copy_mat[1][1], copy_mat[2][1], copy_mat[3][1]
+            #mat[2][0], mat[2][1], mat[2][2], mat[2][3] = copy_mat[0][2], copy_mat[1][2], copy_mat[2][2], copy_mat[3][2]
+            #mat[3][0], mat[3][1], mat[3][2], mat[3][3] = copy_mat[0][3], copy_mat[1][3], copy_mat[2][3], copy_mat[3][3]
 
             mat_array = []
             for vec in mat:
                 mat_array.extend(vec[:])
-
+            
             local_bone_data.append({
                 'name': bone.name,
                 'matrix': mat_array,
