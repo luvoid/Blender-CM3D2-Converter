@@ -900,7 +900,7 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
                 'co': co.copy(),
                 'rot': rot.copy(),
             }
-            scale = bone.edit_bone.get('cm3d2_bone_scale')
+            scale = arm.edit_bones[bone.name].get('cm3d2_bone_scale')
             if scale:
                 data['scale'] = scale
             bone_data.append(data)
