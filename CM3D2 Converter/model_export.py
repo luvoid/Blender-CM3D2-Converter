@@ -894,7 +894,7 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
             #rot = opengl_mat.to_quaternion()
 
             data = {
-                'name': bone.name,
+                'name': common.encode_bone_name(bone.name, self.is_convert_bone_weight_names),
                 'unknown': unknown_flag,
                 'parent_index': parent_index,
                 'co': co.copy(),
@@ -972,7 +972,14 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
             mat = bone.matrix_local.copy()
             mat = compat.mul(mathutils.Matrix.Scale(-1, 4, (1, 0, 0)), mat)
             mat = compat.convert_bl_to_cm_bone_rotation(mat)
-            mat.translation = mathutils.Vector((0, 0, 0))
+            pos = mat.translation.copy()
+            
+            mat.transpose()
+            mat.row[3] = (0.0, 0.0, 0.0, 1.0)
+            pos = compat.mul(mat.to_3x3(), pos)
+            pos *= -self.scale
+            mat.translation = pos
+            mat.transpose()
             
             #co = mat.to_translation() * self.scale
             #rot = mat.to_quaternion()
@@ -999,7 +1006,7 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
                 mat_array.extend(vec[:])
             
             local_bone_data.append({
-                'name': bone.name,
+                'name': common.encode_bone_name(bone.name, self.is_convert_bone_weight_names),
                 'matrix': mat_array,
             })
         return local_bone_data

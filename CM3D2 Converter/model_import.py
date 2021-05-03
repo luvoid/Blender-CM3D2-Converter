@@ -522,10 +522,18 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator, bpy_extras.io_utils.ImportHe
                 bone = arm.edit_bones.get(common.decode_bone_name(data['name'], self.is_convert_bone_weight_names))
                 bone.use_deform = True
                 mat = mathutils.Matrix(data['matrix'])
+                
+                mat.transpose()
+                mat.translation *= -self.scale
+                mat.translation = compat.mul(mat.to_3x3().inverted(), mat.translation)
+                pos = mat.translation.copy()
+                
+                mat.transpose()
+                mat.translation = pos
+                #mat.row[3] = (0.0, 0.0, 0.0, 1.0)
                 mat = compat.convert_cm_to_bl_bone_rotation(mat)
                 mat = compat.mul(mathutils.Matrix.Scale(-1, 4, (1, 0, 0)), mat)
-                #mat = compat.convert_cm_to_bl_space(mat)
-                mat.translation = bone.matrix.translation
+               
                 # The matrices from the local bone data are more precise rotations
                 compat.set_bone_matrix(bone, mat)
             
@@ -757,7 +765,7 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator, bpy_extras.io_utils.ImportHe
                 if self.is_sharp:
                     context.tool_settings.mesh_select_mode = (False, True, False)
                     bpy.ops.mesh.select_non_manifold(extend=False, use_wire=True, use_boundary=True, use_multi_face=False, use_non_contiguous=False, use_verts=False)
-                    bpy.ops.mesh.mark_sharp(clear=True, use_verts=False)
+                    bpy.ops.mesh.mark_sharp(use_verts=False)
 
                 bpy.ops.object.mode_set(mode='OBJECT')
             context.tool_settings.mesh_select_mode = pre_mesh_select_mode
