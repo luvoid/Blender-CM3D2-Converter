@@ -4,7 +4,7 @@
 bl_info = {
     "name": "CM3D2 Converter",
     "author": "@saidenka_cm3d2, @trzrz, @luvoid",
-    "version": ("luv", 2021, 4, "11b"),
+    "version": ("luv", 2021, 5, 23),
     "blender": (2, 80, 0),
     "location" : "File > Import/Export > CM3D2 Model (.model)",
     "description" : "A plugin dedicated to the editing, importing, and exporting of CM3D2 .model Files.",
@@ -56,6 +56,7 @@ if "bpy" in locals():
     imp.reload(misc_TEXTURE_PT_context_texture)
     imp.reload(misc_TEXT_HT_header)
     imp.reload(misc_VIEW3D_MT_edit_mesh_specials)
+    imp.reload(misc_VIEW3D_MT_edit_mesh_split)
     imp.reload(misc_VIEW3D_MT_pose_apply)
     imp.reload(misc_VIEW3D_PT_tools_weightpaint)
     imp.reload(misc_VIEW3D_PT_tools_mesh_shapekey)
@@ -102,9 +103,10 @@ else:
     from . import misc_TEXTURE_PT_context_texture
     from . import misc_TEXT_HT_header
     from . import misc_VIEW3D_MT_edit_mesh_specials
+    from . import misc_VIEW3D_MT_edit_mesh_split
     from . import misc_VIEW3D_MT_pose_apply
-    from . import misc_VIEW3D_PT_tools_weightpaint
     from . import misc_VIEW3D_PT_tools_mesh_shapekey
+    from . import misc_VIEW3D_PT_tools_weightpaint
     from . import misc_DOPESHEET_MT_editor_menus
 
     from . import translations
@@ -363,6 +365,7 @@ def register():
         bpy.types.MESH_MT_shape_key_specials.append(misc_MESH_MT_shape_key_specials.menu_func)
         bpy.types.MESH_MT_vertex_group_specials.append(misc_MESH_MT_vertex_group_specials.menu_func)
         bpy.types.VIEW3D_MT_edit_mesh_specials.append(misc_VIEW3D_MT_edit_mesh_specials.menu_func)
+        bpy.types.VIEW3D_MT_edit_mesh_split.append(misc_VIEW3D_MT_edit_mesh_split.menu_func)
     else:
         bpy.types.TOPBAR_MT_file_import.append(model_import.menu_func)
         bpy.types.TOPBAR_MT_file_export.append(model_export.menu_func)
@@ -391,6 +394,7 @@ def register():
         bpy.types.MESH_MT_shape_key_context_menu.append(misc_MESH_MT_shape_key_specials.menu_func)
         bpy.types.MESH_MT_vertex_group_context_menu.append(misc_MESH_MT_vertex_group_specials.menu_func)
         bpy.types.VIEW3D_MT_edit_mesh_context_menu.append(misc_VIEW3D_MT_edit_mesh_specials.menu_func)
+        bpy.types.VIEW3D_MT_edit_mesh_split.append(misc_VIEW3D_MT_edit_mesh_split.menu_func)
 
     bpy.types.IMAGE_MT_image.append(tex_import.menu_func)
     bpy.types.IMAGE_MT_image.append(tex_export.menu_func)
@@ -449,6 +453,7 @@ def unregister():
         bpy.types.MESH_MT_shape_key_specials.remove(misc_MESH_MT_shape_key_specials.menu_func)
         bpy.types.MESH_MT_vertex_group_specials.remove(misc_MESH_MT_vertex_group_specials.menu_func)
         bpy.types.VIEW3D_MT_edit_mesh_specials.remove(misc_VIEW3D_MT_edit_mesh_specials.menu_func)
+        bpy.types.VIEW3D_MT_edit_mesh_split.remove(misc_VIEW3D_MT_edit_mesh_split.menu_func)
     else:
         bpy.types.TOPBAR_MT_file_import.remove(model_import.menu_func)
         bpy.types.TOPBAR_MT_file_export.remove(model_export.menu_func)
@@ -470,6 +475,7 @@ def unregister():
         bpy.types.MESH_MT_shape_key_context_menu.remove(misc_MESH_MT_shape_key_specials.menu_func)
         bpy.types.MESH_MT_vertex_group_context_menu.remove(misc_MESH_MT_vertex_group_specials.menu_func)
         bpy.types.VIEW3D_MT_edit_mesh_context_menu.remove(misc_VIEW3D_MT_edit_mesh_specials.menu_func)
+        bpy.types.VIEW3D_MT_edit_mesh_split.remove(misc_VIEW3D_MT_edit_mesh_split.menu_func)
 
     bpy.types.IMAGE_MT_image.remove(tex_import.menu_func)
     bpy.types.IMAGE_MT_image.remove(tex_export.menu_func)

@@ -695,7 +695,10 @@ class MaterialHandler:
             list_name = lists.get(node.type)
             if not list_name:
                 continue
-            prop_list = shader_prop[list_name]
+            prop_list = shader_prop.get(list_name)
+            if not prop_list:
+                prop_list = list()
+                shader_prop[list_name] = prop_list
             if node.name in prop_list:
                 continue
             prop_list.append(node.name)

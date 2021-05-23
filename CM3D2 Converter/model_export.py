@@ -55,6 +55,7 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
 
     is_align_to_base_bone = bpy.props.BoolProperty(name="Align to Base Bone", default=True, description="Align the object to it's base bone")
     is_convert_tris = bpy.props.BoolProperty(name="Triangulate", default=True, description="Will triangulate any none triangular faces.")
+    is_split_sharp = bpy.props.BoolProperty(name="Split Sharp Edges", default=True, description="Split all edges marked as sharp.")
     is_normalize_weight = bpy.props.BoolProperty(name="Normalize Weights", default=True, description="Will normalize all Vertex Weights so that the sum of the weights on a single vertex is equal to 1.")
     is_clean_vertex_groups = bpy.props.BoolProperty(name="Clean Vertex Groups", default=True, description="Will remove Verticies from Vertex Groups where their weight is zero.")
     is_convert_bone_weight_names = bpy.props.BoolProperty(name="Convert Vertex Groups for CM3D2", default=True, description="This will change the vertex group names to CM3D2's format if it is in Blenders format.")
@@ -176,6 +177,7 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
         box.label(text="Mesh Options")
         box.prop(self , 'is_align_to_base_bone', icon=compat.icon('OBJECT_ORIGIN'  ))
         box.prop(self , 'is_convert_tris'      , icon=compat.icon('MESH_DATA'      ))
+        box.prop(self , 'is_split_sharp'       , icon=compat.icon('MOD_EDGESPLIT'  ))
         box.prop(prefs, 'skip_shapekey'        , icon=compat.icon('SHAPEKEY_DATA'  ))
         box.prop(self , 'export_tangent'       , icon=compat.icon('CURVE_BEZCIRCLE'))
 
@@ -377,6 +379,11 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
         if self.is_align_to_base_bone:
             bpy.ops.object.align_to_cm3d2_base_bone(scale=1.0/self.scale, is_preserve_mesh=True, bone_info_mode=self.bone_info_mode)
             me.update()
+
+        if self.is_split_sharp:
+            bpy.ops.object.mode_set(mode='EDIT')
+            bpy.ops.mesh.split_sharp()
+            bpy.ops.object.mode_set(mode='OBJECT')
 
         # LocalBoneData情報読み込み
         local_bone_data = []
