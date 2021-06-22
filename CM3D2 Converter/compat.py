@@ -44,6 +44,10 @@ class BlRegister():
 
         if self.make_annotation:
             cls = make_annotations(cls)
+
+        if not IS_LEGACY and bpy.app.version >= (2, 93):
+            cls = make_prop_annotations(cls)
+
         return cls
 
     @classmethod
@@ -68,6 +72,23 @@ class BlRegister():
     def cleanup(cls):
         cls.classes.clear()
         cls.idnames.clear()
+
+def make_prop_annotations(cls):
+    if IS_LEGACY:
+        return cls
+
+    prop_type = bpy.props._PropertyDeferred
+    annotations = cls.__annotations__ if hasattr(cls, "__annotations__") else dict()
+
+    for prop_name in dir(cls):
+        prop = getattr(cls, prop_name)
+        if type(prop) != prop_type:
+            continue
+        annotations[prop_name] = prop
+    
+    setattr(cls, "__annotations__", annotations)
+    #print(cls.__annotations__)
+    return cls
 
 
 def make_annotations(cls):

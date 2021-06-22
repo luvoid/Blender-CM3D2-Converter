@@ -404,14 +404,24 @@ def generate_command_type_collections(cls):
             continue
 
         prop = getattr(cls, prop_name)
+        command_class = None
         if type(prop) != type(prop_example):
             continue
-        if len(prop)  != len(prop_example) :
+        if "len" in dir(prop):
+            if len(prop)  != len(prop_example) :
+                continue
+            if prop[0]    != prop_example[0]   :
+                continue
+            command_class = prop[1]["type"]
+
+        # Fix for Blender 2.93
+        elif "keywords" in dir(prop): 
+            if len(prop.keywords)  != len(prop_example.keywords) :
+                continue
+            command_class = prop.keywords["type"]
+        else:
             continue
-        if prop[0]    != prop_example[0]   :
-            continue
-        
-        command_class = prop[1]["type"]
+
         if command_class == CM3D2MENU_PG_CommandPointer:
             continue
 
