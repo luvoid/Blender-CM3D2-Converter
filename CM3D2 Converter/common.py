@@ -1363,3 +1363,17 @@ def get_target_and_source_ob(context, copyTarget=False, copySource=False):
         return  target_ob, source_ob, source_original_ob
     else:
         return  target_ob, source_ob
+
+def find_armature_object_from_object(ob) -> bpy.types.Armature:
+    arm_ob = None
+    if ob.type == 'ARMATURE':
+        arm_ob = ob
+    else:
+        arm_ob = ob.find_armature()
+
+    if (not arm_ob) and (ob.parent and ob.parent.type == 'ARMATURE'):
+        arm_ob = ob.parent
+
+    if arm_ob and arm_ob.type == 'ARMATURE':
+        return arm_ob
+    return None

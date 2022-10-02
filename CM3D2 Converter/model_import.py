@@ -360,7 +360,7 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator, bpy_extras.io_utils.ImportHe
         # アーマチュア作成
         if self.is_armature:
             arm    = bpy.data.armatures.new(model_name1 + ".armature")
-            arm_ob = bpy.data.objects.new  (model_name1 + ".armature", arm)
+            arm_ob = bpy.data.objects.new  (model_name1, arm)
             compat.link(bpy.context.scene, arm_ob)
             compat.set_select(arm_ob, True)
             compat.set_active(context, arm_ob)
@@ -637,7 +637,7 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator, bpy_extras.io_utils.ImportHe
         context.window_manager.progress_update(2)
 
         if self.is_mesh:
-            ob, me = self.create_mesh(context, model_name1, vertex_data, face_data)
+            ob, me = self.create_mesh(context, model_name2, vertex_data, face_data)
             # オブジェクト変形
             CNV_OT_align_to_cm3d2_base_bone.from_bone_data(ob, bone_data, local_bone_data, base_bone_name=model_name2, scale=self.scale)
             context.window_manager.progress_update(3)
@@ -877,9 +877,9 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator, bpy_extras.io_utils.ImportHe
             self.report(type={'ERROR'}, message="Found potentially corrupt local bone data, please re-import with \"Use Local Bone Data\" disabled.")
         return {'FINISHED'}
 
-    def create_mesh(self, context, model_name1, vertex_data, face_data) -> (bpy.types.Object, bpy.types.Mesh):
+    def create_mesh(self, context, mesh_name, vertex_data, face_data) -> (bpy.types.Object, bpy.types.Mesh):
         # メッシュ作成
-        me = context.blend_data.meshes.new(model_name1)
+        me = context.blend_data.meshes.new(mesh_name + '.mesh')
         verts, faces = [], []
         for data in vertex_data:
             #co = list(data['co'][:])
@@ -897,7 +897,7 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator, bpy_extras.io_utils.ImportHe
         me.from_pydata(verts, [], faces)
 
         # オブジェクト化
-        ob = context.blend_data.objects.new(model_name1, me)
+        ob = context.blend_data.objects.new(mesh_name, me)
         ob.rotation_mode = 'QUATERNION'
         compat.link(context.scene, ob)
         compat.set_select(ob, True)
@@ -1056,7 +1056,7 @@ class CNV_OT_import_cm3d2_model(bpy.types.Operator, bpy_extras.io_utils.ImportHe
 
             if morph_count == 0:
                 bpy.ops.object.shape_key_add(from_mix=False)
-                me.shape_keys.name = ob.name
+                me.shape_keys.name = ob.name + '.morph'
             shape_key = ob.shape_key_add(name=data['name'], from_mix=False)
             
             normals_color = create_normals_color(f"{data['name']}_delta_normals")

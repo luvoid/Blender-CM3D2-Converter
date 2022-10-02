@@ -114,11 +114,16 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
         if res:
             return res
         ob = context.active_object
+        arm_ob = common.find_armature_object_from_object(ob)
 
         # model名とか
         ob_names = common.remove_serial_number(ob.name, self.is_arrange_name).split('.')
-        self.model_name = ob_names[0]
-        self.base_bone_name = ob_names[1] if 2 <= len(ob_names) else 'Auto'
+        if arm_ob is None or len(ob_names) >= 2:
+            self.model_name = ob_names[0] 
+            self.base_bone_name = ob_names[1] if 2 <= len(ob_names) else 'Auto'
+        else:
+            self.model_name = arm_ob.name
+            self.base_bone_name = ob.name
 
         # ボーン情報元のデフォルトオプションを取得
         if "BoneData" in context.blend_data.texts:
@@ -130,7 +135,7 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
                 self.version = str(ver)
             if "LocalBoneData:0" in ob:
                 self.bone_info_mode = 'OBJECT_PROPERTY'
-        arm_ob = ob.parent
+        
         if arm_ob:
             if arm_ob.type == 'ARMATURE':
                 self.bone_info_mode = 'ARMATURE_PROPERTY'
