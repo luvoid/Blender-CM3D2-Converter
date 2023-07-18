@@ -1,0 +1,32 @@
+name: Generate Release
+
+# generate release for tagged commits on default branch
+on:
+  push:
+    branches:
+      - bl_28
+      - cicd_tests
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+
+# security: restrict permissions for CI jobs.
+permissions:
+  contents: read
+
+jobs:
+    # Add a release, and include a zip file
+    release:
+      name: Release
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v3
+        - name: Create Zip
+          run: |
+            zip -r Blender-CM3D2-Converter.zip "CM3D2 Converter"
+        - uses: docker://antonyurchenko/git-release:v5
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            DRAFT_RELEASE: true
+            CHANGELOG_FILE: none
+          with:
+            args: Blender-CM3D2-Converter.zip
