@@ -11,6 +11,15 @@ from . import compat
 from . import cm3d2_data
 from .translations.pgettext_functions import *
 
+from CM3D2.Serialization.Collections import *
+from CM3D2.Serialization.Files import Model
+from CM3D2.Serialization.Structs import *
+
+
+# メニューを登録する関数
+def menu_func(self, context):
+    self.layout.operator(CNV_OT_export_cm3d2_model.bl_idname, icon_value=common.kiss_icon())
+
 
 # メインオペレーター
 @compat.BlRegister()
@@ -87,28 +96,10 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
         return resobj
 
     def precheck(self, context):
-        """データの成否チェック"""
-        ob = context.active_object
-        if not ob:
-            return self.report_cancel("アクティブオブジェクトがありません")
-        if ob.type != 'MESH':
-            return self.report_cancel("メッシュオブジェクトを選択した状態で実行してください")
-        if not len(ob.material_slots):
-            return self.report_cancel("マテリアルがありません")
-        for slot in ob.material_slots:
-            if not slot.material:
-                return self.report_cancel("空のマテリアルスロットを削除してください")
-            try:
-                slot.material['shader1']
-                slot.material['shader2']
-            except:
-                return self.report_cancel("マテリアルに「shader1」と「shader2」という名前のカスタムプロパティを用意してください")
-        me = ob.data
-        if not me.uv_layers.active:
-            return self.report_cancel("UVがありません")
-        if 65535 < len(me.vertices):
-            return self.report_cancel("エクスポート可能な頂点数を大幅に超えています、最低でも65535未満には削減してください")
-        return None
+        try:
+            ModelBuilder.precheck(context)
+        except common.CM3D2ExportError as ex:
+            return self.report_cancel(ex.message)
 
     def invoke(self, context, event):
         res = self.precheck(context)
@@ -225,6 +216,10 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
     def execute(self, context):
         start_time = time.time()
         prefs = common.preferences()
+        
+        if not self.is_batch:
+            prefs.model_export_path = self.filepath
+            prefs.scale = 1.0 / self.scale
 
         selected_objs = context.selected_objects
         source_objs = []
@@ -246,9 +241,8 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
                 source_objs.append(ob_source)
                 compat.set_select(ob_source, False)
                 ob_main = self.copy_and_activate_ob(context, ob_source)
-
-                if prefs.is_apply_modifiers and bpy.ops.object.forced_modifier_apply.poll(context):
-                    bpy.ops.object.forced_modifier_apply(is_applies=[True for i in range(32)])
+                if prefs.is_apply_modifiers:
+                    bpy.ops.object.forced_modifier_apply(apply_viewport_visible=True)
             else:
                 selected_count = 0
                 # 選択されたMESHオブジェクトをコピーしてjoin
@@ -299,77 +293,182 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
                 bpy.ops.object.mode_set(mode=prev_mode)
 
     def export(self, context, ob):
-        """モデルファイルを出力"""
-        prefs = common.preferences()
+        if self.is_align_to_base_bone:
+            bpy.ops.object.align_to_cm3d2_base_bone(
+                scale=1.0/self.scale,
+                is_preserve_mesh=True,
+                bone_info_mode=self.bone_info_mode
+            )
+            ob.data.update()
+            
+        if self.is_split_sharp:
+            bpy.ops.object.mode_set(mode='EDIT')
+            bpy.ops.mesh.split_sharp()
+            bpy.ops.object.mode_set(mode='OBJECT')
+        
+        model_builder = self.get_model_builder()
+        try:
+            model_builder.export(context, ob, self.filepath)
+        except ZeroWeightVertexError as ex:
+            if not self.is_batch:
+                self.select_no_weight_vertices(context, ex.local_bone_name_indices)
+        except common.CM3D2ExportError as ex:
+            return self.report_cancel(ex.message)
+        return {'FINISHED'}
 
-        if not self.is_batch:
-            prefs.model_export_path = self.filepath
-            prefs.scale = 1.0 / self.scale
+    def get_model_builder(self):
+        model_builder = ModelBuilder(self)
 
-        context.window_manager.progress_begin(0, 10)
-        context.window_manager.progress_update(0)
+        model_builder.scale = self.scale
+        model_builder.is_backup = self.is_backup
+        model_builder.version = self.version
+        model_builder.model_name = self.model_name
+        model_builder.base_bone_name = self.base_bone_name
+        model_builder.bone_info_mode = self.bone_info_mode
+        model_builder.mate_info_mode = self.mate_info_mode
+        model_builder.is_arrange_name = self.is_arrange_name
+        model_builder.is_align_to_base_bone = self.is_align_to_base_bone
+        model_builder.is_convert_tris = self.is_convert_tris
+        model_builder.did_split_sharp = self.is_split_sharp
+        model_builder.is_normalize_weight = self.is_normalize_weight
+        model_builder.is_convert_bone_weight_names = self.is_convert_bone_weight_names
+        model_builder.is_clean_vertex_groups = self.is_clean_vertex_groups
+        model_builder.is_batch = self.is_batch
+        model_builder.export_tangent = self.export_tangent
+        model_builder.shapekey_threshold = self.shapekey_threshold
+        model_builder.export_shapekey_normals = self.export_shapekey_normals
+        model_builder.shapekey_normals_blend = self.shapekey_normals_blend
+        model_builder.use_shapekey_colors = self.use_shapekey_colors
 
-        res = self.precheck(context)
-        if res:
-            return res
+        return model_builder
+
+    def select_no_weight_vertices(self, context, local_bone_name_indices):
+        """ウェイトが割り当てられていない頂点を選択する"""
+        ob = context.active_object
         me = ob.data
+        bpy.ops.object.mode_set(mode='EDIT')
+        bpy.ops.mesh.select_all(action='SELECT')
+        #bpy.ops.object.mode_set(mode='OBJECT')
+        context.tool_settings.mesh_select_mode = (True, False, False)
+        for vert in me.vertices:
+            for vg in vert.groups:
+                if len(ob.vertex_groups) <= vg.group: # Apparently a vertex can be assigned to a non-existent group.
+                    continue
+                name = common.encode_bone_name(ob.vertex_groups[vg.group].name, self.is_convert_bone_weight_names)
+                if name in local_bone_name_indices and 0.0 < vg.weight:
+                    vert.select = False
+                    break
+        bpy.ops.object.mode_set(mode='EDIT')
 
-        if ob.active_shape_key_index != 0:
-            ob.active_shape_key_index = 0
-            me.update()
 
-        # データの成否チェック
+class ZeroWeightVertexError(common.CM3D2ExportError):
+    def __init__(self, message: str, local_bone_name_indices: dict[str, int]):
+        super().__init__(message)
+        self.local_bone_name_indices = local_bone_name_indices
+
+
+class ModelBuilder:
+    def __init__(self, reporter: bpy.types.Operator):
+        self.reporter = reporter
+
+        self.scale = 0.2
+        self.is_backup = True
+        self.version = 'AUTO'
+        self.model_name = "*"
+        self.base_bone_name = "*"
+        self.bone_info_mode = 'OBJECT_PROPERTY'
+        self.mate_info_mode = 'MATERIAL'
+        self.is_arrange_name = True
+        self.is_align_to_base_bone = True
+        self.is_convert_tris = True
+        self.did_split_sharp = False
+        self.is_normalize_weight = True
+        self.is_convert_bone_weight_names = True
+        self.is_clean_vertex_groups = True
+        self.is_batch = False
+        self.export_tangent = False
+        self.shapekey_threshold = 0.00100
+        self.export_shapekey_normals = True
+        self.shapekey_normals_blend = 0.6
+        self.use_shapekey_colors = True
+
+    @staticmethod
+    def precheck(context: bpy.context):
+        """データの成否チェック"""
+        ob = context.active_object
+        if not ob:
+            raise common.CM3D2ExportError(f_tip_("アクティブオブジェクトがありません"))
+        if ob.type != 'MESH':
+            raise common.CM3D2ExportError(f_tip_("メッシュオブジェクトを選択した状態で実行してください"))
+        if not len(ob.material_slots):
+            raise common.CM3D2ExportError(f_tip_("マテリアルがありません"))
+        for slot in ob.material_slots:
+            if not slot.material:
+                raise common.CM3D2ExportError(f_tip_("空のマテリアルスロットを削除してください"))
+            try:
+                slot.material['shader1']
+                slot.material['shader2']
+            except:
+                raise common.CM3D2ExportError(
+                    f_tip_("マテリアルに「shader1」と「shader2」という名前のカスタムプロパティを用意してください"))
+        me = ob.data
+        if not me.uv_layers.active:
+            raise common.CM3D2ExportError(f_tip_("UVがありません"))
+        if 65535 < len(me.vertices):
+            raise common.CM3D2ExportError(
+                f_tip_("エクスポート可能な頂点数を大幅に超えています、最低でも65535未満には削減してください"))  
+    
+    def check_bone_data(self, context: bpy.context, ob: bpy.types.Object):
+        """データの成否チェック"""
+        arm_ob = None
         if self.bone_info_mode == 'ARMATURE':
             arm_ob = ob.parent
             if arm_ob and arm_ob.type != 'ARMATURE':
-                return self.report_cancel("メッシュオブジェクトの親がアーマチュアではありません")
+                raise common.CM3D2ExportError(f_tip_("メッシュオブジェクトの親がアーマチュアではありません"))
             if not arm_ob:
                 try:
                     arm_ob = next(mod for mod in ob.modifiers if mod.type == 'ARMATURE' and mod.object)
                 except StopIteration:
-                    return self.report_cancel("アーマチュアが見つかりません、親にするかモディファイアにして下さい")
+                    raise common.CM3D2ExportError(
+                        f_tip_("アーマチュアが見つかりません、親にするかモディファイアにして下さい"))
                 arm_ob = arm_ob.object
         elif self.bone_info_mode == 'TEXT':
             if "BoneData" not in context.blend_data.texts:
-                return self.report_cancel("テキスト「BoneData」が見つかりません、中止します")
+                raise common.CM3D2ExportError(f_tip_("テキスト「BoneData」が見つかりません、中止します"))
             if "LocalBoneData" not in context.blend_data.texts:
-                return self.report_cancel("テキスト「LocalBoneData」が見つかりません、中止します")
+                raise common.CM3D2ExportError(f_tip_("テキスト「LocalBoneData」が見つかりません、中止します"))
         elif self.bone_info_mode == 'OBJECT_PROPERTY':
             if "BoneData:0" not in ob:
-                return self.report_cancel("オブジェクトのカスタムプロパティにボーン情報がありません")
+                raise common.CM3D2ExportError(f_tip_("オブジェクトのカスタムプロパティにボーン情報がありません"))
             if "LocalBoneData:0" not in ob:
-                return self.report_cancel("オブジェクトのカスタムプロパティにボーン情報がありません")
+                raise common.CM3D2ExportError(f_tip_("オブジェクトのカスタムプロパティにボーン情報がありません"))
         elif self.bone_info_mode == 'ARMATURE_PROPERTY':
             arm_ob = ob.parent
             if arm_ob and arm_ob.type != 'ARMATURE':
-                return self.report_cancel("メッシュオブジェクトの親がアーマチュアではありません")
+                raise common.CM3D2ExportError(f_tip_("メッシュオブジェクトの親がアーマチュアではありません"))
             if not arm_ob:
                 try:
                     arm_ob = next(mod for mod in ob.modifiers if mod.type == 'ARMATURE' and mod.object)
                 except StopIteration:
-                    return self.report_cancel("アーマチュアが見つかりません、親にするかモディファイアにして下さい")
+                    raise common.CM3D2ExportError(  # pylint:disable=raise-missing-from
+                        f_tip_("アーマチュアが見つかりません、親にするかモディファイアにして下さい"))
                 arm_ob = arm_ob.object
             if "BoneData:0" not in arm_ob.data:
-                return self.report_cancel("アーマチュアのカスタムプロパティにボーン情報がありません")
+                raise common.CM3D2ExportError(f_tip_("アーマチュアのカスタムプロパティにボーン情報がありません"))
             if "LocalBoneData:0" not in arm_ob.data:
-                return self.report_cancel("アーマチュアのカスタムプロパティにボーン情報がありません")
+                raise common.CM3D2ExportError(f_tip_("アーマチュアのカスタムプロパティにボーン情報がありません"))
         else:
-            return self.report_cancel("ボーン情報元のモードがおかしいです")
+            raise common.CM3D2ExportError(f_tip_("ボーン情報元のモードがおかしいです"))
+        return arm_ob
 
+    def check_mate_data(self, context: bpy.types.Context, ob: bpy.types.Object):
         if self.mate_info_mode == 'TEXT':
             for index, slot in enumerate(ob.material_slots):
                 if "Material:" + str(index) not in context.blend_data.texts:
-                    return self.report_cancel("マテリアル情報元のテキストが足りません")
-        context.window_manager.progress_update(1)
+                    raise common.CM3D2ExportError(f_tip_("マテリアル情報元のテキストが足りません"))
 
-        # model名とか
-        ob_names = common.remove_serial_number(ob.name, self.is_arrange_name).split('.')
-        if self.model_name == '*':
-            self.model_name = ob_names[0]
-        if self.base_bone_name == '*':
-            self.base_bone_name = ob_names[1] if 2 <= len(ob_names) else 'Auto'
-
-        # BoneData情報読み込み
+    def load_bone_data(self, context: bpy.types.Context, ob: bpy.types.Object, arm_ob: bpy.types.Object):
+        """BoneData情報読み込み"""
         base_bone_candidate = None
         bone_data = []
         if self.bone_info_mode == 'ARMATURE':
@@ -386,26 +485,18 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
                 base_bone_candidate = target['BaseBone']
             bone_data = self.bone_data_parser(self.indexed_data_generator(target, prefix="BoneData:"))
         if len(bone_data) <= 0:
-            return self.report_cancel("テキスト「BoneData」に有効なデータがありません")
+            raise common.CM3D2ExportError(f_tip_("テキスト「BoneData」に有効なデータがありません"))
 
         if self.base_bone_name not in (b['name'] for b in bone_data):
             if base_bone_candidate and self.base_bone_name == 'Auto':
                 self.base_bone_name = base_bone_candidate
             else:
-                return self.report_cancel("基点ボーンが存在しません")
-        bone_name_indices = {bone['name']: index for index, bone in enumerate(bone_data)}
-        context.window_manager.progress_update(2)
+                raise common.CM3D2ExportError(f_tip_("基点ボーンが存在しません"))
+        
+        return bone_data
 
-        if self.is_align_to_base_bone:
-            bpy.ops.object.align_to_cm3d2_base_bone(scale=1.0/self.scale, is_preserve_mesh=True, bone_info_mode=self.bone_info_mode)
-            me.update()
-
-        if self.is_split_sharp:
-            bpy.ops.object.mode_set(mode='EDIT')
-            bpy.ops.mesh.split_sharp()
-            bpy.ops.object.mode_set(mode='OBJECT')
-
-        # LocalBoneData情報読み込み
+    def load_local_bone_data(self, context: bpy.types.Context, ob: bpy.types.Object, arm_ob: bpy.types.Object):
+        """LocalBoneData情報読み込み"""
         local_bone_data = []
         if self.bone_info_mode == 'ARMATURE':
             local_bone_data = self.armature_local_bone_data_parser(arm_ob)
@@ -416,13 +507,16 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
             target = ob if self.bone_info_mode == 'OBJECT_PROPERTY' else arm_ob.data
             local_bone_data = self.local_bone_data_parser(self.indexed_data_generator(target, prefix="LocalBoneData:"))
         if len(local_bone_data) <= 0:
-            return self.report_cancel("テキスト「LocalBoneData」に有効なデータがありません")
-        local_bone_name_indices = {bone['name']: index for index, bone in enumerate(local_bone_data)}
-        context.window_manager.progress_update(3)
-        
+            raise common.CM3D2ExportError(f_tip_("テキスト「LocalBoneData」に有効なデータがありません"))
+        return local_bone_data
+
+    def load_vertex_groups(self, context: bpy.types.Context, ob: bpy.types.Object, bone_data, local_bone_data):
+        """ウェイト情報読み込み"""
+        me = ob.data
         used_local_bone = {index: False for index, bone in enumerate(local_bone_data)}
+        bone_name_indices = {bone['name']: index for index, bone in enumerate(bone_data)}
+        local_bone_name_indices = {bone['name']: index for index, bone in enumerate(local_bone_data)}
         
-        # ウェイト情報読み込み
         vertices = []
         is_over_one = 0
         is_under_one = 0
@@ -447,9 +541,10 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
                         used_local_bone[localindex] = True
                         boneindex = parent['parent_index']
             if len(vgs) == 0:
-                if not self.is_batch:
-                    self.select_no_weight_vertices(context, local_bone_name_indices)
-                return self.report_cancel("ウェイトが割り当てられていない頂点が見つかりました、中止します")
+                raise ZeroWeightVertexError(
+                    message=f_tip_("ウェイトが割り当てられていない頂点が見つかりました、中止します"),
+                    local_bone_name_indices=local_bone_name_indices
+                )
             if len(vgs) > 4:
                 is_in_too_many += 1
             vgs = sorted(vgs, key=itemgetter(1), reverse=True)[0:4]
@@ -485,16 +580,25 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
                 'face_indexs': list(map(itemgetter(0), vgs)),
                 'weights': list(map(itemgetter(1), vgs)),
             })
-        
-        if 1 <= is_over_one:
-            self.report(type={'WARNING'}, message=f_tip_("ウェイトの合計が1.0を超えている頂点が見つかりました。正規化してください。超過している頂点の数:{}", is_over_one))
-        if 1 <= is_under_one:
-            self.report(type={'WARNING'}, message=f_tip_("ウェイトの合計が1.0未満の頂点が見つかりました。正規化してください。不足している頂点の数:{}", is_under_one))
-        
+
+        if is_over_one > 0:
+            self.reporter.report(
+                type={'WARNING'},
+                message=f_tip_("ウェイトの合計が1.0を超えている頂点が見つかりました。正規化してください。超過している頂点の数:{}", is_over_one)
+            )
+        if is_under_one > 0:
+            self.reporter.report(
+                type={'WARNING'},
+                message=f_tip_("ウェイトの合計が1.0未満の頂点が見つかりました。正規化してください。不足している頂点の数:{}", is_under_one)
+            )
+
         # luvoid : warn that there are vertices in too many vertex groups
         if is_in_too_many > 0:
-            self.report(type={'WARNING'}, message=f_tip_("4つを超える頂点グループにある頂点が見つかりました。頂点グループをクリーンアップしてください。不足している頂点の数:{}", is_in_too_many))
-                
+            self.reporter.report(
+                type={'WARNING'},
+                message=f_tip_("4つを超える頂点グループにある頂点が見つかりました。頂点グループをクリーンアップしてください。不足している頂点の数:{}", is_in_too_many)
+            )
+
         # luvoid : check for unused local bones that the game will delete
         is_deleted = 0
         deleted_names = "The game will delete these local bones"
@@ -507,34 +611,66 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
                 pass
             else:
                 print(f_tip_("Unexpected: used_local_bone[{key}] == {value} when len(used_local_bone) == {length}", key=index, value=is_used, length=len(used_local_bone)))
-                self.report(type={'WARNING'}, message=f_tip_("Could not find whether bone with index {index} was used. See console for more info.", index=i))
+                self.reporter.report(
+                    type={'WARNING'},
+                    message=f_tip_("Could not find whether bone with index {index} was used. See console for more info.", index=i)
+                )
         if is_deleted > 0:
-            self.report(type={'WARNING'}, message=f_tip_("頂点が割り当てられていない{num}つのローカルボーンが見つかりました。 詳細については、ログを参照してください。", num=is_deleted))
-            self.report(type={'INFO'}, message=deleted_names)
-                
+            self.reporter.report(
+                type={'WARNING'},
+                message=f_tip_("頂点が割り当てられていない{num}つのローカルボーンが見つかりました。 詳細については、ログを参照してください。", num=is_deleted)
+            )
+            self.reporter.report(type={'INFO'}, message=deleted_names)
+
+        return vertices
+
+    def export(self, context, ob, filepath):
+        """モデルファイルを出力"""
+        context.window_manager.progress_begin(0, 10)
+        context.window_manager.progress_update(0)
+
+        self.precheck(context)
+        arm_ob = self.check_bone_data(context, ob)
+        self.check_mate_data(context, ob)
+
+        context.window_manager.progress_update(1)
+
+        # model名とか
+        # Determine model & basebone names
+        ob_names = common.remove_serial_number(ob.name, self.is_arrange_name).split('.')
+        if self.model_name == '*':
+            self.model_name = ob_names[0]
+        if self.base_bone_name == '*':
+            self.base_bone_name = ob_names[1] if 2 <= len(ob_names) else 'Auto'
+
+        bone_data = self.load_bone_data(context, ob, arm_ob)
+        context.window_manager.progress_update(2)
+
+        local_bone_data = self.load_local_bone_data(context, ob, arm_ob)
+        context.window_manager.progress_update(3)
+
+        if ob.active_shape_key_index != 0:
+            ob.active_shape_key_index = 0
+            ob.data.update()
+
+        vertices = self.load_vertex_groups(context, ob, bone_data, local_bone_data)
         context.window_manager.progress_update(4)
-        
 
         try:
-            writer = common.open_temporary(self.filepath, 'wb', is_backup=self.is_backup)
-        except:
-            self.report(type={'ERROR'}, message=f_tip_("ファイルを開くのに失敗しました、アクセス不可かファイルが存在しません。file={}", self.filepath))
-            return {'CANCELLED'}
+            writer = common.open_temporary(filepath, 'wb', is_backup=self.is_backup)
+        except OSError as ex:
+            raise common.CM3D2ExportError(
+                f_tip_("ファイルを開くのに失敗しました、アクセス不可かファイルが存在しません。file={}", filepath)
+            ) from ex
 
         model_datas = {
             'bone_data': bone_data,
             'local_bone_data': local_bone_data,
             'vertices': vertices,
         }
-        try:
-            with writer:
-                self.write_model(context, ob, writer, **model_datas)
-        except common.CM3D2ExportError as e:
-            self.report(type={'ERROR'}, message=str(e))
-            return {'CANCELLED'}
-
-        return {'FINISHED'}
-
+        with writer:
+            self.write_model(context, ob, writer, **model_datas)
+    
     def write_model(self, context, ob: bpy.types.Object, writer, bone_data=[], local_bone_data=[], vertices=[]):
         """モデルデータをファイルオブジェクトに書き込む"""
         me = ob.data
@@ -543,10 +679,10 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
         # ファイル先頭
         common.write_str(writer, 'CM3D2_MESH')
         if self.version == 'AUTO':
-            self.version_num = max(ob.get("ModelVersion", 1000), 1000)
+            self._version_num = max(ob.get("ModelVersion", 1000), 1000)
         else:
-            self.version_num = int(self.version)
-        writer.write(struct.pack('<i', self.version_num))
+            self._version_num = int(self.version)
+        writer.write(struct.pack('<i', self._version_num))
 
         common.write_str(writer, self.model_name)
         common.write_str(writer, self.base_bone_name)
@@ -563,7 +699,7 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
         for bone in bone_data:
             writer.write(struct.pack('<3f', bone['co'][0], bone['co'][1], bone['co'][2]))
             writer.write(struct.pack('<4f', bone['rot'][1], bone['rot'][2], bone['rot'][3], bone['rot'][0]))
-            if self.version_num >= 2001:
+            if self._version_num >= 2001:
                 use_scale = ('scale' in bone)
                 writer.write(struct.pack('<b', use_scale))
                 if use_scale:
@@ -685,6 +821,167 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
                 pass
         common.write_str(writer, 'end')
 
+    def build_model(self, context, ob: bpy.types.Object, writer, bone_data=[], local_bone_data=[], vertices=[]):
+        """モデルデータをファイルオブジェクトに書き込む"""
+        me = ob.data
+        
+        model = Model()
+
+        # ファイル先頭
+        # model.signature = 'CM3D2_MESH'
+        if self.version == 'AUTO':
+            self._version_num = int(max(ob.get("ModelVersion", 1000), 1000))
+        else:
+            self._version_num = int(self.version)
+        model.version = self._version_num
+
+        model.modelName = self.model_name
+        model.meshObjectName = self.base_bone_name
+
+        # ボーン情報書き出し
+        model.childNames = LengthPrefixedList[Model.ChildName](len(bone_data))
+        for i, bone in enumerate(bone_data):
+            childName = model.childNames[i]
+            childName.name = bone['name']
+            childName.isSclBone = bone['scl']
+            model.childNames[i] = childName
+        context.window_manager.progress_update(3.3)
+        model.childParents.UnsafeSetArray([bone['parent_index'] for bone in bone_data])
+        context.window_manager.progress_update(3.7)
+        childLocalTransforms = []
+        for bone in bone_data:
+            localTransform = Model.LocalTransform()
+            localTransform.localPosition = Float3(bone['co'][0], bone['co'][1], bone['co'][2])
+            localTransform.localPosition = Float4(bone['rot'][1], bone['rot'][2], bone['rot'][3], bone['rot'][0])
+            if self._version_num >= 2001 and 'scale' in bone:
+                # localTransform.localScale.HasValue = True
+                localTransform.localScale = Float3(bone['scale'][0], bone['scale'][1], bone['scale'][2])
+            childLocalTransforms.append(localTransform)
+        context.window_manager.progress_update(4)
+
+        # 正しい頂点数などを取得
+        bm = bmesh.new()
+        bm.from_mesh(me)
+        uv_lay = bm.loops.layers.uv.active
+        vert_uvs = []
+        vert_uvs_append = vert_uvs.append
+        vert_iuv = {}
+        vert_indices = {}
+        vert_count = 0
+        for vert in bm.verts:
+            vert_uv = []
+            vert_uvs_append(vert_uv)
+            for loop in vert.link_loops:
+                uv = loop[uv_lay].uv
+                if uv not in vert_uv:
+                    vert_uv.append(uv)
+                    vert_iuv[hash((vert.index, uv.x, uv.y))] = vert_count
+                    vert_indices[vert.index] = vert_count
+                    vert_count += 1
+        if 65535 < vert_count:
+            raise common.CM3D2ExportError(f_tip_("頂点数がまだ多いです (現在{}頂点)。あと{}頂点以上減らしてください、中止します", vert_count, vert_count - 65535))
+        context.window_manager.progress_update(5)
+
+        model.vertexCount = vert_count
+        model.submeshCount = len(ob.material_slots)
+
+        # ローカルボーン情報を書き出し
+        model.boneUseNames.Capacity = len(local_bone_data)
+        for i, bone in enumerate(local_bone_data):
+            model.boneUseNames.Add(bone['name'])
+        context.window_manager.progress_update(5.3)
+        bindPoses = []
+        for bone in local_bone_data:
+            mat = bone['matrix']
+            bindPoses.append(Float4x4(
+                Float4(mat[ 0], mat[ 1], mat[ 2], mat[ 3]),
+                Float4(mat[ 4], mat[ 5], mat[ 6], mat[ 7]),
+                Float4(mat[ 8], mat[ 9], mat[10], mat[11]),
+                Float4(mat[12], mat[13], mat[14], mat[15])
+            ))
+        model.bindPoses.UnsafeSetArray(bindPoses)
+        context.window_manager.progress_update(5.7)
+
+        # カスタム法線情報を取得
+        if me.has_custom_normals:
+            custom_normals = [mathutils.Vector() for i in range(len(me.vertices))]
+            me.calc_normals_split()
+            for loop in me.loops:
+                custom_normals[loop.vertex_index] += loop.normal
+            for no in custom_normals:
+                no.normalize()
+        else:
+            custom_normals = None
+
+        cm_verts = []
+        cm_norms = []
+        cm_uvs = []
+        # 頂点情報を書き出し
+        for i, vert in enumerate(bm.verts):
+            co = compat.convert_bl_to_cm_space( vert.co * self.scale )
+            if me.has_custom_normals:
+                no = custom_normals[vert.index]
+            else:
+                no = vert.normal.copy()
+            no = compat.convert_bl_to_cm_space( no )
+            for uv in vert_uvs[i]:
+                cm_verts.append(co)
+                cm_norms.append(no)
+                cm_uvs.append(uv)
+                
+                writer.write(struct.pack('<3f', co.x, co.y, co.z))
+                writer.write(struct.pack('<3f', no.x, no.y, no.z))
+                writer.write(struct.pack('<2f', uv.x, uv.y))
+        context.window_manager.progress_update(6)
+
+        cm_tris = self.parse_triangles(bm, ob, uv_lay, vert_iuv, vert_indices)
+
+        # 接空間情報を書き出し
+        if self.export_tangent:
+            tangents = self.calc_tangents(cm_tris, cm_verts, cm_norms, cm_uvs)
+            writer.write(struct.pack('<i', len(tangents)))
+            for t in tangents:
+                writer.write(struct.pack('<4f', *t))
+        else:
+            writer.write(struct.pack('<i', 0))
+
+        # ウェイト情報を書き出し
+        for vert in vertices:
+            for uv in vert_uvs[vert['index']]:
+                writer.write(struct.pack('<4H', *vert['face_indexs']))
+                writer.write(struct.pack('<4f', *vert['weights']))
+        context.window_manager.progress_update(7)
+
+        # 面情報を書き出し
+        for tri in cm_tris:
+            writer.write(struct.pack('<i', len(tri)))
+            for vert_index in tri:
+                writer.write(struct.pack('<H', vert_index))
+        context.window_manager.progress_update(8)
+
+        # マテリアルを書き出し
+        writer.write(struct.pack('<i', len(ob.material_slots)))
+        for slot_index, slot in enumerate(ob.material_slots):
+            if self.mate_info_mode == 'MATERIAL':
+                mat_data = cm3d2_data.MaterialHandler.parse_mate(slot.material, self.is_arrange_name)
+                mat_data.write(writer, write_header=False)
+
+            elif self.mate_info_mode == 'TEXT':
+                text = context.blend_data.texts["Material:" + str(slot_index)].as_string()
+                mat_data = cm3d2_data.MaterialHandler.parse_text(slot.material, self.is_arrange_name)
+                mat_data.write(writer, write_header=False)
+
+        context.window_manager.progress_update(9)
+
+        # モーフを書き出し
+        if me.shape_keys and len(me.shape_keys.key_blocks) >= 2:
+            try:
+                self.write_shapekeys(context, ob, writer, vert_uvs, custom_normals)
+            finally:
+                print("FINISHED SHAPE KEYS WRITE")
+                pass
+        common.write_str(writer, 'end')
+
     def write_shapekeys(self, context, ob, writer, vert_uvs, custom_normals=None):
         # モーフを書き出し
         me = ob.data
@@ -745,7 +1042,7 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
             np.copyto(loop_custom_normals.ravel(), shape_key.normals_split_get())
             
             # for loop in me.loops: vert_delta_normals[loop.vertex_index] += loop_delta_normals[loop.index]
-            if not self.is_split_sharp:  
+            if not self.did_split_sharp:
                 # XXX Slower
                 np.add.at(vert_custom_normals, loops_vert_index, loop_custom_normals)
                 vert_len_sq = get_lengths_squared(vert_custom_normals, out=static_vert_lengths)
@@ -984,24 +1281,6 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
 
         return tangents
 
-    def select_no_weight_vertices(self, context, local_bone_name_indices):
-        """ウェイトが割り当てられていない頂点を選択する"""
-        ob = context.active_object
-        me = ob.data
-        bpy.ops.object.mode_set(mode='EDIT')
-        bpy.ops.mesh.select_all(action='SELECT')
-        #bpy.ops.object.mode_set(mode='OBJECT')
-        context.tool_settings.mesh_select_mode = (True, False, False)
-        for vert in me.vertices:
-            for vg in vert.groups:
-                if len(ob.vertex_groups) <= vg.group: # Apparently a vertex can be assigned to a non-existent group.
-                    continue
-                name = common.encode_bone_name(ob.vertex_groups[vg.group].name, self.is_convert_bone_weight_names)
-                if name in local_bone_name_indices and 0.0 < vg.weight:
-                    vert.select = False
-                    break
-        bpy.ops.object.mode_set(mode='EDIT')
-
     def armature_bone_data_parser(self, context, ob):
         """アーマチュアを解析してBoneDataを返す"""
         arm = ob.data
@@ -1230,7 +1509,3 @@ class CNV_OT_export_cm3d2_model(bpy.types.Operator):
                 continue
             yield container[name]
 
-
-# メニューを登録する関数
-def menu_func(self, context):
-    self.layout.operator(CNV_OT_export_cm3d2_model.bl_idname, icon_value=common.kiss_icon())

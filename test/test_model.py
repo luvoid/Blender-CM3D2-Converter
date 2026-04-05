@@ -3,6 +3,7 @@ from pathlib import Path
 
 import cm3d2converter
 from blenderunittest import BlenderTestCase
+from profilehelpers import dump_test_stats, Profile, LineProfile
 
 
 
@@ -181,6 +182,71 @@ class ModelTest(BlenderTestCase):
         self.assertEqual(1, fullweight_mesh_object.vertex_groups.active.weight(0),
                          "Weights were not normalized when is_normalize_weight=True")
 
+    def testprofile_model_import(self):
+        in_path = f'{self.resources_dir}/body001.model'
+        
+        lineprof = LineProfile()
+        lineprof.add_module(cm3d2converter.model_import)
+        prof = Profile()
+        lineprof.enable()
+        prof.enable()
+
+        for _ in range(10):
+            bpy.ops.import_mesh.import_cm3d2_model(filepath=in_path)
+
+        prof.disable()
+
+        dump_test_stats(self, prof, lineprof)
+        
+    def testprofile_model_export(self):
+        bpy.ops.import_mesh.import_cm3d2_model(
+            filepath=f'{self.resources_dir}/body001.model')
+        
+        out_path = f'{self.output_dir}/{self._testMethodName}.model'
+        
+        lineprof = LineProfile()
+        lineprof.add_module(cm3d2converter.model_export)
+        prof = Profile()
+        lineprof.enable()
+        prof.enable()
+
+        for _ in range(10):
+            bpy.ops.export_mesh.export_cm3d2_model(filepath=out_path)
+
+        prof.disable()
+
+        dump_test_stats(self, prof, lineprof)
+
+class ModelVersionsTest(BlenderTestCase):
+    """Tests multiple different versions of .model files."""
+
+    def import_and_export(self, name: str):
+        bpy.ops.import_mesh.import_cm3d2_model(
+            filepath=f'{self.resources_dir}/{name}.model')
+        bpy.ops.export_mesh.export_cm3d2_model(
+            filepath=f'{self.output_dir}/{self._testMethodName}.model')
+    
+    def test_body001_v2000(self):
+        self.import_and_export('body001')
+
+    def test_body001_v2001(self):
+        self.import_and_export('body001.v2001')
+
+    def test_crc_body001_v2102(self):
+        self.import_and_export('crc_body001')
+        
+    def test_crc_dress012_shoe_heel_v2102(self):
+        self.import_and_export(
+            'gp03_def_dress226_shoes0crc_dress012_shoe_heel')
+
+    def test_crc_dress024_skrt_v2102(self):
+        self.import_and_export(
+            'gp03_def_dress246_skirt0crc_dress024_skrt')
+    
+    def test_crc_dress028_shoe_mizugi_v2102(self):
+        self.import_and_export(
+            'gp03_def_dress257_mizugi0crc_dress028_mizugi')
+    
 
 class Dress379Test(BlenderTestCase):
     def test_model_import_dress379(self):
@@ -244,7 +310,3 @@ class DuplicateMaterialsTest(BlenderTestCase):
         self.assertListEqual(expected_names, imported_names,
                              "Material names were changed after first export / import")
         print(imported_names)
-        
-        
-        
-        

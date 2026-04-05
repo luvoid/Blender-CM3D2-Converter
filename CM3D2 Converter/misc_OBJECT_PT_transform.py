@@ -6,7 +6,7 @@ import numpy as np
 from . import common
 from . import compat
 from .translations.pgettext_functions import *
-from .model_export import CNV_OT_export_cm3d2_model
+from .model_export import ModelBuilder
 
 
 # メニュー等に項目追加
@@ -100,7 +100,7 @@ class CNV_OT_align_to_cm3d2_base_bone(bpy.types.Operator):
             base_bone_name = ob.data.get('BaseBone')
         if not base_bone_name:
             # TODO : Check for base bone in object name
-            # See model_export.CNV_OT_export_cm3d2_model.export() "BoneData情報読み込み"
+            # See model_export.ModelExporter.export() "BoneData情報読み込み"
             pass
         
         return base_bone_name
@@ -257,7 +257,7 @@ class CNV_OT_align_to_cm3d2_base_bone(bpy.types.Operator):
         base_bone_name = None
         bone_data = None
         if self.bone_info_mode == 'ARMATURE':
-            #bone_data = CNV_OT_export_cm3d2_model.armature_bone_data_parser(context, arm_ob)
+            #bone_data = ModelExporter.armature_bone_data_parser(context, arm_ob)
             if not 'BaseBone' in arm_ob.data:
                 return self.bone_data_report_cancel()
             base_bone_name = arm_ob.data['BaseBone']
@@ -266,15 +266,15 @@ class CNV_OT_align_to_cm3d2_base_bone(bpy.types.Operator):
             if not 'BaseBone' in bone_data_text:
                 return self.bone_data_report_cancel()
             base_bone_name = bone_data_text['BaseBone']
-            bone_data = CNV_OT_export_cm3d2_model.bone_data_parser(l.body for l in bone_data_text.lines)
-            local_bone_data = CNV_OT_export_cm3d2_model.local_bone_data_parser(l.body for l in bone_data_text.lines)
+            bone_data = ModelBuilder.bone_data_parser(l.body for l in bone_data_text.lines)
+            local_bone_data = ModelBuilder.local_bone_data_parser(l.body for l in bone_data_text.lines)
         elif self.bone_info_mode in ['OBJECT_PROPERTY', 'ARMATURE_PROPERTY']:
             target = ob if self.bone_info_mode == 'OBJECT_PROPERTY' else arm_ob.data
             if not 'BaseBone' in target:
                 return self.bone_data_report_cancel()
             base_bone_name = target['BaseBone']
-            bone_data = CNV_OT_export_cm3d2_model.bone_data_parser(CNV_OT_export_cm3d2_model.indexed_data_generator(target, prefix="BoneData:"))
-            local_bone_data = CNV_OT_export_cm3d2_model.local_bone_data_parser(CNV_OT_export_cm3d2_model.indexed_data_generator(target, prefix="LocalBoneData:"))
+            bone_data = ModelBuilder.bone_data_parser(ModelBuilder.indexed_data_generator(target, prefix="BoneData:"))
+            local_bone_data = ModelBuilder.local_bone_data_parser(ModelBuilder.indexed_data_generator(target, prefix="LocalBoneData:"))
         
         old_basis = ob.matrix_basis.copy()
         if bone_data:

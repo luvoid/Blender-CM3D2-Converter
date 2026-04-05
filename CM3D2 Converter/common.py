@@ -1262,7 +1262,7 @@ class CNV_UL_generic_selector(bpy.types.UIList):
         #    target_ob, source_ob = common.get_target_and_source_ob(context)
         #    bone_data_ob = (target_ob.get("LocalBoneData:0") and target_ob) or (source_ob.get("LocalBoneData:0") and source_ob) or None
         #    if bone_data_ob:
-        #        local_bone_data = model_export.CNV_OT_export_cm3d2_model.local_bone_data_parser(model_export.CNV_OT_export_cm3d2_model.indexed_data_generator(bone_data_ob, prefix="LocalBoneData:"))
+        #        local_bone_data = model_export.ModelExporter.local_bone_data_parser(model_export.ModelExporter.indexed_data_generator(bone_data_ob, prefix="LocalBoneData:"))
         #        self.local_bone_names = [ bone['name'] for bone in local_bone_data ]
         
         if not self.cached_values:

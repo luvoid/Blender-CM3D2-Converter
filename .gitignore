@@ -14,3 +14,8 @@ logs
 # These files are used for testing, but cannot be redistributed 
 test/resources/hotdog.blend
 test/resources/dress379_wear.model
+test/resources/body001.v2001.model
+test/resources/crc_body001.model
+test/resources/gp03_def_dress226_shoes0crc_dress012_shoe_heel.model
+test/resources/gp03_def_dress246_skirt0crc_dress024_skrt.model
+test/resources/gp03_def_dress257_mizugi0crc_dress028_mizugi.model
