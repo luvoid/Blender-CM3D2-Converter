@@ -1373,6 +1373,14 @@ def get_target_and_source_ob(context: bpy.context, copyTarget=False, copySource=
     target_original_ob: bpy.types.Object = None
     source_original_ob: bpy.types.Object = None
 
+    if not (copyTarget or copySource):
+        target_ob = context.active_object
+        for ob in context.selected_objects:
+            if ob != target_ob:
+                source_ob = ob
+                break
+        return (target_ob, source_ob)
+
     selected_objects = list(context.selected_objects)
     
     target_original_ob = context.active_object
