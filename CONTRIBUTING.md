@@ -53,6 +53,7 @@ Blender 3.3 LTS is the recommended primary testing version.
 - The add-on code lives under `CM3D2 Converter/`.
 - The add-on uses Blender APIs such as `bpy`, `bpy.types`, and `bpy.props`.
 - Do not assume compatibility with Blender 2.7x.
+- Strings which are displayed in the UI (and therefore may be translated) should use "double quotes". Code-only strings should use 'single quotes'.
 - Preserve Japanese UI labels, strings, and comments. New comments, labels, and strings may be made in English, but Japanese text should never be replaces with English text.
 - New UI-visible strings should have translation entries added in `CM3D2 Converter/translations/`
 

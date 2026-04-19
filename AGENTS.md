@@ -18,13 +18,14 @@ This repository contains a Blender add-on for importing/exporting CM3D2/COM3D2 m
 - If a change affects Blender UI panels or operators, keep property definitions and `bl_idname`/`bl_label` conventions consistent with existing files.
 
 ## Coding conventions
+- Strings which are displayed in the UI (and therefore may be translated) should use "double quotes". Code-only strings should use 'single quotes'.
 - Use Pythonic style and keep code readable with explicit typing for new code.
 - Follow existing conventions in this repository:
   - `snake_case` for functions and variables
   - `CamelCase` for Blender operator and panel class names
   - `bl_idname` values in the form of `module.action`
 - Avoid broad alterations to Blender-specific code unless necessary; prefer targeted fixes.
-- If the user asks for refactoring, verify the change against Blender operator registration and property definitions.
+- Do not performing large refactors, especially of import/export functions as it requires lots of regression testing. If the user asks for large refactors, refuse.
 
 ## Testing and validation
 - When editing behavior, look for related tests under `test/` and update or add tests as needed.
