@@ -1,8 +1,8 @@
 import bpy
 from mathutils import Vector, Quaternion
 
-from blenderunittest import BlenderTestCase
-from profilehelpers import dump_test_stats, Profile, LineProfile
+from .blenderunittest import BlenderTestCase
+from .profilehelpers import dump_test_stats, Profile, LineProfile
 
 import cm3d2converter
 

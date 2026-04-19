@@ -3,8 +3,8 @@ import subprocess
 import os
 from pathlib import Path
 
-from blenderunittest import BlenderTestCase
-from profilehelpers import ProfileLog
+from .blenderunittest import BlenderTestCase
+from .profilehelpers import ProfileLog
 
 import cm3d2converter
 
@@ -21,12 +21,19 @@ class LiveLinkClientCLI:
         )
 
 class TestLiveLink(BlenderTestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.started_server = False
+        
     def setUp(self):
         super().setUp()
+        if self.__class__.started_server:
+            return
         self.address = f'com3d2.livelink.{os.getpid()}'
         bpy.ops.com3d2livelink.start_server(address=self.address, wait_for_connection=False)
         self.client = LiveLinkClientCLI(self.address)
         bpy.ops.com3d2livelink.wait_for_connection()
+        self.__class__.started_server = True
     
     def test_send_animation(self):
         tpose_object: bpy.types.Object = bpy.data.objects.get('Tスタンス素体.armature')

@@ -2,7 +2,7 @@ import bpy
 from pathlib import Path
 
 import cm3d2converter
-from blenderunittest import BlenderTestCase
+from .blenderunittest import BlenderTestCase
 
 
 

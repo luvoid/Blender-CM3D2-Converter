@@ -7,7 +7,7 @@ import profile
 
 import cm3d2converter  # If not imported, call stack is missing
 
-from blenderunittest import BlenderTestCase
+from .blenderunittest import BlenderTestCase
 
 from cProfile import Profile
 from line_profiler import LineProfiler as _LineProfiler
