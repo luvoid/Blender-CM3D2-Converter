@@ -46,10 +46,11 @@ class CNV_OT_export_cm3d2_tex(bpy.types.Operator):
         else:
             self.filepath = common.default_cm3d2_dir(prefs.tex_export_path, common.remove_serial_number(img.name), "tex")
         self.is_backup = bool(prefs.backup_ext)
-        self.path = img.get('cm3d2_path')
-        if self.path is None:
-            self.path = common.get_tex_cm3d2path(self.filepath)
-            img['cm3d2_path'] = self.path
+        path = img.get('cm3d2_path')
+        if path is None:
+            path = common.get_tex_cm3d2path(self.filepath)
+            img['cm3d2_path'] = path
+        self.path = path
 
         if 'tex Name' in img:
             self.filepath = os.path.join(os.path.dirname(self.filepath), img['tex Name'])
