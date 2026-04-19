@@ -292,7 +292,11 @@ class CNV_OT_apply_prime_field(bpy.types.Operator):
                     drivers.remove(driver)
             #context.scene.frame_set(1)
             bpy.ops.pose.user_transforms_clear()
+
+            compat.set_active(context, temp_ob)
             bpy.ops.poselib.apply_pose(pose_index=1)
+            bpy.ops.pose.armature_apply()
+            compat.set_active(context, ob)
         else:
             compat.set_active(context, temp_ob)
             bpy.ops.object.mode_set(mode='POSE')
