@@ -3,6 +3,11 @@
 ## Purpose
 This repository contains a Blender add-on for importing/exporting CM3D2/COM3D2 model, texture, material, and animation files. Use these instructions when generating code, writing tests, or editing documentation for this project.
 
+## Contributing
+- All code contributions, changes, and pull requests must target the `testing` branch.
+  - The current codebase you are using is correctly based on the `testing` branch.
+- More details can be found in [CONTRIBUTING.md](CONTRIBUTING.md)
+
 ## Repository context
 - The add-on code lives under `CM3D2 Converter/` and is implemented in Python.
 - This repository targets Blender 2.8x+ API behavior, not Blender 2.7x.
