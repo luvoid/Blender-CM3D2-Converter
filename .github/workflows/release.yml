@@ -19,7 +19,7 @@ jobs:
     name: Latest Release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
       - name: Determine Tagged Zip Name
         if: ${{ github.ref_type == 'tag' }}
         run: |
@@ -34,7 +34,7 @@ jobs:
         run: |
           zip -r ${{env.ZIP_FILE}} "CM3D2 Converter"
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.ZIP_FILE }}
           path: ${{ env.ZIP_FILE }}
